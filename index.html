@@ -106,29 +106,13 @@
     .wordmark {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
       text-decoration: none;
-      color: var(--white);
     }
 
-    .wordmark-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--wb-900) 0%, var(--tb-900) 100%);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 14px;
-      color: var(--eg-900);
-      letter-spacing: -0.02em;
-    }
-
-    .wordmark-text {
-      font-size: var(--text-lg);
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    .wordmark img {
+      height: 32px;
+      width: auto;
+      display: block;
     }
 
     /* ==== Center stage ==== */
@@ -311,9 +295,8 @@
 <body>
   <div class="page">
     <header class="topbar">
-      <a class="wordmark" href="https://www.indebted.co" rel="noopener noreferrer">
-        <span class="wordmark-mark">iD</span>
-        <span class="wordmark-text">InDebted</span>
+      <a class="wordmark" href="https://www.indebted.co" rel="noopener noreferrer" aria-label="InDebted">
+        <img src="assets/indebted-logo-white.png" alt="InDebted">
       </a>
     </header>
 
