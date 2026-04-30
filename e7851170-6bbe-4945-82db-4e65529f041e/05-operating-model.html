@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 · Operating Model — ADCB Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #FD4F00;
+      --bg: #f8f9fc;
+      --surface: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --text-dim: #9ca3af;
+      --border: #e8eaf0;
+      --divider: #f0f1f5;
+      --dark: #0f172a;
+      --error: #dc2626;
+      --error-light: rgba(220, 38, 38, 0.08);
+      --success: #059669;
+      --success-light: rgba(16, 185, 129, 0.08);
+      --warning: #d97706;
+      --warning-light: rgba(245, 158, 11, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #3538b2; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #1e1b4b 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #a5b4fc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 700px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; line-height: 1.6;
+    }
+
+    /* ===== Three-column model: today / not working / desired ===== */
+    .three-col {
+      display: grid;
+      grid-template-columns: 200px 1fr 1fr 1fr;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+      margin-bottom: 3rem;
+    }
+
+    .three-col-head {
+      display: contents;
+    }
+
+    .three-col-head > div {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .three-col-head .h-bucket { color: var(--text-dim); }
+    .three-col-head .h-today { color: var(--text-secondary); border-right: 1px solid var(--border); }
+    .three-col-head .h-broken { color: var(--error); border-right: 1px solid var(--border); background: rgba(220,38,38,0.04); }
+    .three-col-head .h-desired { color: var(--success); background: rgba(16,185,129,0.04); }
+
+    .three-col-row {
+      display: contents;
+    }
+
+    .three-col-row > div {
+      padding: 1.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.55;
+      border-bottom: 1px solid var(--divider);
+      vertical-align: top;
+    }
+
+    .three-col-row:last-child > div {
+      border-bottom: none;
+    }
+
+    .three-col-row .c-bucket {
+      background: var(--bg);
+      font-weight: 700;
+      color: var(--text);
+      border-right: 1px solid var(--border);
+    }
+
+    .c-bucket-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .three-col-row .c-today {
+      color: var(--text-secondary);
+      border-right: 1px solid var(--divider);
+    }
+
+    .three-col-row .c-today.prompt {
+      color: var(--text-dim);
+      font-style: italic;
+      background: var(--bg);
+    }
+
+    .three-col-row .c-broken {
+      color: var(--text-secondary);
+      border-right: 1px solid var(--divider);
+      background: rgba(220,38,38,0.015);
+    }
+
+    .three-col-row .c-broken strong {
+      color: var(--error);
+      font-weight: 700;
+    }
+
+    .three-col-row .c-desired {
+      color: var(--text);
+      background: rgba(16,185,129,0.02);
+    }
+
+    .three-col-row .c-desired strong {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .col-confirm {
+      display: inline-block;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      background: var(--warning-light);
+      color: var(--warning);
+      border-radius: 4px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* Status pill in the "next step" column */
+    .col-status {
+      display: inline-block;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .col-status.resolved { background: var(--success-light); color: var(--success); }
+    .col-status.progress { background: var(--warning-light); color: var(--warning); }
+    .col-status.open { background: var(--error-light); color: var(--error); }
+
+    /* Subgroup divider inside a matrix (e.g. "1. Account upload") */
+    .three-col-subhead {
+      grid-column: 1 / -1;
+      padding: 0.875rem 1.5rem;
+      background: var(--dark);
+      color: #fff;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .three-col-subhead .num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--secondary);
+      font-size: 0.625rem;
+    }
+
+    /* Part label above each matrix */
+    .part-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.875rem;
+      background: var(--dark);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .part-tag .num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--secondary);
+      font-size: 0.625rem;
+    }
+    .part-tag .num::before { content: '['; opacity: 0.6; }
+    .part-tag .num::after { content: ']'; opacity: 0.6; }
+
+    /* ===== Single-page desired state ===== */
+    .desired-page {
+      background: linear-gradient(180deg, #0f172a 0%, #1a1a2e 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .desired-page::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.06) 0%, transparent 60%);
+    }
+
+    .desired-inner { position: relative; z-index: 1; }
+
+    .desired-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .desired-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem;
+    }
+
+    .desired-title {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 0.5rem; max-width: 700px;
+    }
+
+    .desired-title em { font-style: normal; color: var(--secondary); }
+
+    .desired-subtitle {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.65);
+      line-height: 1.55; max-width: 600px;
+    }
+
+    .desired-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.875rem;
+      background: rgba(118,235,226,0.1);
+      border: 1px solid rgba(118,235,226,0.3);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--secondary);
+      letter-spacing: 0.05em;
+    }
+
+    .desired-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .desired-lever {
+      padding: 1.5rem 1.75rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .desired-lever:hover {
+      background: rgba(118,235,226,0.04);
+      border-color: rgba(118,235,226,0.2);
+    }
+
+    .desired-lever-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: #0f172a;
+      font-size: 0.7rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .desired-lever h4 {
+      font-size: 0.9375rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .desired-lever p {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+
+    .desired-lever .lever-spec {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+      color: var(--secondary);
+      letter-spacing: -0.01em;
+      line-height: 1.6;
+    }
+
+    .desired-lever .lever-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      margin-bottom: 0.6rem;
+    }
+
+    .lever-tag.adcb { background: rgba(253,79,0,0.15); color: var(--accent-orange); }
+    .lever-tag.indebted { background: rgba(118,235,226,0.15); color: var(--secondary); }
+    .lever-tag.both { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+
+    .desired-foot {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(118,235,226,0.05);
+      border-left: 2px solid var(--secondary);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.55;
+    }
+
+    .desired-foot strong { color: var(--secondary); font-weight: 700; }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.85);
+      max-width: 640px; margin: 0 auto; line-height: 1.55;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 1024px) {
+      .three-col { grid-template-columns: 1fr; }
+      .three-col-head { display: none; }
+      .three-col-row > div { border-right: none !important; }
+      .three-col-row .c-bucket {
+        font-size: 0.875rem;
+        padding-top: 1.25rem;
+      }
+      .three-col-row .c-today::before { content: 'Today: '; font-weight: 700; color: var(--text-secondary); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .three-col-row .c-broken::before { content: "What's broken: "; font-weight: 700; color: var(--error); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .three-col-row .c-desired::before { content: 'Desired: '; font-weight: 700; color: var(--success); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .desired-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">05 / 06 · <strong>Operating model</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="04-client-journey.html">← Prev</a>
+        <a class="nav-btn primary" href="06-next-steps.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 05 · 30 minutes</div>
+      <h1>Today's state, <em>and where we strengthen it together</em>.</h1>
+      <p class="hero-sub">A working session. Bucket by bucket: how things actually run today on the ADCB engagement, where it breaks, and the desired state that lets Collect work properly. ADCB to confirm or correct each row in the room.</p>
+    </div>
+  </section>
+
+  <!-- AS-IS matrix: Part 1 + Part 2 -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">AS-IS summary · April 2026</div>
+      <h2>Today's state, the impact, and the target state we'd build to together</h2>
+      <p>Findings from the ADCB AS-IS summary, organised by theme. Each row carries a status — resolved, in progress, or open. The right-hand column is the next step on the table.</p>
+    </div>
+
+    <!-- PART 1 -->
+    <div class="part-tag"><span class="num">PART 1</span> Platform &amp; SOP issues</div>
+
+    <div class="three-col">
+      <div class="three-col-head">
+        <div class="h-bucket">Bucket</div>
+        <div class="h-today">What we see today</div>
+        <div class="h-broken">Why it matters</div>
+        <div class="h-desired">Status &amp; next step</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">01</span> Account upload / data exchange</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.1</div>
+          File format
+        </div>
+        <div class="c-today">ADCB format differed from ours. Initially received multiple files across products rather than a single unified file.</div>
+        <div class="c-broken">Repeated upload failures and <strong>manual rework on each batch</strong>.</div>
+        <div class="c-desired"><span class="col-status resolved">✓ Resolved</span> Agreed on a single file in ADCB format. ADCB drops files on our SFTP in the agreed layout.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.2</div>
+          Column-naming errors
+        </div>
+        <div class="c-today">'Card number' used where 'account number' is expected. Due amounts and credit limits appearing in the wrong fields.</div>
+        <div class="c-broken">Blocks automation. <strong>Auto-upload disabled</strong> — every file requires manual cleaning before it loads. Delays account activation.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> ADCB to tighten file validation before sending. Re-enables auto-upload into Collect.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.3</div>
+          Bad data after load
+        </div>
+        <div class="c-today">Wrong account numbers / balances loaded. Once in Collect these fields can't be corrected — workaround is a manual transaction upload, which distorts account history.</div>
+        <div class="c-broken">Manual effort per account. <strong>Misleading records that affect treatment logic and reporting.</strong></div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> Files must be accurate before upload. ADCB to confirm data integrity as part of the handoff process.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.4</div>
+          Missing data fields
+        </div>
+        <div class="c-today">Still not receiving last payment date, date of birth (credit-card customers), and a linked-liabilities indicator (Yes/No).</div>
+        <div class="c-broken">Treatment sequencing weaker without last payment date. Tracing harder without DOB. <strong>No visibility on linked liabilities</strong> — the bank requires all linked products to settle together, including those not assigned to us.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> ADCB to add these fields to the upload file. Linked-liabilities flag is the most critical of the three.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.5</div>
+          Balance changes without txn
+        </div>
+        <div class="c-today">When balances change (bank fees, interest), an updated balance is sent without a supporting transaction record.</div>
+        <div class="c-broken"><strong>Outstanding balance mismatches</strong> between Collect and the bank's records. We currently re-upload accounts without reflecting the change.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> Each balance change accompanied by a transaction record so the account balance is accurate and we collect against it correctly.</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">02</span> Reporting</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.1</div>
+          Payment report format
+        </div>
+        <div class="c-today">ADCB required password protection and decimal formatting on the payment report.</div>
+        <div class="c-broken">Compliance and formatting requirement.</div>
+        <div class="c-desired"><span class="col-status resolved">✓ Resolved</span> Done. Report delivered by 10am T+1 UAE time.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.2</div>
+          Real-time payment view
+        </div>
+        <div class="c-today">ADCB want to see payments as they come in, not on a T+1 basis.</div>
+        <div class="c-broken">Visibility gap between <strong>when a customer pays and when ADCB sees it</strong>.</div>
+        <div class="c-desired"><span class="col-status progress">■ In progress</span> ADCB has Stripe dashboard access for real-time payment visibility. Otherwise the T+1 report is the fastest written report available.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.3</div>
+          Duplicate payments
+        </div>
+        <div class="c-today">Same payment reported more than once across successive payment files.</div>
+        <div class="c-broken"><strong>Distorts commission calculations and reconciliation.</strong> Auto-upload of payment files is disabled — every file needs manual review and dedupe before loading.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> ADCB to resolve duplication at source. Re-enables auto-upload of payment files.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.4</div>
+          Payout report (T+5)
+        </div>
+        <div class="c-today">Payout report delivered at T+5 business days (7 calendar days). Driven by Stripe settlement timing in the UAE, not InDebted.</div>
+        <div class="c-broken">Delays ADCB's ability to <strong>reconcile fund movements against core banking</strong>.</div>
+        <div class="c-desired"><span class="col-status progress">■ In progress</span> InDebted continues pushing Stripe, but timing is largely out of our hands. In the interim, <strong>both sides to explore solutions</strong>. See Payments below for the underlying constraint.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.5</div>
+          Activity report (Genesys)
+        </div>
+        <div class="c-today">ADCB needed visibility on collection activity (calls, SMS, emails). Genesys call data has a ~24h lag from our data lake.</div>
+        <div class="c-broken">Activity report <strong>cannot yet reflect same-day calls</strong>.</div>
+        <div class="c-desired"><span class="col-status progress">■ In progress</span> Activity reports now delivered daily. Working on reducing the Genesys lag — target is next-day automated reporting, max 2-day lag.</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">03</span> Payments</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">03.1</div>
+          Stripe T+5 settlement
+        </div>
+        <div class="c-today">Stripe payout to ADCB takes T+5 business days in the UAE. Stripe-imposed settlement window, not an InDebted constraint.</div>
+        <div class="c-broken">ADCB <strong>cannot reconcile payments against core banking</strong> until the money physically lands. Impacts cycle-end and month-end cut-offs.</div>
+        <div class="c-desired"><span class="col-status progress">■ In progress</span> InDebted continues pushing Stripe, but settlement timing is largely out of our hands. In the interim, <strong>both sides to explore solutions</strong> — including ADCB confirming internally whether <strong>balances can be updated for customers before money lands</strong> (i.e. living with T+5 in core banking).</div>
+      </div>
+
+    </div>
+
+    <!-- PART 2 -->
+    <div class="part-tag" style="margin-top: 2.5rem;"><span class="num">PART 2</span> Collections practices</div>
+
+    <div class="three-col">
+      <div class="three-col-head">
+        <div class="h-bucket">Bucket</div>
+        <div class="h-today">What we see today</div>
+        <div class="h-broken">Why it matters</div>
+        <div class="h-desired">Status &amp; next step</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">04</div>
+          Late-stage buckets B5–6
+        </div>
+        <div class="c-today">EL, PL and CC accounts in buckets 5 and 6 have very high roll rates — these are functionally recoveries, not active collections.</div>
+        <div class="c-broken">Current classification prevents meaningful treatment. <strong>Can't offer proper payment plans or realistic settlement terms</strong> on these accounts.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> Reclassify as recoveries. Lock interest accrual. Allow InDebted to work them with proper tools — payment plans and settlements (no settlements before 180 DPD+).</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">05</div>
+          Settlement authority
+        </div>
+        <div class="c-today">Settlement authority is currently capped — even on accounts that are years overdue and where full recovery is unlikely.</div>
+        <div class="c-broken">
+          Delays and friction on every settlement. <strong>Deals are lost while waiting for approval.</strong>
+          <div style="margin-top: 0.75rem;">InDebted can't deploy capital where it works hardest; <strong>offers that would lift overall recovery sit unactioned.</strong></div>
+        </div>
+        <div class="c-desired">
+          <span class="col-status open">✗ Open</span> Agree a settlement grid that gives InDebted delegated authority where it makes sense. Bank also needs flexibility on aged accounts where the alternative is zero recovery.
+          <div style="margin-top: 0.75rem;">Introduce a <strong>monthly Settlement Budget per allocation</strong> (e.g. AED 250k aggregate). InDebted decides per-account use within the envelope; any overage is netted against the invoice. Maximises portfolio performance with a clear ceiling.</div>
+        </div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">06</div>
+          KPIs &amp; performance data
+        </div>
+        <div class="c-today">No visibility on actual performance data from other agencies.</div>
+        <div class="c-broken">Cannot <strong>assess InDebted on a like-for-like basis</strong>.</div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> Spin-down reports to benchmark performance. Agree a shared KPI suite — both sides currently measuring different things with different definitions.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">07</div>
+          Account recalls &amp; rotation
+        </div>
+        <div class="c-today">ADCB recalls accounts after ~30 days and rotates them to another agency.</div>
+        <div class="c-broken">
+          30 days <strong>prevents Collect from optimising contact time and channel per consumer</strong> — the engine has barely learned what works for an account before it's pulled.
+          <div style="margin-top: 0.75rem;">Even consumers who have started engaging — opening messages, visiting the portal, agreeing a plan — get recalled before they can make their next payment. <strong>Exacerbated by monthly pay cycles common in the UAE</strong>: a customer paid mid-month often can't action a balance until the following salary date, which lands outside the 30-day window.</div>
+          <div style="margin-top: 0.75rem;">Next agency inherits no context, customer is less likely to re-engage, PTPs in flight are lost.</div>
+        </div>
+        <div class="c-desired"><span class="col-status open">✗ Open</span> Allow Collect to <strong>retain accounts across multiple months</strong> by default — and <strong>longer where the consumer is showing meaningful engagement</strong> (opening messages, visiting the portal, on a payment plan). Lets the engine optimise per consumer and converts engagement into payment.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Single-page desired state -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="desired-page">
+      <div class="desired-inner">
+        <div class="desired-header">
+          <div>
+            <div class="desired-tag">The single page</div>
+            <h2 class="desired-title">If we got these ten things right, <em>this would all work</em>.</h2>
+            <p class="desired-subtitle">Each lever maps directly to an open or in-progress item from the AS-IS summary above. Resolved items are off this list.</p>
+          </div>
+          <div class="desired-stamp">v2 · 27 Apr 2026</div>
+        </div>
+
+        <div class="desired-grid">
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">1</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Tighten file validation at source</h4>
+            <p>Validate column names and field-level data quality before files leave ADCB ('account number' vs 'card number', amounts in the right fields). Re-enables auto-upload into Collect.</p>
+            <div class="lever-spec">target: clean files, every batch<br>unblocks: auto-upload (accounts)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">2</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Confirm data integrity at handoff</h4>
+            <p>Account numbers and balances must be correct on upload — once in Collect they can't be corrected, only worked around with manual transactions that distort history.</p>
+            <div class="lever-spec">target: zero post-load corrections<br>review: pre-upload sign-off</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">3</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Add the missing data fields</h4>
+            <p>Last payment date, DOB for credit-card customers, linked-liabilities indicator. The linked-liabilities flag is the most important — without it we can't anticipate joint-settlement requirements.</p>
+            <div class="lever-spec">add: last_payment_date, dob, linked_liabilities<br>upload schema: v2</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">4</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Transaction record with every balance change</h4>
+            <p>Bank fees, interest, and adjustments must come with a supporting transaction. Updated-balance-only feeds create mismatches between Collect and the bank.</p>
+            <div class="lever-spec">rule: no balance change without txn record</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">5</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Deduplicate payment files at source</h4>
+            <p>Same payment appearing across successive files distorts commission and reconciliation. Re-enables auto-upload of payment files.</p>
+            <div class="lever-spec">target: zero duplicates<br>unblocks: auto-upload (payments)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">6</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Reclassify B5–6 as recoveries</h4>
+            <p>EL, PL, CC accounts in buckets 5–6 are functionally recoveries. Reclassify, lock interest accrual, and let Collect work them with payment plans and settlements (180 DPD+).</p>
+            <div class="lever-spec">scope: EL / PL / CC, B5–6<br>tools: plans + settlements (≥180 DPD)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">7</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Settlement authority grid</h4>
+            <p>Delegated authority within agreed % discount × DPD × balance bands. Flexibility on aged accounts where the alternative is zero recovery.</p>
+            <div class="lever-spec">grid: settlement-thresholds.v1<br>auto-approve: within band</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">8</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Monthly settlement budget</h4>
+            <p>Per-allocation aggregate envelope (e.g. AED 250k / month). InDebted deploys it across accounts to maximise portfolio performance; any overage is netted against the invoice.</p>
+            <div class="lever-spec">budget: monthly_aggregate per allocation<br>overage: netted from invoice</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">9</div>
+            <span class="lever-tag both">Both</span>
+            <h4>Shared KPI suite + spin-down reports</h4>
+            <p>Agreed metrics with shared definitions so both sides measure the same thing. Spin-down reports across agencies give a like-for-like benchmark.</p>
+            <div class="lever-spec">scorecard: pilot-kpi-v1<br>add: agency spin-down reports</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">10</div>
+            <span class="lever-tag adcb">ADCB</span>
+            <h4>Extend account recall window</h4>
+            <p>30-day rotation is too short. Extending the window protects PTPs in progress, raises conversion, and reduces wasted effort across agencies.</p>
+            <div class="lever-spec">current: ~30 days<br>target: extend (TBC in workshop)</div>
+          </div>
+
+        </div>
+
+        <div class="desired-foot">
+          <strong>The point:</strong> these map directly to the AS-IS findings above. Each is a working-level decision ADCB can make. The Action Doc in Section 06 is this list, ready to align on row by row.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing -->
+  <section class="section" style="padding-top: 0; padding-bottom: 2rem;">
+    <div class="close-frame">
+      <h3>This is the actionable surface area.<br>Section 06 is what we do with it.</h3>
+      <p>Pilot phasing, the send-ready email/doc, and the Excel checklist with one row per lever above. Ten YES/NO answers and we have a green light.</p>
+    </div>
+  </section>
+
+  <!-- Footer Nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="04-client-journey.html">
+      <div class="foot-nav-dir">← Previous · 04</div>
+      <div class="foot-nav-title">Typical client journey</div>
+    </a>
+    <a class="foot-nav next" href="06-next-steps.html">
+      <div class="foot-nav-dir">Next · 06</div>
+      <div class="foot-nav-title">Where we go from here →</div>
+    </a>
+  </div>
+
+</body>
+</html>

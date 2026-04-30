@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>06 · Where We Go From Here — ADCB Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #FD4F00;
+      --bg: #f8f9fc;
+      --surface: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --text-dim: #9ca3af;
+      --border: #e8eaf0;
+      --divider: #f0f1f5;
+      --dark: #0f172a;
+      --error: #dc2626;
+      --error-light: rgba(220, 38, 38, 0.08);
+      --success: #059669;
+      --success-light: rgba(16, 185, 129, 0.08);
+      --warning: #d97706;
+      --warning-light: rgba(245, 158, 11, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #3538b2; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #1e1b4b 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #a5b4fc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 700px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; line-height: 1.6;
+    }
+
+    /* ===== Pilot phasing ===== */
+    .phasing {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+
+    .phase-tile {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phase-tile::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+    }
+
+    .phase-tile.p1::before { background: var(--secondary); }
+    .phase-tile.p2::before { background: linear-gradient(90deg, var(--primary), var(--accent-orange)); }
+
+    .phase-num-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .phase-tile-num {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .phase-tile.p1 .phase-tile-num { background: var(--secondary-light); color: #0d9488; }
+    .phase-tile.p2 .phase-tile-num { background: rgba(253,79,0,0.08); color: var(--accent-orange); }
+
+    .phase-tile-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.35rem 0.625rem;
+      background: var(--bg);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    .phase-tile h3 {
+      font-size: 1.125rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .phase-tile-portfolio {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .phase-tile p {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 1rem;
+    }
+
+    .phase-tile-criteria {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .phase-tile-criteria li {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+
+    .phase-tile-criteria li::before {
+      content: '→';
+      color: var(--primary);
+      font-weight: 700;
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      margin-top: 0.15rem;
+    }
+
+    .phasing-arrow {
+      position: absolute;
+      top: 60px;
+      width: 24px;
+      height: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--primary);
+      font-weight: 700;
+      z-index: 2;
+    }
+
+    .phasing-arrow.a1 { left: calc(61.5%); transform: translateX(-50%); }
+
+    /* ===== Action Document ===== */
+    .action-wrap {
+      background: linear-gradient(180deg, #0f172a 0%, #1a1a2e 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 0;
+      overflow: hidden;
+      margin-bottom: 3rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .action-head {
+      padding: 2rem 2.5rem;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .action-head-left h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    .action-head-left p {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .action-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .action-meta-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .action-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+
+    .action-table thead th {
+      text-align: left;
+      padding: 1rem 1.5rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .action-table thead th:nth-child(4),
+    .action-table thead th:nth-child(5) {
+      text-align: center;
+      width: 100px;
+    }
+
+    .action-table tbody td {
+      padding: 1.125rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+
+    .action-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .action-table tbody tr:hover {
+      background: rgba(118,235,226,0.02);
+    }
+
+    .action-table .item-num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--secondary);
+      font-weight: 500;
+      font-size: 0.75rem;
+      width: 40px;
+    }
+
+    .action-table .item-title {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .action-table .item-owner {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .item-owner.adcb { background: rgba(253,79,0,0.15); color: var(--accent-orange); }
+    .item-owner.indebted { background: rgba(118,235,226,0.15); color: var(--secondary); }
+    .item-owner.both { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+
+    .action-cell-yn {
+      text-align: center;
+      width: 100px;
+    }
+
+    .yn-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 70px; height: 28px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .yn-pill.empty {
+      border: 1px dashed rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.3);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+    }
+
+    .yn-pill.yes {
+      background: rgba(16,185,129,0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    .yn-pill.no {
+      background: rgba(220,38,38,0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(220,38,38,0.3);
+    }
+
+    /* ===== Final close — what we need ===== */
+    .final-close {
+      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      color: #fff;
+      padding: 3rem 2.5rem;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-close::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 50%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.15) 0%, transparent 60%);
+    }
+
+    .final-close-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .final-close-tag {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .final-close h3 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      max-width: 800px;
+    }
+
+    .final-close h3 em {
+      font-style: normal;
+      color: var(--secondary);
+    }
+
+    .final-close p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.6;
+      max-width: 700px;
+      margin-bottom: 2rem;
+    }
+
+    .final-asks {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .final-ask {
+      padding: 1.25rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+    }
+
+    .final-ask-when {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--secondary);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .final-ask h5 {
+      font-size: 0.875rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.35rem;
+    }
+
+    .final-ask p {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* ===== Open discussion (closing partnership card) ===== */
+    .open-discussion {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem 2.5rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+    }
+    .od-eyebrow {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    .open-discussion h3 {
+      font-size: 1.875rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    .open-discussion > p {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    .od-lockup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.75rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--divider);
+    }
+    .od-logo { display: block; width: auto; }
+    .od-logo.od-indebted { height: 36px; }
+    .od-logo.od-adcb { height: 44px; }
+    .od-x {
+      font-size: 1.5rem;
+      color: var(--text-dim);
+      font-weight: 200;
+      line-height: 1;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--secondary) 0%, #5dd1c8 100%);
+      color: #0f172a; border-color: var(--secondary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(15,23,42,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 1024px) {
+      .phasing { grid-template-columns: 1fr; }
+      .phasing-arrow { display: none; }
+      .final-asks { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .action-table { font-size: 0.75rem; }
+      .action-table thead th, .action-table tbody td { padding: 0.875rem 1rem; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">06 / 06 · <strong>Where we go from here</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="05-operating-model.html">← Prev</a>
+        <a class="nav-btn primary" href="index.html">Finish ✓</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 06 · 20 minutes</div>
+      <h1>The pilot, phased.<br><em>The action doc, written together.</em></h1>
+      <p class="hero-sub">Concrete next steps. Express Loans first, with recoveries running alongside. Then PLs and Credit Cards. The action doc — a focused set of items to align on so we can move forward together.</p>
+    </div>
+  </section>
+
+  <!-- Pilot phasing -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Proposal · Pilot phasing</div>
+      <h2>Two phases. The first earns the second.</h2>
+      <p>We don't ask ADCB to bet the bank on a Day 1 deployment. The pilot starts where the operating model gap is smallest, and expands as the engine proves out.</p>
+    </div>
+
+    <div class="phasing">
+      <div class="phase-tile p1">
+        <div class="phase-num-row">
+          <div class="phase-tile-num">P1</div>
+          <div class="phase-tile-time">Months 1 – 3</div>
+        </div>
+        <h3>Express Loans + existing recoveries</h3>
+        <div class="phase-tile-portfolio">All buckets, including early delinquency</div>
+        <p>Express Loans <strong>across all buckets, including early delinquency (1–3)</strong> — today InDebted only sees buckets 4–6. Existing recoveries portfolios continue at the current 60% wallet share by geography, with deeper engagement on offshore and hard-to-locate cases as the engine proves out.</p>
+        <ul class="phase-tile-criteria">
+          <li>Express Loans, all buckets including early delinquency (1–3)</li>
+          <li>Recoveries: 60% wallet share by geography, expanding into harder cases</li>
+          <li>Email + SMS + portal channels</li>
+          <li>Pre-approved plan thresholds active</li>
+          <li>Pre-approved settlement matrix active</li>
+          <li><strong>AI Voice + Skip</strong> available as additional capability soon</li>
+          <li><strong>Can start tomorrow</strong> — no infrastructure work or new hires required</li>
+        </ul>
+      </div>
+
+      <div class="phasing-arrow a1">→</div>
+
+      <div class="phase-tile p2">
+        <div class="phase-num-row">
+          <div class="phase-tile-num">P2</div>
+          <div class="phase-tile-time">Post-pilot</div>
+        </div>
+        <h3>Credit Cards + Personal Loans</h3>
+        <div class="phase-tile-portfolio">Gated on operating-model alignment</div>
+        <p>Credit Cards and Personal Loans onboarding follows once ADCB has resolved the operating-model items — file formats, settlement authorities, and the rest of the action doc. Until then, taking these portfolios on under current SOPs wouldn't deliver lift; they'd be better served by a traditional agency.</p>
+        <ul class="phase-tile-criteria">
+          <li>Gated on workshop action item completion</li>
+          <li>Credit Cards portfolio fully on platform</li>
+          <li>Personal Loans portfolio fully on platform</li>
+          <li>Quarterly business review cadence</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--secondary-light); border-left: 3px solid var(--secondary); border-radius: 0 10px 10px 0; font-size: 0.875rem; color: var(--text); line-height: 1.55;">
+      <strong style="color: #0d9488;">Timeline:</strong> Phase 1 can start tomorrow. With the operating-model alignment from Section 05, Phase 2 follows naturally as ADCB's items close out. No new hires, no new infrastructure — capacity is already there.
+    </div>
+  </section>
+
+  <!-- Action document -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">The action doc</div>
+      <h2>One sheet. YES we can. Or NO and why.</h2>
+      <p>Action items for us all to ensure success. The buckets from Section 05, brought into one place so we can align on each — together.</p>
+    </div>
+
+    <div class="action-wrap">
+      <div class="action-head">
+        <div class="action-head-left">
+          <h3>ADCB × InDebted — Pilot Action Items</h3>
+          <p>Each item: YES we can, or NO and why. Owner column shows who's accountable. Deadline column to be agreed in the room.</p>
+        </div>
+        <div class="action-meta">
+          <div class="action-meta-item">v1 · 25 Apr 2026</div>
+          <div class="action-meta-item">7 items</div>
+        </div>
+      </div>
+
+      <table class="action-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Bucket</th>
+            <th>Owner</th>
+            <th>YES / NO</th>
+            <th>Why if NO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="item-num">01</td>
+            <td>
+              <div class="item-title">Account upload / data exchange</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">File validation, data integrity, missing fields, transaction records for balance changes</div>
+            </td>
+            <td><span class="item-owner adcb">ADCB</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">If NO, what's the constraint?</td>
+          </tr>
+          <tr>
+            <td class="item-num">02</td>
+            <td>
+              <div class="item-title">Reporting</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Real-time payment view, duplicate handling, activity-report cadence</div>
+            </td>
+            <td><span class="item-owner both">Both</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Share any constraints to work through</td>
+          </tr>
+          <tr>
+            <td class="item-num">03</td>
+            <td>
+              <div class="item-title">Payments</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Stripe settlement timing largely out of our hands — both sides explore interim solutions</div>
+            </td>
+            <td><span class="item-owner both">Both</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">ADCB internal: can balances be updated for customers before money lands (i.e. live with T+5)?</td>
+          </tr>
+          <tr>
+            <td class="item-num">04</td>
+            <td>
+              <div class="item-title">Late-stage buckets (B5–6)</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Reclassify EL, PL, CC at B5–6 as recoveries; lock interest accrual</div>
+            </td>
+            <td><span class="item-owner adcb">ADCB</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">If NO, what's the constraint?</td>
+          </tr>
+          <tr>
+            <td class="item-num">05</td>
+            <td>
+              <div class="item-title">Settlement authority</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Delegated grid by % discount × DPD × balance</div>
+            </td>
+            <td><span class="item-owner adcb">ADCB</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Risk + ops sign-off needed</td>
+          </tr>
+          <tr>
+            <td class="item-num">06</td>
+            <td>
+              <div class="item-title">KPIs &amp; performance data</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Shared scorecard with agreed definitions; spin-down reports across agencies</div>
+            </td>
+            <td><span class="item-owner both">Both</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">InDebted drafts; ADCB signs off</td>
+          </tr>
+          <tr>
+            <td class="item-num">07</td>
+            <td>
+              <div class="item-title">Account recalls &amp; rotation</div>
+              <div style="color: rgba(255,255,255,0.55); font-size: 0.75rem; margin-top: 0.2rem;">Extend the 30-day rotation window to give meaningful collections runway</div>
+            </td>
+            <td><span class="item-owner adcb">ADCB</span></td>
+            <td class="action-cell-yn"><span class="yn-pill empty">— · —</span></td>
+            <td style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">If NO, share what's behind it</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Final close -->
+  <section class="section" style="padding-top: 1rem; padding-bottom: 2rem;">
+    <div class="final-close">
+      <div class="final-close-inner">
+        <div class="final-close-tag">What we'd love next</div>
+        <h3>A short, focused alignment on the <em>action items</em> — and we're ready to launch.</h3>
+        <p>Section 05 named the levers; Section 06 made them concrete. Two weeks from the doc returning, Phase 1 is live. Three months later, Phase 2 follows. Beyond that, we accelerate together.</p>
+
+        <div class="final-asks">
+          <div class="final-ask">
+            <div class="final-ask-when">Within two weeks</div>
+            <h5>Action items aligned · Pilot Phase 1 goes live</h5>
+            <p>Express Loans + Recoveries on platform. Monthly formal review cadence kicks off — both sides.</p>
+          </div>
+          <div class="final-ask">
+            <div class="final-ask-when">Within three months</div>
+            <h5>Pilot Phase 2 live</h5>
+            <p>Credit Cards + Personal Loans onboard, gated on action items closing out together.</p>
+          </div>
+          <div class="final-ask">
+            <div class="final-ask-when">Beyond</div>
+            <h5>Scale the partnership</h5>
+            <p>Accelerate together.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open discussion · partnership close -->
+  <section class="section" style="padding-top: 0; padding-bottom: 4rem;">
+    <div class="open-discussion">
+      <div class="od-eyebrow">Open discussion</div>
+      <h3>Let's Discuss</h3>
+      <p>The deck closes; the work begins. Action items, operating model, pilot — all of it lands because we work it together.</p>
+      <div class="od-lockup">
+        <img src="shared-logos/InDebted Wordmark Light Background.svg" alt="InDebted" class="od-logo od-indebted">
+        <span class="od-x" aria-hidden="true">×</span>
+        <img src="images/adcb-logo-light.svg" alt="ADCB" class="od-logo od-adcb">
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="05-operating-model.html">
+      <div class="foot-nav-dir">← Previous · 05</div>
+      <div class="foot-nav-title">Operating model</div>
+    </a>
+    <a class="foot-nav next" href="index.html">
+      <div class="foot-nav-dir">Workshop complete</div>
+      <div class="foot-nav-title">Back to index ✓</div>
+    </a>
+  </div>
+
+</body>
+</html>
