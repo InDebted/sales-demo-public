@@ -350,6 +350,82 @@
     .fade-in.visible { opacity: 1; transform: translateY(0); }
 
     /* ===== Workshop-specific: Split View ===== */
+    /* ===== Evolution three-tier ===== */
+    .evolution-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .evolution-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .evolution-col--us {
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(118,235,226,0.05) 100%);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(71,76,222,0.08);
+    }
+    .evolution-tag {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    .evolution-col--us .evolution-tag { color: var(--primary); }
+    .evolution-col h4 {
+      font-size: 1.0625rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .evolution-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .evolution-col ul li {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding-left: 1rem;
+      position: relative;
+    }
+    .evolution-col ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+    .evolution-col--us ul li::before { background: var(--primary); }
+    .evolution-foot {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.625rem 0.875rem;
+      border-radius: 8px;
+      line-height: 1.4;
+    }
+    .evolution-foot--bad { background: var(--error-light); color: var(--error); }
+    .evolution-foot--ok { background: rgba(71,76,222,0.08); color: var(--primary); }
+    .evolution-foot--good {
+      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      color: #fff;
+    }
+
     .splitview {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; overflow: hidden;
@@ -849,11 +925,11 @@
     <div class="workshop-nav-inner">
       <div class="nav-left">
         <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
-        <div class="nav-crumbs">03 / 07 · <strong>Collect deep dive</strong></div>
+        <div class="nav-crumbs">04 / 08 · <strong>Collect deep dive</strong></div>
       </div>
       <div class="nav-right">
-        <a class="nav-btn" href="02-product-suite.html">← Prev</a>
-        <a class="nav-btn primary" href="04-comply-deep-dive.html">Next →</a>
+        <a class="nav-btn" href="03-receive-deep-dive.html">← Prev</a>
+        <a class="nav-btn primary" href="05-comply-deep-dive.html">Next →</a>
       </div>
     </div>
     <nav class="subsection-nav">
@@ -878,9 +954,62 @@
   <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="section-tag">Section 03 · 60 minutes</div>
+      <div class="section-tag">Section 04 · 60 minutes</div>
       <h1>Two operating models, side by side.<br><em>Same portfolio. Different physics.</em></h1>
       <p class="hero-sub">The longest section because it's the most important. We compare operating models, then go deep on every layer of how Collect actually works — the intelligence engine, the AI, the event-driven architecture, the channels, the firewall, the customer experience, the dispute portal. Plus: real-world friction points we typically see in traditional collections, a customer case study, and the human work that still happens behind the engine.</p>
+    </div>
+  </section>
+
+  <!-- 1a. Three-tier evolution of debt collection -->
+  <section class="section" id="evolution">
+    <div class="section-head">
+      <div class="eyebrow">The evolution of debt collection</div>
+      <h2>Traditional, Digital, AI-powered. We're the third thing.</h2>
+      <p>The industry has moved through generations. Most of the market has caught up to "digital". We built Collect for what comes next.</p>
+    </div>
+
+    <div class="evolution-grid">
+      <div class="evolution-col">
+        <div class="evolution-tag">Traditional</div>
+        <h4>Contact-centre collections</h4>
+        <ul>
+          <li>Contact centre-based operations</li>
+          <li>Analog engagement — phone calls, letters</li>
+          <li>Intuition-led decision making</li>
+          <li>Agent-reliant resolution</li>
+          <li>~0.5% customer engagement rate</li>
+          <li>Process-driven compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--bad">Poor experience, high risk, unscalable, inefficient</div>
+      </div>
+
+      <div class="evolution-col">
+        <div class="evolution-tag">Digital</div>
+        <h4>Platform-based collections</h4>
+        <ul>
+          <li>Platform-based operations</li>
+          <li>Digital engagement — email, SMS</li>
+          <li>Data-driven decisioning</li>
+          <li>Customer self-serve capability</li>
+          <li>~3% customer engagement rate</li>
+          <li>Code-controlled compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--ok">Modern experience, scalable, engaging, user-friendly</div>
+      </div>
+
+      <div class="evolution-col evolution-col--us">
+        <div class="evolution-tag">AI-powered</div>
+        <h4>AI-native collections</h4>
+        <ul>
+          <li>AI-native operations</li>
+          <li>Omnichannel engagement powered by language models</li>
+          <li>AI and ML personalise the end-to-end experience</li>
+          <li>Customers self-serve with AI agents</li>
+          <li>5–7% customer engagement rate</li>
+          <li>AI-driven compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--good">Next-generation personalisation, intuition, scalability, efficiency</div>
+      </div>
     </div>
   </section>
 
@@ -1432,10 +1561,10 @@
   <section class="section" id="ai">
     <div class="section-num-wrap fade-in">
       <div class="section-number">3</div>
-      <div class="section-title-text">AI-Powered at Every Step</div>
+      <div class="section-title-text">AI is our operating system</div>
     </div>
     <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;" class="fade-in">
-      Collect doesn't just use AI as a feature — it's woven into every layer. From generating personalised communications to evaluating compliance in real-time and reading inbound replies for vulnerability signals.
+      InDebted was among the earliest in the industry to invest in AI — not just as a feature, but as a foundation. Today, AI powers the way we build, operate, and scale: across product, compliance, engineering, and customer experience. The next layers show what that looks like in Collect — drafted communications, real-time compliance, inbound reply analysis, vulnerability detection.
     </p>
 
     <!-- AI Pipeline -->
@@ -2522,12 +2651,12 @@
 
   <!-- Footer Nav -->
   <div class="section-footer">
-    <a class="foot-nav" href="02-product-suite.html">
-      <div class="foot-nav-dir">← Previous · 02</div>
-      <div class="foot-nav-title">Product suite + roadmap</div>
+    <a class="foot-nav" href="03-receive-deep-dive.html">
+      <div class="foot-nav-dir">← Previous · 03</div>
+      <div class="foot-nav-title">Receive deep dive</div>
     </a>
-    <a class="foot-nav next" href="04-comply-deep-dive.html">
-      <div class="foot-nav-dir">Next · 04</div>
+    <a class="foot-nav next" href="05-comply-deep-dive.html">
+      <div class="foot-nav-dir">Next · 05</div>
       <div class="foot-nav-title">Comply deep dive →</div>
     </a>
   </div>
