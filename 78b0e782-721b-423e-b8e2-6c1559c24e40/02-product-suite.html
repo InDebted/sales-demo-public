@@ -13,16 +13,16 @@
       --primary-light: rgba(71, 76, 222, 0.08);
       --secondary: #76EBE2;
       --secondary-light: rgba(118, 235, 226, 0.1);
-      --accent-orange: #FD4F00;
-      --bg: #f8f9fc;
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
       --surface: #ffffff;
-      --text: #1a1a2e;
-      --text-secondary: #6b7280;
-      --text-dim: #9ca3af;
-      --border: #e8eaf0;
-      --divider: #f0f1f5;
-      --dark: #0f172a;
-      --darker: #060218;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --darker: #000244;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -73,11 +73,11 @@
     }
     .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
     .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .nav-btn.primary:hover { background: #3538b2; color: #fff; }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
 
     /* ===== Hero ===== */
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #1e1b4b 100%);
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
       color: #fff;
       padding: 5rem 2rem 4rem;
       position: relative;
@@ -104,7 +104,7 @@
     }
     .hero h1 em {
       font-style: normal;
-      background: linear-gradient(135deg, var(--secondary) 0%, #a5b4fc 100%);
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .hero-sub {
@@ -134,7 +134,7 @@
 
     /* ===== Lifecycle Diagram ===== */
     .lifecycle-wrap {
-      background: linear-gradient(180deg, #0f172a 0%, #1a1a2e 100%);
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
       color: #fff;
       border-radius: 20px;
       padding: 2.75rem;
@@ -225,7 +225,7 @@
       top: -0.7rem;
       left: 50%;
       transform: translateX(-50%);
-      background: #0f172a;
+      background: #000244;
       color: var(--secondary);
       font-size: 0.875rem;
       width: 24px;
@@ -308,15 +308,15 @@
 
     .lc-badge.today {
       background: var(--secondary);
-      color: #0f172a;
+      color: #000244;
     }
     .lc-badge.roadmap {
-      background: rgba(253,79,0,0.18);
+      background: rgba(247,144,9,0.18);
       color: var(--accent-orange);
     }
     .lc-badge.soon {
-      background: rgba(139,92,246,0.18);
-      color: #c4b5fd;
+      background: rgba(116,114,199,0.18);
+      color: #7472c7;
     }
 
     .lc-product-desc {
@@ -375,10 +375,10 @@
     }
 
     .product-card[data-color="teal"]::before { background: var(--secondary); }
-    .product-card[data-color="purple"]::before { background: #a78bfa; }
-    .product-card[data-color="pink"]::before { background: #f472b6; }
+    .product-card[data-color="purple"]::before { background: #7472c7; }
+    .product-card[data-color="pink"]::before { background: #7472c7; }
     .product-card[data-color="orange"]::before { background: var(--accent-orange); }
-    .product-card[data-color="blue"]::before { background: #38bdf8; }
+    .product-card[data-color="blue"]::before { background: #2e90fa; }
 
     .product-num {
       font-family: 'JetBrains Mono', monospace;
@@ -409,10 +409,10 @@
       padding: 0.2rem 0.45rem;
       border-radius: 4px;
     }
-    .product-status.live { background: var(--secondary-light); color: #0d9488; }
+    .product-status.live { background: var(--secondary-light); color: #039855; }
     .product-status.focus { background: var(--primary-light); color: var(--primary); }
-    .product-status.roadmap { background: rgba(253,79,0,0.1); color: var(--accent-orange); }
-    .product-status.global { background: #f3f4f6; color: var(--text-secondary); }
+    .product-status.roadmap { background: rgba(247,144,9,0.1); color: var(--accent-orange); }
+    .product-status.global { background: #f6f6f6; color: var(--text-secondary); }
 
     .product-tag {
       font-size: 0.8125rem;
@@ -456,17 +456,17 @@
     }
 
     .product-card[data-color="teal"] .product-feats li::before { background: var(--secondary); }
-    .product-card[data-color="purple"] .product-feats li::before { background: #a78bfa; }
-    .product-card[data-color="pink"] .product-feats li::before { background: #f472b6; }
+    .product-card[data-color="purple"] .product-feats li::before { background: #7472c7; }
+    .product-card[data-color="pink"] .product-feats li::before { background: #7472c7; }
     .product-card[data-color="orange"] .product-feats li::before { background: var(--accent-orange); }
-    .product-card[data-color="blue"] .product-feats li::before { background: #38bdf8; }
+    .product-card[data-color="blue"] .product-feats li::before { background: #2e90fa; }
 
     /* ===== Roadmap Deep Dives ===== */
     .roadmap-head {
       margin-top: 2rem;
       margin-bottom: 2rem;
       padding: 1.25rem 1.5rem;
-      background: rgba(253,79,0,0.05);
+      background: rgba(247,144,9,0.05);
       border-left: 3px solid var(--accent-orange);
       border-radius: 0 10px 10px 0;
     }
@@ -513,7 +513,7 @@
     }
 
     .deepdive[data-product="voice"]::before { background: var(--accent-orange); }
-    .deepdive[data-product="skip"]::before { background: #a78bfa; }
+    .deepdive[data-product="skip"]::before { background: #7472c7; }
 
     .dd-header {
       display: flex;
@@ -548,12 +548,12 @@
     }
 
     .deepdive[data-product="voice"] .dd-launch {
-      background: rgba(253,79,0,0.1);
+      background: rgba(247,144,9,0.1);
       color: var(--accent-orange);
     }
     .deepdive[data-product="skip"] .dd-launch {
-      background: rgba(139,92,246,0.1);
-      color: #7c3aed;
+      background: rgba(116,114,199,0.1);
+      color: #7472c7;
     }
 
     .dd-desc {
@@ -607,7 +607,7 @@
       height: 16px;
       border-radius: 50%;
       background: var(--secondary-light);
-      color: #0d9488;
+      color: #039855;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -618,17 +618,17 @@
     }
 
     .deepdive[data-product="voice"] .dd-check {
-      background: rgba(253,79,0,0.1);
+      background: rgba(247,144,9,0.1);
       color: var(--accent-orange);
     }
     .deepdive[data-product="skip"] .dd-check {
-      background: rgba(139,92,246,0.1);
-      color: #7c3aed;
+      background: rgba(116,114,199,0.1);
+      color: #7472c7;
     }
 
     /* ===== ENBD Showcase ===== */
     .enbd-showcase {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      background: linear-gradient(135deg, #000244 0%, #1b3166 100%);
       color: #fff;
       border-radius: 20px;
       padding: 3rem;
@@ -707,7 +707,7 @@
     }
 
     .voice-card {
-      background: #1a1a2e;
+      background: #071c55;
       border: 1px solid rgba(118, 235, 226, 0.2);
       border-radius: 12px;
       padding: 1.25rem 1.5rem;
@@ -770,8 +770,8 @@
     .enbd-footline {
       margin-top: 2rem;
       padding: 1.125rem 1.5rem;
-      background: rgba(253,79,0,0.06);
-      border: 1px solid rgba(253,79,0,0.2);
+      background: rgba(247,144,9,0.06);
+      border: 1px solid rgba(247,144,9,0.2);
       border-radius: 10px;
       font-size: 0.875rem;
       color: rgba(255,255,255,0.9);
@@ -787,7 +787,7 @@
 
     /* ===== Closing frame ===== */
     .close-frame {
-      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
       color: #fff;
       padding: 2.5rem 2rem;
       border-radius: 16px;
@@ -825,7 +825,7 @@
     .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
     .foot-nav.next {
       text-align: right;
-      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
       color: #fff; border-color: var(--primary);
     }
     .foot-nav-dir {
@@ -867,7 +867,7 @@
     <div class="hero-inner">
       <div class="section-tag">Section 02</div>
       <h1>One platform, the <em>entire lifecycle of a debt</em>.</h1>
-      <p class="hero-sub">Receive, Collect, Comply, Release — plus AI Voice and Skip on the roadmap. Today we go deep on Collect, but the suite is why we're a strategic choice, not a point tool.</p>
+      <p class="hero-sub">Receive, Collect, Comply, Release, plus AI Voice and Skip — all live. Today we go deep on Collect, but the suite is why we're a strategic choice, not a point tool.</p>
     </div>
   </section>
 
@@ -1038,7 +1038,7 @@
       <div class="enbd-inner">
         <div class="enbd-copy">
           <h3>United Arab Emirates and the <em>appetite for AI-native collections</em></h3>
-          <p>A government-driven AI mandate is cascading from the top down. ADCB and ENBD leaning hardest into it. These signals are why we're bringing capabilities like AI Voice and Skip <strong style="color: var(--secondary); font-weight: 700;">forward on our roadmap, sooner</strong>.</p>
+          <p>A government-driven AI mandate is cascading from the top down. ADCB and ENBD leaning hardest into it. These signals are why we built capabilities like AI Voice and Skip — <strong style="color: var(--secondary); font-weight: 700;">now live and deployed</strong>.</p>
 
           <div class="enbd-facts">
             <div class="enbd-fact">

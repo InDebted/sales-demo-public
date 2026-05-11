@@ -13,19 +13,19 @@
       --primary-light: rgba(71, 76, 222, 0.08);
       --secondary: #76EBE2;
       --secondary-light: rgba(118, 235, 226, 0.1);
-      --accent-orange: #FD4F00;
-      --bg: #f8f9fc;
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
       --surface: #ffffff;
-      --text: #1a1a2e;
-      --text-secondary: #6b7280;
-      --text-dim: #9ca3af;
-      --border: #e8eaf0;
-      --divider: #f0f1f5;
-      --dark: #0f172a;
-      --error: #dc2626;
-      --error-light: rgba(220, 38, 38, 0.08);
-      --success: #059669;
-      --success-light: rgba(16, 185, 129, 0.08);
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --error: #f04438;
+      --error-light: rgba(240,68,56, 0.08);
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.08);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,11 +68,11 @@
     }
     .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
     .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .nav-btn.primary:hover { background: #3538b2; color: #fff; }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
 
     /* ===== Hero ===== */
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #1e1b4b 100%);
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
       color: #fff;
       padding: 5rem 2rem 4rem;
       position: relative; overflow: hidden;
@@ -95,7 +95,7 @@
     }
     .hero h1 em {
       font-style: normal;
-      background: linear-gradient(135deg, var(--secondary) 0%, #a5b4fc 100%);
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .hero-sub {
@@ -155,7 +155,7 @@
       border-radius: 8px; line-height: 1.4;
     }
     .vs-foot.bad { background: var(--error-light); color: var(--error); }
-    .vs-foot.good { background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%); color: #fff; }
+    .vs-foot.good { background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%); color: #fff; }
 
     /* ===== Pillars (Control / Flexibility / Intelligence) ===== */
     .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
@@ -221,7 +221,7 @@
       border-radius: 10px;
     }
     .arch-tier.center {
-      background: linear-gradient(135deg, var(--primary) 0%, #3538b2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
       color: #fff; border-color: var(--primary);
     }
     .arch-tier-label {
