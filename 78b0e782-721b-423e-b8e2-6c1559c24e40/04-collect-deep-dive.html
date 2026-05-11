@@ -942,7 +942,6 @@
       <a href="#channels">Channels</a>
       <a href="#channel-logic">Per-client channels</a>
       <a href="#cx">Customer experience</a>
-      <a href="#pains">Common pains</a>
       <a href="#comply">Comply firewall</a>
       <a href="#client-portal">Client portal</a>
       <a href="#learning">Learning loop</a>
@@ -2107,84 +2106,6 @@
     </div>
   </section>
 
-  <!-- 9. Common Pain Points (workshop) -->
-  <section class="section" id="pains">
-    <div class="section-head">
-      <div class="eyebrow">Where the operating model can be strengthened</div>
-      <h2>Three areas worth working through together</h2>
-      <p>Three friction points we typically see in traditional collections operations — each one solvable, and each one a lift in customer experience and recovery once addressed.</p>
-    </div>
-
-    <div class="pains-grid">
-
-      <div class="pain-card">
-        <div class="pain-head">
-          <div class="pain-num">1</div>
-          <div>
-            <div class="pain-title">File referral</div>
-            <div class="pain-meta">Stage 02 · Data exchange</div>
-          </div>
-        </div>
-        <div class="pain-body">
-          <div class="pain-side bad">
-            <div class="pain-side-label">✕ What's happening today</div>
-            <div class="pain-narrative">A column header in the referral file changes between releases — say <strong>"OutstandingBal"</strong> becomes <strong>"OutstandingBalance"</strong>. Ingestion fails and emits an error file, which then requires <strong>manual review and re-processing</strong> by both teams before those accounts can enter the lifecycle.</div>
-            <div class="pain-detail">Recovery: manual re-load, manual reconciliation. Result: <strong>delays in collection</strong> on the affected batch.</div>
-          </div>
-          <div class="pain-side good">
-            <div class="pain-side-label">✓ Collect's optimum handling</div>
-            <div class="pain-narrative"><strong>Adhere to the Collect file spec as an API contract</strong> — schema agreed and version-locked between client and InDebted. <strong>Monitor for error files and respond accordingly</strong> — clear ownership for each side, structured remediation when an error does occur.</div>
-            <div class="pain-detail">Outcome: schema drift caught at the boundary. Errors are handled, not absorbed.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pain-card">
-        <div class="pain-head">
-          <div class="pain-num">2</div>
-          <div>
-            <div class="pain-title">Payment plans &amp; settlements</div>
-            <div class="pain-meta">Stage 03 / 07 · Collections + payments</div>
-          </div>
-        </div>
-        <div class="pain-body">
-          <div class="pain-side bad">
-            <div class="pain-side-label">✕ What's happening today</div>
-            <div class="pain-narrative">A customer asks for a plan or settlement. The request goes through an approval loop, then we have to <strong>re-engage the customer</strong> once it comes back. By the time we reach them again, the moment may have passed.</div>
-            <div class="pain-detail">Result: lost momentum. Plans agreed in principle that never get set up because the customer has disengaged.</div>
-          </div>
-          <div class="pain-side good">
-            <div class="pain-side-label">✓ Collect's optimum handling</div>
-            <div class="pain-narrative"><strong>Pre-approved plan durations, monthly settlement budget, or per-account settlement authority</strong> — defined once during scoping, applied automatically. Plans and discounts are <strong>immediately available</strong> when the customer is engaged and ready to commit. No re-engagement loop required.</div>
-            <div class="pain-detail">Outcome: the conversion happens at peak intent, not days later.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pain-card">
-        <div class="pain-head">
-          <div class="pain-num">3</div>
-          <div>
-            <div class="pain-title">Balance updates</div>
-            <div class="pain-meta">Stage 02 / 03 · Data exchange + collections</div>
-          </div>
-        </div>
-        <div class="pain-body">
-          <div class="pain-side bad">
-            <div class="pain-side-label">✕ What's happening today</div>
-            <div class="pain-narrative">When account refreshes come through, the file <strong>doesn't include the underlying transactions</strong> — only the new balance. This forces <strong>manual reconciliation on the InDebted side every time</strong> a balance changes.</div>
-            <div class="pain-detail">Knock-on effects: customers who've already agreed plans under the original balance can't simply have the extra owed taken without <strong>re-engagement</strong>. And explaining to a customer <strong>why</strong> their balance changed requires the underlying transactions we don't have.</div>
-          </div>
-          <div class="pain-side good">
-            <div class="pain-side-label">✓ Collect's optimum handling</div>
-            <div class="pain-narrative"><strong>Every balance change driven by a transaction</strong> — interest, fees, direct payments, adjustments. Same principle a bank's own ledger runs on. Collect ingests the transaction, the balance recomputes, and the change is fully traceable.</div>
-            <div class="pain-detail">Result: InDebted can <strong>always explain to the customer why their balance has changed</strong> — and active plans adjust on the actual movement, not a silent overwrite.</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
 
   <!-- 10. Compliance Firewall (from demo §5) -->
   <section class="section" id="comply">
