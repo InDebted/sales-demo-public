@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 · Where Comply Fits — InDebted Comply for IAG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --darker: #000244;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 680px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section {
+      padding: 4rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary);
+      max-width: 680px; line-height: 1.6;
+    }
+
+    /* ===== Lifecycle Diagram ===== */
+    .lifecycle-wrap {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 2.75rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lifecycle-wrap::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -10%;
+      width: 50%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .lifecycle-inner { position: relative; z-index: 1; }
+
+    .lifecycle-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem;
+    }
+
+    .lifecycle-title {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 2rem;
+    }
+
+    .lifecycle-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto auto;
+      gap: 0.5rem 0.5rem;
+      align-items: stretch;
+    }
+
+    .lc-stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lc-stage.lc-accelerators {
+      grid-column: 4;
+      grid-row: 1;
+    }
+
+    .lc-skip-pos {
+      grid-column: 4;
+      grid-row: 2;
+    }
+
+    .lc-stage-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .lc-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .lc-foundation {
+      grid-column: 1 / 4;
+      grid-row: 2;
+      background: rgba(118, 235, 226, 0.05);
+      border: 1px solid rgba(118, 235, 226, 0.2);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 1.5rem;
+      align-items: center;
+      position: relative;
+    }
+
+    .lc-foundation::before {
+      content: '↑';
+      position: absolute;
+      top: -0.7rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000244;
+      color: var(--secondary);
+      font-size: 0.875rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(118, 235, 226, 0.4);
+    }
+
+    .lc-foundation-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      border-right: 1px solid rgba(118, 235, 226, 0.15);
+      padding-right: 1.5rem;
+    }
+
+    .lc-foundation-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      color: var(--secondary);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .lc-foundation-name {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .lc-foundation-desc {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.55;
+    }
+
+    .lc-product {
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lc-product:last-child { margin-bottom: 0; }
+
+    .lc-product.focus {
+      border-color: var(--secondary);
+      background: rgba(118,235,226,0.08);
+      box-shadow: 0 0 24px rgba(118,235,226,0.15);
+    }
+
+    .lc-product-name {
+      font-size: 0.875rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .lc-badge {
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 0.12rem 0.35rem;
+      border-radius: 3px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .lc-badge.today {
+      background: var(--secondary);
+      color: #000244;
+    }
+    .lc-badge.roadmap {
+      background: rgba(247,144,9,0.18);
+      color: var(--accent-orange);
+    }
+    .lc-badge.soon {
+      background: rgba(116,114,199,0.18);
+      color: #7472c7;
+    }
+
+    .lc-product-desc {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+    }
+
+    .lifecycle-foot {
+      margin-top: 2rem;
+      padding: 1rem 1.25rem;
+      background: rgba(118,235,226,0.05);
+      border-left: 2px solid var(--secondary);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+
+    .lifecycle-foot strong { color: var(--secondary); font-weight: 700; }
+
+    /* ===== Products Grid ===== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .product-card {
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .product-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .product-card.focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .product-card[data-color="teal"]::before { background: var(--secondary); }
+    .product-card[data-color="purple"]::before { background: #7472c7; }
+    .product-card[data-color="pink"]::before { background: #7472c7; }
+    .product-card[data-color="orange"]::before { background: var(--accent-orange); }
+    .product-card[data-color="blue"]::before { background: #2e90fa; }
+
+    .product-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-name {
+      font-size: 1.375rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .product-status {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+    }
+    .product-status.live { background: var(--secondary-light); color: #039855; }
+    .product-status.focus { background: var(--primary-light); color: var(--primary); }
+    .product-status.roadmap { background: rgba(247,144,9,0.1); color: var(--accent-orange); }
+    .product-status.global { background: #f6f6f6; color: var(--text-secondary); }
+
+    .product-tag {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .product-desc {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .product-feats {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      padding-top: 0.875rem;
+      border-top: 1px solid var(--divider);
+    }
+
+    .product-feats li {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .product-feats li::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      margin-top: 0.45rem;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .product-card[data-color="teal"] .product-feats li::before { background: var(--secondary); }
+    .product-card[data-color="purple"] .product-feats li::before { background: #7472c7; }
+    .product-card[data-color="pink"] .product-feats li::before { background: #7472c7; }
+    .product-card[data-color="orange"] .product-feats li::before { background: var(--accent-orange); }
+    .product-card[data-color="blue"] .product-feats li::before { background: #2e90fa; }
+
+    /* ===== Roadmap Deep Dives ===== */
+    .roadmap-head {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(247,144,9,0.05);
+      border-left: 3px solid var(--accent-orange);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .roadmap-head-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent-orange);
+      margin-bottom: 0.25rem;
+    }
+
+    .roadmap-head h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .deepdive-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .deepdive {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .deepdive::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 120px;
+      height: 120px;
+      border-radius: 0 0 100% 0;
+      opacity: 0.08;
+    }
+
+    .deepdive[data-product="voice"]::before { background: var(--accent-orange); }
+    .deepdive[data-product="skip"]::before { background: #7472c7; }
+
+    .dd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dd-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .dd-tag {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .dd-launch {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      padding: 0.35rem 0.625rem;
+      border-radius: 6px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .deepdive[data-product="voice"] .dd-launch {
+      background: rgba(247,144,9,0.1);
+      color: var(--accent-orange);
+    }
+    .deepdive[data-product="skip"] .dd-launch {
+      background: rgba(116,114,199,0.1);
+      color: #7472c7;
+    }
+
+    .dd-desc {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .dd-specs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .dd-spec-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.25rem;
+    }
+    .dd-spec-value {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .dd-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .dd-detail-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .dd-check {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--secondary-light);
+      color: #039855;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+
+    .deepdive[data-product="voice"] .dd-check {
+      background: rgba(247,144,9,0.1);
+      color: var(--accent-orange);
+    }
+    .deepdive[data-product="skip"] .dd-check {
+      background: rgba(116,114,199,0.1);
+      color: #7472c7;
+    }
+
+    /* ===== ENBD Showcase ===== */
+    .enbd-showcase {
+      background: linear-gradient(135deg, #000244 0%, #1b3166 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .enbd-showcase::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 50%; height: 160%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.12) 0%, transparent 60%);
+    }
+
+    .enbd-inner {
+      position: relative;
+      z-index: 1;
+      display: block;
+    }
+
+    .enbd-copy h3 {
+      font-size: 1.875rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .enbd-copy h3 em {
+      font-style: normal;
+      color: var(--secondary);
+    }
+
+    .enbd-copy p {
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+    }
+
+    .enbd-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .enbd-fact {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .enbd-fact-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--secondary);
+      margin-top: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* AI Voice demo cards */
+    .voice-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .voice-card {
+      background: #071c55;
+      border: 1px solid rgba(118, 235, 226, 0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .voice-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .voice-card-tag {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(118, 235, 226, 0.12);
+      border: 1px solid rgba(118, 235, 226, 0.3);
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .voice-card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+    }
+
+    .voice-card-label {
+      font-size: 0.625rem;
+      color: var(--secondary);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .voice-card-title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .voice-audio {
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+    }
+
+    .enbd-footline {
+      margin-top: 2rem;
+      padding: 1.125rem 1.5rem;
+      background: rgba(247,144,9,0.06);
+      border: 1px solid rgba(247,144,9,0.2);
+      border-radius: 10px;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.55;
+      position: relative;
+      z-index: 1;
+    }
+
+    .enbd-footline strong {
+      color: var(--accent-orange);
+      font-weight: 700;
+    }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .close-frame h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 0.75rem;
+    }
+
+    .close-frame p {
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.85);
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .lifecycle-flow { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: 1fr; }
+      .deepdive-grid { grid-template-columns: 1fr; }
+      .enbd-inner { grid-template-columns: 1fr; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">02 / 04 · <strong>Where Comply fits</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="01-who-we-are.html">← Prev</a>
+        <a class="nav-btn primary" href="03-comply-deep-dive.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 02</div>
+      <h1>The suite exists. <em>Today we're here for one layer.</em></h1>
+      <p class="hero-sub">InDebted has a full suite — Receive, Collect, Release, plus AI Voice and Skip — and Comply is the compliance layer underneath all of them. For IAG, the conversation is just Comply: a standalone API that plugs into your existing claims, collections, and customer-comms stack without asking you to change a thing about how you operate.</p>
+    </div>
+  </section>
+
+  <!-- Lifecycle Diagram -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Full lifecycle — Comply at the foundation</div>
+      <h2>Comply runs underneath everything we send</h2>
+      <p>This is the picture for our collections clients. The interesting part for IAG is the foundation — Comply checks every outbound message regardless of which product sits above it. That's the layer we're proposing to bring to you, on its own.</p>
+    </div>
+
+    <div class="lifecycle-wrap">
+      <div class="lifecycle-inner">
+        <div class="lifecycle-flow">
+          <div class="lc-stage">
+            <div class="lc-stage-header">Stage 01</div>
+            <div class="lc-bar"></div>
+            <div class="lc-product">
+              <div class="lc-product-name">Receive</div>
+              <div class="lc-product-desc">First-party collections, reimagined for enterprise lenders — AI-native digital journeys at early delinquency.</div>
+            </div>
+          </div>
+
+          <div class="lc-stage">
+            <div class="lc-stage-header">Stage 02</div>
+            <div class="lc-bar"></div>
+            <div class="lc-product">
+              <div class="lc-product-name">Collect</div>
+              <div class="lc-product-desc">Third-party collections engine — machine-learned channel, timing, message, offer per account. What we'd run alongside your existing operations.</div>
+            </div>
+          </div>
+
+          <div class="lc-stage">
+            <div class="lc-stage-header">Stage 03</div>
+            <div class="lc-bar"></div>
+            <div class="lc-product">
+              <div class="lc-product-name">Release</div>
+              <div class="lc-product-desc">Debt buying capability — selective, data-informed portfolio transfer. Live globally. Live in AU.</div>
+            </div>
+          </div>
+
+          <div class="lc-stage lc-accelerators">
+            <div class="lc-stage-header">Accelerators</div>
+            <div class="lc-bar"></div>
+            <div class="lc-product">
+              <div class="lc-product-name">Voice</div>
+              <div class="lc-product-desc">AI voice agent with empathy + compliance guardrails. Every call evaluated against the same rule engine.</div>
+            </div>
+          </div>
+
+          <div class="lc-foundation">
+            <div class="lc-foundation-header">
+              <div class="lc-foundation-label">Compliance foundation</div>
+              <div class="lc-foundation-name">Comply</div>
+            </div>
+            <div class="lc-foundation-desc">AI compliance firewall evaluating every outbound across all three lifecycle stages — 160+ rules, full audit trail, regulator-ready. Sits beneath Receive, Collect, and Release.</div>
+          </div>
+
+          <div class="lc-product lc-skip-pos">
+            <div class="lc-product-name">Skip</div>
+            <div class="lc-product-desc">Autonomous skip tracing for disconnected numbers. Built for offshore recoveries.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Cards -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">The Suite of InDebted Solutions</div>
+      <h2>What each one does</h2>
+    </div>
+
+    <div class="products-grid">
+
+      <div class="product-card" data-color="blue">
+        <div class="product-num">01 · Receive</div>
+        <div class="product-name-row">
+          <div class="product-name">Receive</div>
+        </div>
+        <div class="product-tag">First-party collections, reimagined</div>
+        <div class="product-desc">AI-native early-stage collections for enterprise lenders and fintechs. Digital-first journeys that reduce friction and improve self-service resolution.</div>
+        <ul class="product-feats">
+          <li>Up to 35% reduction in operational cost</li>
+          <li>Predictive decisioning per account</li>
+          <li>Enterprise-grade audit trail</li>
+        </ul>
+      </div>
+
+      <div class="product-card">
+        <div class="product-num">02 · Collect</div>
+        <div class="product-name-row">
+          <div class="product-name">Collect</div>
+        </div>
+        <div class="product-tag">Third-party collections, customer-first</div>
+        <div class="product-desc">Machine-learned strategy per account. Omnichannel engagement where the system picks what works. Not on the agenda today — flagged here for context only.</div>
+        <ul class="product-feats">
+          <li>32% higher payment conversions</li>
+          <li>86% of customers self-serve without an agent</li>
+          <li>Runs the regulated message volume that proved Comply at scale</li>
+        </ul>
+      </div>
+
+      <div class="product-card" data-color="teal" style="outline: 2px solid var(--secondary); outline-offset: -2px;">
+        <div class="product-num">03 · Comply · <strong style="color: var(--secondary);">TODAY'S FOCUS</strong></div>
+        <div class="product-name-row">
+          <div class="product-name">Comply</div>
+        </div>
+        <div class="product-tag">Real-time compliance intelligence — standalone</div>
+        <div class="product-desc">Every outbound message rule-checked before send. Every inbound message classified for vulnerability signals — hardship, crisis, family violence, elder abuse. Every consent change logged in an immutable audit trail. RG&nbsp;271, NCCP, and GICOP aligned.</div>
+        <ul class="product-feats">
+          <li>Pre-send firewall with 160+ jurisdiction rules</li>
+          <li>Vulnerability detection across SMS, email, voice, web</li>
+          <li>API-first — drops into your existing stack</li>
+          <li>Audit-ready by default — evidence is a by-product</li>
+        </ul>
+      </div>
+
+      <div class="product-card" data-color="purple">
+        <div class="product-num">04 · Release</div>
+        <div class="product-name-row">
+          <div class="product-name">Release</div>
+        </div>
+        <div class="product-tag">Unlock liquidity, preserve experience</div>
+        <div class="product-desc">Convert managed accounts into capital via selective portfolio transfer. Data-informed pricing based on real performance, not assumptions. Live in AU.</div>
+        <ul class="product-feats">
+          <li>Embedded into existing partnerships</li>
+          <li>Selective, controlled portfolio segments</li>
+          <li>One infrastructure, reduced complexity</li>
+        </ul>
+      </div>
+
+      <div class="product-card" data-color="orange">
+        <div class="product-num">05 · Voice</div>
+        <div class="product-name-row">
+          <div class="product-name">Voice</div>
+        </div>
+        <div class="product-tag">AI voice for the modern age</div>
+        <div class="product-desc">Intelligent voice agents with empathy + compliance guardrails on every call. Natural conversation, full event integration. Every call evaluated by Comply before, during, and after.</div>
+        <ul class="product-feats">
+          <li>Natural, empathetic AI-driven conversations</li>
+          <li>Real-time compliance guardrails on every call</li>
+          <li>Seamless handoff to human agents</li>
+        </ul>
+      </div>
+
+      <div class="product-card" data-color="pink">
+        <div class="product-num">06 · Skip</div>
+        <div class="product-name-row">
+          <div class="product-name">Skip</div>
+        </div>
+        <div class="product-tag">Reach customers who've gone dark</div>
+        <div class="product-desc">Autonomous account location using AI + multi-source data. Purpose-built for offshore recoveries where disconnected numbers are the core problem.</div>
+        <ul class="product-feats">
+          <li>Automated multi-source data enrichment</li>
+          <li>Real-time contact discovery + validation</li>
+          <li>Native integration with Collect workflows</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Why Comply, why now -->
+  <section class="section" style="padding-top: 0;">
+    <div class="enbd-showcase">
+      <div class="enbd-inner">
+        <div class="enbd-copy">
+          <h3>Why Comply, <em>why now</em>, for insurance</h3>
+          <p>A mature, highly-supervised market. ASIC RG&nbsp;271 and the NCCP Act are firmly in scope for customer communications. Every unreviewed outbound message — collections, claims, premiums, hardship correspondence — is a small slice of regulatory exposure that accumulates over time.</p>
+
+          <div class="enbd-facts" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem 2rem; margin-top: 1.5rem;">
+            <div class="enbd-fact">
+              <div class="enbd-fact-dot"></div>
+              <div><strong>RG&nbsp;271</strong> requires you to <em>identify</em> financial difficulty at the point of contact — not in a quarterly review</div>
+            </div>
+            <div class="enbd-fact">
+              <div class="enbd-fact-dot"></div>
+              <div><strong>NCCP Act</strong> governs how you contact customers in difficulty — every message carries weight</div>
+            </div>
+            <div class="enbd-fact">
+              <div class="enbd-fact-dot"></div>
+              <div><strong>GICOP</strong> sets the bar for vulnerable-customer handling, complaints, and timely action</div>
+            </div>
+            <div class="enbd-fact">
+              <div class="enbd-fact-dot"></div>
+              <div>Comply turns each of these from a <em>policy on a page</em> into a <em>decision on a message</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing frame -->
+  <section class="section" style="padding-top: 0; padding-bottom: 2rem;">
+    <div class="close-frame">
+      <h3>Comply, standalone. That's the next 15 minutes.</h3>
+      <p>One API. Four touchpoints. Plugs in alongside your existing systems without replacing them. Next: how it works end-to-end, walked through with a worked scenario from your world.</p>
+    </div>
+  </section>
+
+  <!-- Footer nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="01-who-we-are.html">
+      <div class="foot-nav-dir">← Previous · 01</div>
+      <div class="foot-nav-title">Who we are</div>
+    </a>
+    <a class="foot-nav next" href="03-comply-deep-dive.html">
+      <div class="foot-nav-dir">Next · 03</div>
+      <div class="foot-nav-title">Comply deep dive →</div>
+    </a>
+  </div>
+
+</body>
+</html>

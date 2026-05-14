@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 · Comply Deep Dive — InDebted Comply for IAG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --primary-hover: #545fe3;
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --accent-orange-light: rgba(247,144,9, 0.08);
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #535862;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --sidebar-bg: #000244;
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.07);
+      --warning: #dc6803;
+      --warning-light: rgba(247,144,9, 0.08);
+      --error: #f04438;
+      --error-light: rgba(240,68,56, 0.08);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 0.875rem;
+      --shadow: 0 1px 3px rgba(0, 2, 68, 0.04), 0 1px 2px rgba(0, 2, 68, 0.02);
+      --shadow-lg: 0 4px 12px rgba(0, 2, 68, 0.06), 0 2px 4px rgba(0, 2, 68, 0.03);
+    }
+
+    /* ===== Base Reset ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+    }
+
+    /* ===== Accessibility: Focus + Skip Link ===== */
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    .hero :focus-visible,
+    .dark-section :focus-visible {
+      outline-color: var(--secondary);
+    }
+
+    .skip-link {
+      position: absolute;
+      top: 0;
+      left: 1rem;
+      transform: translateY(-120%);
+      background: var(--primary);
+      color: #ffffff;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      z-index: 1000;
+      transition: transform 0.2s ease;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0.5rem);
+    }
+
+    /* ===== Hero Section ===== */
+    /* Background matches the comply-intro.mp4 frame tone so video letterbox
+       and post-playback freeze frame blend without a visible seam. */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #15172e 50%, #1f1c4f 100%);
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+
+    .hero-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      z-index: 0;
+      background: #15172e;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-cta {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      pointer-events: none;
+    }
+
+    .hero-cta.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .hero-cta a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      background: var(--secondary);
+      color: var(--sidebar-bg);
+      font-size: 0.9375rem;
+      font-weight: 700;
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hero-cta a:hover {
+      background: #5ee0d6;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--secondary);
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-meta .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--secondary);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ===== Navigation / TOC ===== */
+    .toc {
+      position: sticky;
+      top: 50px; /* sits beneath the workshop nav */
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 900;
+      padding: 3px 2rem 0; /* balances the 2px active border + 1px bottom border */
+    }
+
+    .toc-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .toc-inner::-webkit-scrollbar {
+      display: none;
+    }
+
+    .toc a {
+      display: block;
+      padding: 0.875rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .toc a:hover {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .toc a.active {
+      color: var(--primary);
+      background: var(--primary-light);
+      border-bottom-color: var(--primary);
+    }
+
+    section[id] {
+      scroll-margin-top: 110px;
+    }
+
+    /* ===== Sections ===== */
+    .section {
+      padding: 3rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-number {
+      width: 2.25rem;
+      height: 2.25rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .section-title .feature-name {
+      font-weight: 800;
+    }
+
+    .section-title .title-sub {
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin: 0 0.35em;
+    }
+
+    .section-title .title-sub:first-child {
+      margin-left: 0;
+    }
+
+    .section-title .title-sub:last-child {
+      margin-right: 0;
+    }
+
+    /* ===== Cards ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--divider);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .card-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .card-icon.primary {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .card-icon.teal {
+      background: var(--secondary-light);
+      color: #039855;
+    }
+
+    .card-icon.amber {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .card-icon.success {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .card-icon.error {
+      background: var(--error-light);
+      color: var(--error);
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* ===== Stat Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .stat-sub {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* ===== Pills / Badges ===== */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .pill-primary {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .pill-teal {
+      background: var(--secondary-light);
+      color: #039855;
+    }
+
+    .pill-success {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .pill-warning {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .pill-neutral {
+      background: var(--divider);
+      color: var(--text-secondary);
+    }
+
+    .pill-error {
+      background: var(--error-light);
+      color: var(--error);
+    }
+
+    /* ===== Code Blocks ===== */
+    .code-block {
+      background: #000244;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-block pre {
+      padding: 1.25rem 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ===== Callouts ===== */
+    .callout {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--primary);
+      background: var(--primary-light);
+      font-size: 0.875rem;
+      margin: 1rem 0;
+    }
+
+    .callout-warning {
+      border-left-color: var(--warning);
+      background: var(--warning-light);
+    }
+
+    .callout-success {
+      border-left-color: var(--success);
+      background: var(--success-light);
+    }
+
+    .callout-orange {
+      border-left-color: var(--accent-orange);
+      background: var(--accent-orange-light);
+    }
+
+    /* ===== Flow Diagrams ===== */
+    .flow-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .flow-node {
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius-lg);
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .flow-node.primary {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(71, 76, 222, 0.2);
+    }
+
+    .flow-node.teal {
+      background: var(--secondary-light);
+      color: #039855;
+      border: 1px solid rgba(118, 235, 226, 0.3);
+    }
+
+    .flow-node.purple {
+      background: rgba(116,114,199, 0.08);
+      color: #7472c7;
+      border: 1px solid rgba(116,114,199, 0.2);
+    }
+
+    .flow-node.amber {
+      background: var(--warning-light);
+      color: var(--warning);
+      border: 1px solid rgba(247,144,9, 0.2);
+    }
+
+    .flow-node.success {
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid rgba(18,183,106, 0.2);
+    }
+
+    .flow-node.error {
+      background: var(--error-light);
+      color: var(--error);
+      border: 1px solid rgba(240,68,56, 0.2);
+    }
+
+    .flow-arrow {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    /* ===== Phase Cards ===== */
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .phase-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      border-top: 3px solid var(--primary);
+      box-shadow: var(--shadow);
+    }
+
+    .phase-card.teal { border-top-color: var(--secondary); }
+    .phase-card.amber { border-top-color: var(--warning); }
+    .phase-card.success { border-top-color: var(--success); }
+
+    /* ===== Tables ===== */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      background: var(--bg);
+      padding: 0.875rem 1.25rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 0.875rem 1.25rem;
+      border-bottom: 1px solid var(--divider);
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--primary-light);
+    }
+
+    /* ===== Demo-Specific: Full-Viewport Sections ===== */
+    .demo-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem 2rem;
+    }
+
+    .demo-section-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Expandable Deep-Dive Panels ===== */
+    .deep-dive {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .deep-dive.open {
+      max-height: 2000px;
+    }
+
+    .deep-dive-toggle {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .deep-dive-toggle .chevron {
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    .deep-dive-toggle.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    /* ===== Scroll Animation Base Classes ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Flow pulse animation */
+    @keyframes flowPulse {
+      0% { opacity: 0; transform: translateX(-10px); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(10px); }
+    }
+
+    .flow-arrow.animated::after {
+      content: '\00B7';
+      display: inline-block;
+      animation: flowPulse 1.5s ease-in-out infinite;
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    /* Stat value counter animation */
+    .stat-value[data-target] {
+      transition: color 0.3s ease;
+    }
+
+    /* Section entrance animations */
+    .section-header .section-number {
+      transition: transform 0.4s ease;
+    }
+    .section-header.visible .section-number {
+      transform: scale(1);
+    }
+
+    /* Decision card stagger */
+    .decision-grid .card {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .decision-grid.visible .card:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0.1s; }
+    .decision-grid.visible .card:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+    .decision-grid.visible .card:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+    .decision-grid.visible .card:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+
+    /* Firewall shield glow */
+    @keyframes shieldGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(118, 235, 226, 0); }
+      50% { box-shadow: 0 0 0 3px rgba(118, 235, 226, 0.18); }
+    }
+
+    .shield-glow {
+      animation: shieldGlow 3.5s ease-in-out infinite;
+    }
+
+    /* Timeline step animation */
+    .timeline-step {
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .timeline-visible .timeline-step:nth-child(1) { opacity: 1; transform: translateX(0); transition-delay: 0.1s; }
+    .timeline-visible .timeline-step:nth-child(2) { opacity: 1; transform: translateX(0); transition-delay: 0.2s; }
+    .timeline-visible .timeline-step:nth-child(3) { opacity: 1; transform: translateX(0); transition-delay: 0.3s; }
+    .timeline-visible .timeline-step:nth-child(4) { opacity: 1; transform: translateX(0); transition-delay: 0.4s; }
+    .timeline-visible .timeline-step:nth-child(5) { opacity: 1; transform: translateX(0); transition-delay: 0.5s; }
+    .timeline-visible .timeline-step:nth-child(6) { opacity: 1; transform: translateX(0); transition-delay: 0.6s; }
+
+    /* Staggered children */
+    .stagger > .fade-in:nth-child(1) { transition-delay: 0s; }
+    .stagger > .fade-in:nth-child(2) { transition-delay: 0.1s; }
+    .stagger > .fade-in:nth-child(3) { transition-delay: 0.2s; }
+    .stagger > .fade-in:nth-child(4) { transition-delay: 0.3s; }
+    .stagger > .fade-in:nth-child(5) { transition-delay: 0.4s; }
+    .stagger > .fade-in:nth-child(6) { transition-delay: 0.5s; }
+
+    /* ===== Reduced Motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in { opacity: 1; transform: none; transition: none; }
+      .deep-dive { transition: none; }
+      .flow-arrow.animated::after { animation: none; }
+      .shield-glow { animation: none; }
+      .decision-grid .card,
+      .timeline-step { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+
+      .hero-meta {
+        gap: 1rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .phase-grid,
+      .overview-hero-grid,
+      .scale-card-grid,
+      .lifecycle-grid,
+      .arch-principles,
+      .pricing-principles,
+      .integration-grid,
+      .cert-grid,
+      .interface-grid,
+      .safeguard-rulesets {
+        grid-template-columns: 1fr !important;
+      }
+
+      .integration-arrow {
+        transform: rotate(90deg);
+      }
+
+      .lifecycle-crossings {
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 3rem;
+        min-width: 0 !important;
+        padding: 0.5rem 0 !important;
+      }
+
+      .flow-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .flow-arrow {
+        transform: rotate(90deg);
+        margin: 0 auto;
+      }
+
+      .toc-inner {
+        gap: 0;
+      }
+
+      .toc a {
+        padding: 0.75rem 0.75rem;
+        font-size: 0.7rem;
+      }
+
+      .demo-section {
+        padding: 3rem 1.25rem;
+      }
+    }
+
+    /* ===== Large Screen (Presentation Mode) ===== */
+    @media (min-width: 1600px) {
+      .hero h1 { font-size: 3.5rem; }
+      .hero-subtitle { font-size: 1.0625rem; }
+      .section-title { font-size: 1.5rem; }
+      .stat-value { font-size: 2.25rem; }
+      .demo-section-inner { max-width: 1060px; }
+    }
+
+    /* ===== Print ===== */
+    @media print {
+      .hero {
+        min-height: auto;
+        padding: 2rem;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .demo-section {
+        min-height: auto;
+        padding: 2rem 0;
+        page-break-inside: avoid;
+      }
+
+      .card, .stat-card, .phase-card {
+        break-inside: avoid;
+      }
+
+      .fade-in {
+        opacity: 1;
+        transform: none;
+      }
+
+      body {
+        background: white;
+      }
+    }
+
+    /* ===== Dark Section ===== */
+    .dark-section {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dark-section .demo-section-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Persistent Page Footer ===== */
+    .page-footer {
+      position: fixed;
+      bottom: 1rem;
+      right: 1.5rem;
+      z-index: 200;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .page-footer svg {
+      height: 18px;
+      width: auto;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
+    }
+
+    .page-footer svg path[fill="#000244"],
+    .page-footer svg rect[fill="#000244"] {
+      transition: fill 0.3s ease;
+    }
+
+    .page-footer.on-dark svg path[fill="#000244"],
+    .page-footer.on-dark svg rect[fill="#000244"] {
+      fill: white;
+    }
+
+    /* ===== Comply-specific utilities ===== */
+    .subsection {
+      margin-bottom: 2rem;
+    }
+
+    .subsection-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .regulation-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--secondary);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .regulation-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .regulation-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#overview" class="skip-link">Skip to main content</a>
+
+  <!-- Workshop Nav -->
+  <nav style="position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #d5d7da; z-index: 1000; padding: 0.75rem 1.5rem; font-family: 'Manrope', sans-serif;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: #717680;">
+        <a href="index.html" style="display: inline-flex; align-items: center; gap: 0.375rem; color: #717680; text-decoration: none; font-weight: 600; padding: 0.375rem 0.625rem; border-radius: 6px;"><span>←</span> Workshop</a>
+        <div style="color: #a4a7ae; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;">03 / 04 · <strong style="color: #000244; font-weight: 600;">Comply deep dive</strong></div>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="02-product-suite.html" style="display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; font-weight: 600; text-decoration: none; padding: 0.5rem 0.875rem; border-radius: 8px; border: 1px solid #d5d7da; color: #717680; background: #fff;">← Prev</a>
+        <a href="04-next-steps.html" style="display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; font-weight: 600; text-decoration: none; padding: 0.5rem 0.875rem; border-radius: 8px; border: 1px solid #474CDE; color: #fff; background: #474CDE;">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================ -->
+  <!-- STICKY NAVIGATION (pinned beneath workshop nav)-->
+  <!-- ============================================ -->
+  <nav class="toc" aria-label="Demo sections"><div class="toc-inner">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#safeguard">Safeguard</a>
+    <a href="#firewall">Firewall</a>
+    <a href="#audit">Audit &amp; Consent</a>
+    <a href="#rules">Rules</a>
+    <a href="#integration">Integration</a>
+    <a href="#results">Results</a>
+    <a href="#contact">Get Started</a>
+  </div></nav>
+
+  <main id="main">
+
+  <!-- ============================================ -->
+  <!-- HERO                                          -->
+  <!-- ============================================ -->
+  <section id="hero" class="hero">
+    <video class="hero-video" autoplay muted playsinline aria-label="Comply product intro — Real-Time Compliance Intelligence">
+      <source src="shared-video/comply-intro.mp4" type="video/mp4">
+    </video>
+    <div class="hero-inner"></div>
+    <div class="hero-cta" id="hero-cta">
+      <a href="#overview">Get Started &darr;</a>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 1: FOUR CHECKPOINTS IN A CUSTOMER'S   -->
+  <!-- STORY                                         -->
+  <!-- ============================================ -->
+  <section id="overview" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">1</div>
+        <h2 class="section-title">Four checkpoints in a customer&rsquo;s story.</h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem; max-width: 760px; line-height: 1.65;">
+        Comply shows up four times in every customer interaction. <strong style="color: var(--text); font-weight: 700;">Before you reach out. When they answer back. How they&rsquo;re letting you talk to them. What was said last week.</strong>
+      </p>
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 760px; line-height: 1.65;">
+        One decision engine, four moments &mdash; every decision lands in the same audit trail with the same legal citations. That&rsquo;s where the value sits for IAG: <strong style="color: var(--text);">demonstrable evidence</strong> of vulnerable-customer identification, <strong style="color: var(--text);">closing the loop</strong> between an obligation and an action on a specific customer, and shifting from <strong style="color: var(--text);">reactive complaints to proactive intervention</strong>. Front-line staff catch what they can. Comply catches what they can&rsquo;t.
+      </p>
+
+      <!-- Four Moment Cards — the hero explanation of Comply -->
+      <div class="fade-in overview-hero-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-bottom: 2.5rem;">
+        <div class="phase-card teal" style="padding: 2rem; border-top-width: 4px; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.875rem;">
+            <div aria-hidden="true" style="font-size: 2rem; line-height: 1;">&#128737;</div>
+            <div>
+              <div style="font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Before you reach out</div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1;">Firewall</h3>
+            </div>
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+            <strong style="color: var(--text); font-weight: 800;">Every</strong> outbound message evaluated against jurisdiction-specific rules before delivery. Most tools settle for statistical audits after the fact &mdash; Comply prevents a single non-compliant message being sent.
+          </p>
+        </div>
+        <div class="phase-card amber" style="padding: 2rem; border-top-width: 4px; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.875rem;">
+            <div aria-hidden="true" style="font-size: 2rem; line-height: 1;">&#9888;&#65039;</div>
+            <div>
+              <div style="font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">When they answer back</div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1;">Safeguard</h3>
+            </div>
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+            AI classifies every customer reply for hardship, self-harm, family violence, and elder abuse signals &mdash; routing vulnerable cases to your specialist teams within seconds.
+          </p>
+        </div>
+        <div class="phase-card success" style="padding: 2rem; border-top-width: 4px; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.875rem;">
+            <div aria-hidden="true" style="font-size: 2rem; line-height: 1;">&#9989;</div>
+            <div>
+              <div style="font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">How they let you speak</div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1;">Consent</h3>
+            </div>
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+            Real-time channel preferences and opt-out tracking. Immutable audit trail of every consent change with automatic breach detection across SMS, email, voice, and post.
+          </p>
+        </div>
+        <div class="phase-card" style="padding: 2rem; border-top-width: 4px; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.875rem;">
+            <div aria-hidden="true" style="font-size: 2rem; line-height: 1;">&#128203;</div>
+            <div>
+              <div style="font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Looking back</div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1;">Audit</h3>
+            </div>
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+            Retrospective compliance analysis of historical communications against the same rule engine. Audit-ready reports with legal citations &mdash; this is where the IAG pilot starts.
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid fade-in">
+        <div class="stat-card">
+          <div class="stat-label">Compliance Rules</div>
+          <div class="stat-value" data-target="160" data-suffix="+">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Jurisdictions</div>
+          <div class="stat-value" data-target="9">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Evaluation Latency</div>
+          <div class="stat-value" data-target="3" data-prefix="<" data-suffix="s">0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 2: ARCHITECTURE                       -->
+  <!-- ============================================ -->
+  <section id="architecture" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">2</div>
+        <h2 class="section-title">Architecture</h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 720px;">
+        Where Comply lives, who&rsquo;s audited it, and the production load it&rsquo;s built to carry &mdash; before we go in on the four services themselves.
+      </p>
+
+      <!-- Multi-Region Grid -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon teal">&#127758;</div> Global Deployment Footprint</div>
+        <div style="padding: 1.5rem;">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.6;">
+            Six isolated regions, each with its own database, application instances, and API endpoint. Data never leaves the region it was created in.
+          </p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127462;&#127482;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">Australia</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">au.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Sydney &middot; SYD</div>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127482;&#127480;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">United States</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">us.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">N. Virginia &middot; IAD</div>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127464;&#127462;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">Canada</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">ca.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Toronto &middot; YYZ</div>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127468;&#127463;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">United Kingdom</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">uk.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">London &middot; LHR</div>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127462;&#127466;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">UAE</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">ae.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Amsterdam &middot; AMS</div>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div aria-hidden="true" style="font-size: 1.5rem; line-height: 1;">&#127463;&#127479;</div>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem;">Brazil</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--primary); margin-top: 0.25rem;">br.comply.indebted.co</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">S&atilde;o Paulo &middot; GRU</div>
+            </div>
+          </div>
+          <div class="callout callout-success" style="margin-top: 1.25rem; margin-bottom: 0;">
+            <strong>Data sovereignty, guaranteed.</strong> A stateless auth router at <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">comply.indebted.co</code> authenticates via SSO and hands off to the tenant's home region. API traffic goes <em>directly</em> to the regional endpoint &mdash; no routing layer in the data path.
+          </div>
+        </div>
+      </div>
+
+      <!-- Security & Certifications -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128274;</div> Security &amp; Certifications</div>
+        <div style="padding: 1.5rem;">
+          <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.65;">
+            Independent audits and certifications verify our controls &mdash; extend your security posture to Comply without a heavy vendor assessment.
+          </p>
+          <div class="cert-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); align-items: flex-start; background: var(--surface);">
+              <div aria-hidden="true" style="flex-shrink: 0; width: 3rem; height: 3rem; background: var(--primary-light); border: 1px solid rgba(71, 76, 222, 0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; line-height: 1;">SOC&nbsp;2</div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">SOC 2 Type&nbsp;II</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.55;">Annually audited controls covering security, availability, and confidentiality of customer data.</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); align-items: flex-start; background: var(--surface);">
+              <div aria-hidden="true" style="flex-shrink: 0; width: 3rem; height: 3rem; background: var(--secondary-light); border: 1px solid rgba(118, 235, 226, 0.35); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: #039855; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; line-height: 1;">ISO</div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">ISO/IEC 27001</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.55;">Certified information security management system &mdash; the international standard for end-to-end data protection.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Built for Collect Scale -->
+      <div class="card fade-in" style="margin-bottom: 2rem; border-left: 3px solid var(--primary);">
+        <div style="padding: 1.75rem 2rem;">
+          <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Proven at scale</div>
+          <h3 style="font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.75rem; line-height: 1.2;">Built for Collect Scale</h3>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; max-width: 58ch;">
+            Engineered to handle Collect's global volume &mdash; the same infrastructure that processes every message InDebted sends. Battle-tested at production load across six regions, handling <strong style="color: var(--text); font-weight: 700;">up to 40&nbsp;million messages per month</strong> and <strong style="color: var(--text); font-weight: 700;">over 1&nbsp;million per day</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Architecture Principles -->
+      <div class="fade-in arch-principles" style="margin-bottom: 2.5rem; display: grid; grid-template-columns: 1fr 1fr; column-gap: 3rem; row-gap: 2rem; border-top: 1px solid var(--divider); padding-top: 2rem;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.12em; margin-bottom: 0.5rem;">01 &middot; API-FIRST</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">Every capability is a REST endpoint.</h3>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.65;">
+            Bearer token auth, OpenAPI 3.1 spec, idempotent by design. One API call replaces thousands of lines of compliance logic.
+          </p>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.12em; margin-bottom: 0.5rem;">02 &middot; EVENT-DRIVEN</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">Async evaluation, webhook callbacks.</h3>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.65;">
+            HMAC-signed payloads. Subscribe with wildcards, automatic retries with exponential backoff, multiple endpoints per tenant.
+          </p>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.12em; margin-bottom: 0.5rem;">03 &middot; DATA SOVEREIGNTY</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">Isolated databases per region.</h3>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.65;">
+            Evaluation data, consent records, and audit trails never cross borders &mdash; critical for APRA, GDPR, and UAE residency requirements.
+          </p>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.12em; margin-bottom: 0.5rem;">04 &middot; ZERO-DOWNTIME</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">Canary deploys, compatible migrations.</h3>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.65;">
+            Independent regional scaling means a traffic spike in one market never impacts another.
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid fade-in">
+        <div class="stat-card">
+          <div class="stat-label">Regions</div>
+          <div class="stat-value" data-target="6">0</div>
+          <div class="stat-sub">Isolated, sovereign deployments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Webhook Events</div>
+          <div class="stat-value" data-target="8" data-suffix="+">0</div>
+          <div class="stat-sub">HMAC-SHA256 signed, wildcard-subscribable</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Delivery Retries</div>
+          <div class="stat-value" data-target="10">0</div>
+          <div class="stat-sub">Exponential backoff before abandon</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- BRIDGE: HOW COMPLY FITS (intro to services)   -->
+  <!-- ============================================ -->
+  <div class="demo-section" style="padding-top: 1rem; padding-bottom: 0;">
+    <div class="demo-section-inner">
+      <div class="fade-in" style="margin-bottom: 1.5rem; border-top: 1px solid var(--divider); padding-top: 2.5rem;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--accent-orange); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;">Into the services &middot; one at a time</div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem;">How Comply fits.</h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 720px; line-height: 1.65;">
+          Each of the four services plugs in at a different moment in your customer workflow. Before we go in on each one, here&rsquo;s the shape of it &mdash; a single REST call out, a decision back. Same shape, four checkpoints.
+        </p>
+      </div>
+
+      <!-- Integration Touchpoints (client-centric view) -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128279;</div> How Comply plugs into your stack</div>
+        <div style="padding: 1.75rem;">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.65; max-width: 620px;">
+            Four moments in your customer workflow where Comply plugs in. Each is a single REST call &mdash; request out, decision back.
+          </p>
+
+          <div class="integration-grid" style="display: grid; grid-template-columns: 1fr auto 1.1fr; column-gap: 1rem; row-gap: 0.75rem; align-items: stretch;">
+            <!-- Column headers -->
+            <div style="font-size: 0.65rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider);">Your stack</div>
+            <div></div>
+            <div style="font-size: 0.65rem; font-weight: 700; color: #039855; text-transform: uppercase; letter-spacing: 0.12em; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider);">Comply</div>
+
+            <!-- Row 1: Firewall -->
+            <div style="padding: 0.875rem 1rem; background: var(--primary-light); border-radius: var(--radius-md); border: 1px solid rgba(71, 76, 222, 0.18);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Outbound messaging</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">SMS, email, voice, letter &mdash; every message before it sends</div>
+            </div>
+            <div class="integration-arrow" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0 0.25rem;">
+              <span style="font-size: 1rem;">&rarr;</span>
+              <span style="font-size: 1rem;">&larr;</span>
+            </div>
+            <div style="padding: 0.875rem 1rem; background: var(--secondary-light); border-radius: var(--radius-md); border: 1px solid rgba(118, 235, 226, 0.4);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Firewall</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Allow or block, with legal citations</div>
+            </div>
+
+            <!-- Row 2: Safeguard -->
+            <div style="padding: 0.875rem 1rem; background: var(--primary-light); border-radius: var(--radius-md); border: 1px solid rgba(71, 76, 222, 0.18);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Inbound replies</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Customer responses via SMS, email, web, phone</div>
+            </div>
+            <div class="integration-arrow" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0 0.25rem;">
+              <span style="font-size: 1rem;">&rarr;</span>
+              <span style="font-size: 1rem;">&larr;</span>
+            </div>
+            <div style="padding: 0.875rem 1rem; background: var(--secondary-light); border-radius: var(--radius-md); border: 1px solid rgba(118, 235, 226, 0.4);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Safeguard</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Vulnerability classification &mdash; hardship, crisis, family violence</div>
+            </div>
+
+            <!-- Row 3: Consent -->
+            <div style="padding: 0.875rem 1rem; background: var(--primary-light); border-radius: var(--radius-md); border: 1px solid rgba(71, 76, 222, 0.18);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Consent &amp; preferences</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Opt-outs, channel preferences, account updates</div>
+            </div>
+            <div class="integration-arrow" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0 0.25rem;">
+              <span style="font-size: 1rem;">&rarr;</span>
+              <span style="font-size: 1rem;">&larr;</span>
+            </div>
+            <div style="padding: 0.875rem 1rem; background: var(--secondary-light); border-radius: var(--radius-md); border: 1px solid rgba(118, 235, 226, 0.4);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Consent</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Synchronous ack + immutable audit trail</div>
+            </div>
+
+            <!-- Row 4: Audit -->
+            <div style="padding: 0.875rem 1rem; background: var(--primary-light); border-radius: var(--radius-md); border: 1px solid rgba(71, 76, 222, 0.18);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Historical records</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Past sends, account histories, batch backfills</div>
+            </div>
+            <div class="integration-arrow" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0 0.25rem;">
+              <span style="font-size: 1rem;">&rarr;</span>
+              <span style="font-size: 1rem;">&larr;</span>
+            </div>
+            <div style="padding: 0.875rem 1rem; background: var(--secondary-light); border-radius: var(--radius-md); border: 1px solid rgba(118, 235, 226, 0.4);">
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.25;">Audit</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">Retrospective scan &mdash; compliance report with citations</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; padding: 0.875rem 1.25rem; background: var(--divider); border-radius: var(--radius-md); font-size: 0.825rem; color: var(--text-secondary); line-height: 1.6;">
+            <strong style="color: var(--text);">One API. Four touchpoints.</strong> Firewall, Safeguard, and Audit are async &mdash; request returns <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary);">202 Accepted</code>, decision delivered via signed webhook. Consent is synchronous because downstream systems need the answer before proceeding.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SECTION 3: SAFEGUARD                          -->
+  <!-- ============================================ -->
+  <section id="safeguard" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">3</div>
+        <h2 class="section-title"><span class="feature-name">Safeguard</span><span class="title-sub">&mdash; Vulnerability Detection</span></h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 760px;">
+        AI-powered classification of every inbound customer message. Hardship, self-harm, family violence, elder abuse &mdash; detected within seconds of receipt. <strong style="color: var(--text);">This is the &ldquo;demonstrable evidence&rdquo; layer:</strong> when a customer signals difficulty during a claim, a premium dispute, or a hardship request, Safeguard catches it &mdash; even if your front-line agent misses it &mdash; and produces a timestamped, citable record.
+      </p>
+
+      <!-- Big Stat Row -->
+      <div class="stats-grid fade-in" style="margin-bottom: 2rem;">
+        <div class="stat-card" style="border-top: 3px solid var(--secondary);">
+          <div class="stat-label">Detection Time</div>
+          <div class="stat-value" data-target="3" data-prefix="<" data-suffix="s">0</div>
+        </div>
+        <div class="stat-card" style="border-top: 3px solid var(--secondary);">
+          <div class="stat-label">Message Coverage</div>
+          <div class="stat-value" data-target="100" data-suffix="%">0</div>
+        </div>
+        <div class="stat-card" style="border-top: 3px solid var(--secondary);">
+          <div class="stat-label">SLA Breaches</div>
+          <div class="stat-value" data-target="0">0</div>
+        </div>
+      </div>
+
+      <!-- Vulnerability Signal Cards - 2x2 Grid -->
+      <div class="decision-grid fade-in" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon amber">&#128176;</div> Financial Hardship</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Job loss, medical costs, inability to pay. Flagged within seconds of receipt.
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+              <strong style="color: var(--text); font-weight: 700;">Recommended action:</strong> pause outbound contact; route to your hardship assistance team.
+            </p>
+            <div style="margin-top: 0.75rem;">
+              <span class="pill pill-warning">signal: financial_hardship</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon error">&#9888;&#65039;</div> Self-Harm &amp; Crisis</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Suicidal ideation, mental health emergency. Flagged for urgent escalation.
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+              <strong style="color: var(--text); font-weight: 700;">Recommended action:</strong> halt all outbound communications; escalate to your trained crisis response team.
+            </p>
+            <div style="margin-top: 0.75rem;">
+              <span class="pill pill-error">signal: self_harm_crisis</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon amber">&#128737;&#65039;</div> Family Violence</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Domestic abuse, coercive control, economic abuse. Flagged for sensitive handling.
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+              <strong style="color: var(--text); font-weight: 700;">Recommended action:</strong> activate your family violence protocols; route to a specialist handler.
+            </p>
+            <div style="margin-top: 0.75rem;">
+              <span class="pill pill-warning">signal: family_violence</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon teal">&#128100;</div> Elder Abuse</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Financial exploitation, cognitive impairment. Flagged for review.
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+              <strong style="color: var(--text); font-weight: 700;">Recommended action:</strong> escalate to your vulnerable-customer specialist for protective review.
+            </p>
+            <div style="margin-top: 0.75rem;">
+              <span class="pill pill-teal">signal: elder_abuse</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rulesets: Standard, Customisable, Extensible -->
+      <div class="fade-in" style="margin-bottom: 2rem;">
+        <div style="font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">Ships with comprehensive rulesets</div>
+        <dl class="safeguard-rulesets" style="display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 2rem; row-gap: 1rem; border-top: 1px solid var(--divider); padding-top: 1.5rem; margin: 0;">
+          <div>
+            <dt style="font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;">Standard</dt>
+            <dd style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">Classifiers trained on collections-domain data, tuned for precision. Ready on day one.</dd>
+          </div>
+          <div>
+            <dt style="font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;">Customisable</dt>
+            <dd style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">Disable or replace standard rules to match your vulnerability policies.</dd>
+          </div>
+          <div>
+            <dt style="font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;">Extensible</dt>
+            <dd style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">Add your own categories for product-specific signals, regional patterns, or internal escalation triggers.</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Callout -->
+      <div class="callout fade-in" style="margin-bottom: 2rem;">
+        <strong>Automatic Response.</strong> When a vulnerability signal is detected, Comply empowers you to automatically hold all outbound communications, escalate to specialist teams, and create an audit-ready record &mdash; all within seconds of the inbound message being received.
+      </div>
+
+      <!-- Deep Dive: API Flow -->
+      <div class="fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header deep-dive-toggle" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; cursor: pointer;">
+          <div aria-hidden="true" class="card-icon primary">&#128269;</div>
+          <span>How Safeguard Classifies Messages</span>
+          <span class="chevron" style="margin-left: auto;">&#9660;</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body" style="background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Send any inbound customer message to the Safeguard endpoint. Comply classifies the text and returns a structured decision with signal type, confidence score, explanation, and recommended action.
+            </p>
+            <div class="code-block">
+              <pre><span style="color: #7472c7;">POST</span> /api/safeguard
+Content-Type: application/json
+
+{
+  "tenant_id": "iag-au",
+  "channel": "sms",
+  "direction": "inbound",
+  "customer_id": "C-7291",
+  "context": "claim_in_progress",
+  "message": "I lost my job after the storm and I can't pay
+              this month's premium. The claim still hasn't been
+              paid out and I'm at breaking point."
+}</pre>
+            </div>
+            <div class="code-block">
+              <pre><span style="color: #039855;">Response</span> 200 OK
+
+{
+  "request_id": "sg-20260514-a8f3c",
+  "signal": "financial_hardship",
+  "co_signals": ["claims_stress", "crisis_language"],
+  "confidence": 0.94,
+  "explanation": "Customer indicates recent income loss, premium
+                  difficulty, and elevated claim-related distress
+                  ('breaking point').",
+  "recommended_action": "hold_and_escalate",
+  "hold_outbound": true,
+  "escalation_team": "vulnerable_customer",
+  "citations": [
+    "ASIC RG 271.72 — Identifying financial difficulty",
+    "NCCP Act s.72 — Hardship notice handling",
+    "General Insurance Code of Practice Pt.9 — Financial hardship",
+    "General Insurance Code of Practice Pt.10 — Vulnerability"
+  ]
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regulatory Alignment Callout -->
+      <div class="callout callout-success fade-in">
+        <strong>From obligation to action, on a single customer.</strong> RG&nbsp;271 requires identification of financial difficulty <em>at the point of contact</em>. The NCCP Act and GICOP Pt.9 then govern what must happen next. Safeguard closes that loop in seconds &mdash; the message arrives, the signal fires, outbound contact is held, the vulnerable-customer team is alerted, and a citable record exists before the next agent shift starts. Front-line staff catch what they can; Comply catches what they can&rsquo;t.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 4: THE COMPLIANCE FIREWALL            -->
+  <!-- ============================================ -->
+  <section id="firewall" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">4</div>
+        <h2 class="section-title"><span class="title-sub">The Compliance</span> <span class="feature-name">Firewall</span></h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 700px;">
+        <strong style="color: var(--text); font-weight: 800;">Every</strong> outbound message evaluated against jurisdiction-specific rules before it reaches the customer. Not some. Not most. Every one &mdash; because a statistical sample misses the one message that breaches.
+      </p>
+
+      <!-- Firewall Flow Diagram -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon teal">&#128737;</div> Pre-Send Evaluation</div>
+        <div class="flow-diagram">
+          <div class="flow-row" style="justify-content: center;">
+            <div class="flow-node primary">Message</div>
+            <div class="flow-arrow animated">&rarr;</div>
+            <div class="flow-node teal shield-glow" style="padding: 0.875rem 1.5rem; font-size: 0.9rem;">&#128737; Comply Firewall</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div class="flow-node success">&#10003; ALLOW</div>
+              <div class="flow-node error">&#10007; BLOCK</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evaluation Pipeline -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-iconpurple">&#9881;</div> Evaluation Pipeline</div>
+        <div class="flow-diagram timeline-visible-trigger" style="overflow-x: auto;">
+          <div class="flow-row" style="justify-content: space-between;">
+            <div class="flow-node primary timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 1</div>
+              POST /api/firewall
+            </div>
+            <div class="flow-node teal timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 2</div>
+              Request Validated
+            </div>
+            <div class="flow-node purple timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 3</div>
+              Ruleset Fetched
+            </div>
+            <div class="flow-node amber timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 4</div>
+              LLM Evaluation
+            </div>
+            <div class="flow-node success timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 5</div>
+              Decision Returned
+            </div>
+            <div class="flow-node primary timeline-step" style="flex: 1; text-align: center;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;">Step 6</div>
+              Webhook Delivered
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Blocked Message -->
+      <div class="fade-in" style="margin-bottom: 2rem;">
+        <div class="subsection-title">Example: Blocked Message</div>
+        <div class="code-block">
+          <pre><span style="color: #7472c7;">POST</span> /api/firewall
+Channel: sms | Jurisdiction: AU:NSW | Consumer: C-4821
+
+<span style="color: #f04438;">&rarr; BLOCK</span>
+  Rule: au-contact-timing-window (v3)
+  Citation: ASIC RG 271.72
+  Explanation: "SMS scheduled at 9:45 PM AEST, outside permitted
+  contact hours of 9:00 AM &ndash; 9:00 PM in consumer's timezone."
+
+  Metadata:
+    scheduled_at: 2026-04-14T21:45:00+10:00
+    consumer_tz: Australia/Sydney
+    permitted_window: 09:00-21:00
+    rule_version: 3
+    evaluation_ms: 142</pre>
+        </div>
+      </div>
+
+      <!-- Shadow Mode Callout -->
+      <div class="callout callout-warning fade-in" style="margin-bottom: 2rem;">
+        <strong>Shadow Mode.</strong> Start by observing. Comply evaluates every message and returns decisions via webhook, but does not block delivery. Your team sees what would have been caught, validates the rules, and builds confidence before switching to enforcement mode.
+      </div>
+
+      <!-- Deep Dive: ALLOW_WITH_CONDITIONS -->
+      <div class="fade-in">
+        <div class="card-header deep-dive-toggle" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; cursor: pointer;">
+          <div aria-hidden="true" class="card-icon success">&#9888;</div>
+          <span>ALLOW_WITH_CONDITIONS</span>
+          <span class="chevron" style="margin-left: auto;">&#9660;</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body" style="background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Not every evaluation is a binary ALLOW or BLOCK. Some messages are allowed but with conditions noted &mdash; for example, required disclosures that must be present, or frequency limits that are approaching their threshold.
+            </p>
+            <div class="code-block">
+              <pre><span style="color: #dc6803;">&rarr; ALLOW_WITH_CONDITIONS</span>
+  Rule: au-hardship-disclosure (v2)
+  Citation: General Insurance Code of Practice Pt.9
+  Condition: "Message references payment arrangement but does
+  not include required hardship disclosure statement. Message
+  is allowed but condition logged for review."
+
+  conditions: [
+    {
+      "type": "missing_disclosure",
+      "description": "Hardship notice not present",
+      "severity": "medium",
+      "suggested_action": "append_disclosure"
+    }
+  ]</pre>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;">
+              Conditions are delivered via webhook alongside the decision, giving your team visibility into near-misses and areas for template improvement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 5: AUDIT & CONSENT                    -->
+  <!-- ============================================ -->
+  <section id="audit" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">5</div>
+        <h2 class="section-title"><span class="feature-name">Audit &amp; Consent</span></h2>
+      </div>
+
+      <div class="fade-in" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+        <!-- Audit Card -->
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128203;</div> Audit</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+              Post-send compliance analysis. Evaluate historical communications against the same rule engine that powers real-time decisions.
+            </p>
+            <div style="margin-bottom: 1rem;">
+              <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;">Use Cases</div>
+              <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+                <li>Onboarding gap analysis &mdash; evaluate your existing message templates against current rules</li>
+                <li>Regulatory exam preparation &mdash; produce audit-ready reports before ASIC reviews</li>
+                <li>Portfolio acquisition due diligence &mdash; assess compliance posture of acquired portfolios</li>
+              </ul>
+            </div>
+            <div class="callout" style="margin-bottom: 0;">
+              Same API, same rules, same citations. Run against your historical message archive.
+            </div>
+          </div>
+        </div>
+
+        <!-- Consent Card -->
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon success">&#9989;</div> Consent</div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+              Real-time opt-out tracking with immutable audit trail.
+            </p>
+            <div class="code-block" style="margin-bottom: 1rem;">
+              <pre><span style="color: #7472c7;">POST</span> /api/consent
+
+{
+  "consumer_id": "C-7291",
+  "channel": "sms",
+  "sender_id": "+61400000123",
+  "action": "opt_out",
+  "source": "consumer_reply",
+  "timestamp": "2026-04-14T14:30:00+10:00"
+}</pre>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+              Automatic breach detection &mdash; if a message is sent after opt-out, Comply flags it immediately.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Per-consumer, per-channel, per-sender tracking. Complete history of every consent change.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 6: RULES ENGINE                       -->
+  <!-- ============================================ -->
+  <section id="rules" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">6</div>
+        <h2 class="section-title"><span class="title-sub">The</span> <span class="feature-name">Rules Engine</span></h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 700px;">
+        160+ compliance rules written in plain English, enforced by AI. No code required.
+      </p>
+
+      <!-- Plain English Rule Example -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128221;</div> Rules Written in Plain English</div>
+        <div class="card-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Compliance specialists author rules in natural language. The AI interprets and enforces them consistently across every message.
+          </p>
+          <div style="margin-bottom: 1rem;">
+            <div class="stat-label" style="margin-bottom: 0.5rem;">Example Rule</div>
+            <div class="code-block" style="margin: 0;">
+              <pre style="font-size: 0.85rem;"><span style="color: #76EBE2;">rule:</span> au-contact-timing-window
+<span style="color: #76EBE2;">version:</span> 3
+<span style="color: #76EBE2;">jurisdiction:</span> AU
+<span style="color: #76EBE2;">description:</span>
+
+"Block any SMS or voice call made outside 9:00 AM to
+ 9:00 PM in the consumer's local timezone."
+
+<span style="color: #76EBE2;">citation:</span> ASIC RG 271.72
+<span style="color: #76EBE2;">channels:</span> [sms, voice]
+<span style="color: #76EBE2;">action:</span> BLOCK</pre>
+            </div>
+          </div>
+          <div>
+            <div class="stat-label" style="margin-bottom: 0.5rem;">LLM Evaluation Response</div>
+            <div class="code-block" style="margin: 0;">
+              <pre><span style="color: #f04438;">violation_detected:</span> true
+<span style="color: #76EBE2;">explanation:</span> "The SMS is scheduled for 9:45 PM AEST.
+The consumer's local timezone is Australia/Sydney. The
+permitted contact window is 9:00 AM to 9:00 PM. The
+message falls outside the permitted window by 45 minutes."
+<span style="color: #76EBE2;">confidence:</span> 0.99</pre>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 1rem; margin-bottom: 0;">
+            <strong>No engineering needed.</strong> Compliance specialists author rules; the AI enforces them. Rules can be added, updated, or deactivated without a code deployment.
+          </div>
+        </div>
+      </div>
+
+      <!-- Jurisdiction Coverage -->
+      <div class="subsection fade-in" style="margin-bottom: 2rem;">
+        <div class="subsection-title">Jurisdiction Coverage</div>
+        <div style="margin-bottom: 1rem;">
+          <div class="stat-label" style="margin-bottom: 0.75rem;">Australian States &amp; Territories</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-width: 400px;">
+            <span class="pill pill-teal" style="justify-content: center;">NSW</span>
+            <span class="pill pill-teal" style="justify-content: center;">VIC</span>
+            <span class="pill pill-teal" style="justify-content: center;">QLD</span>
+            <span class="pill pill-teal" style="justify-content: center;">WA</span>
+            <span class="pill pill-teal" style="justify-content: center;">SA</span>
+            <span class="pill pill-teal" style="justify-content: center;">TAS</span>
+            <span class="pill pill-teal" style="justify-content: center;">ACT</span>
+            <span class="pill pill-teal" style="justify-content: center;">NT</span>
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+          Also covering: US (52 states), UK, CA, NZ, BR, AE, FR, MX
+        </p>
+      </div>
+
+      <!-- Rule Categories - 3x3 Grid -->
+      <div class="subsection fade-in" style="margin-bottom: 2rem;">
+        <div class="subsection-title">Rule Categories</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128338;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Timing</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Contact windows</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128200;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Frequency</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Contact limits</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128683;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Block</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Prohibited actions</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#9989;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Consent</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Opt-in / opt-out</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128172;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Language</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Tone & content</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128737;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Vulnerability</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Consumer protection</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128161;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Sentiment</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">Tone analysis</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#128227;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Complaint</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">IDR handling</div>
+          </div>
+          <div class="stat-card" style="padding: 1rem; text-align: center;">
+            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">&#9878;</div>
+            <div style="font-size: 0.8rem; font-weight: 700;">Dispute</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">EDR triggers</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deep Dive: Jurisdiction Hierarchy -->
+      <div class="fade-in">
+        <div class="card-header deep-dive-toggle" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; cursor: pointer;">
+          <div aria-hidden="true" class="card-iconpurple">&#127760;</div>
+          <span>Jurisdiction Hierarchy</span>
+          <span class="chevron" style="margin-left: auto;">&#9660;</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body" style="background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Rules cascade through a three-level hierarchy. More specific rules override general ones.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div class="flow-node primary" style="text-align: center; padding: 1rem;">
+                <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.25rem;">Level 1</div>
+                <strong>Global</strong>
+                <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">Universal compliance rules &mdash; apply everywhere</div>
+              </div>
+              <div style="text-align: center; color: var(--text-secondary);">&#9660;</div>
+              <div class="flow-node teal" style="text-align: center; padding: 1rem;">
+                <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.25rem;">Level 2</div>
+                <strong>Country &rarr; State</strong>
+                <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">AU rules apply to all states. NSW-specific rules override AU defaults.</div>
+              </div>
+              <div style="text-align: center; color: var(--text-secondary);">&#9660;</div>
+              <div class="flow-node purple" style="text-align: center; padding: 1rem;">
+                <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.25rem;">Level 3</div>
+                <strong>Tenant-Specific</strong>
+                <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">Client-specific rules can override defaults. E.g., an insurer may set tighter pre-action timing windows than the regulatory floor.</div>
+              </div>
+            </div>
+            <div class="callout" style="margin-top: 1rem; margin-bottom: 0;">
+              When a customer in NSW receives a message, Comply evaluates: Global rules &rarr; AU rules &rarr; AU:NSW rules &rarr; IAG tenant rules. Most specific match wins.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 7: INTEGRATION                        -->
+  <!-- ============================================ -->
+  <section id="integration" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">7</div>
+        <h2 class="section-title">Integration</h2>
+      </div>
+
+      <p class="fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; max-width: 700px;">
+        API-first and MCP-ready. The same capabilities are available to your backend services <em>and</em> to AI agents &mdash; one rule set, one audit trail, one source of truth.
+      </p>
+
+      <!-- The Shape of One Call (moved from overview) -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon teal">&#8634;</div> The shape of one call</div>
+        <div style="padding: 1.75rem 1.75rem 0.5rem; max-width: 720px;">
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.65; margin: 0;">
+            All four checkpoints &mdash; Firewall, Safeguard, Consent, Audit &mdash; ride the same request/response shape. One POST out, a signed webhook back with a decision and citations. Same pipeline, same audit log, regardless of which checkpoint fired.
+          </p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem 1.75rem; display: grid; grid-template-columns: 1fr auto 1.6fr; gap: 1.25rem; align-items: stretch;" class="lifecycle-grid">
+          <!-- Client side -->
+          <div style="border: 1px dashed rgba(71, 76, 222, 0.35); background: var(--primary-light); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
+            <div style="font-size: 0.65rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em;">IAG</div>
+            <div style="font-size: 2rem; line-height: 1; margin-top: 0.25rem;">&#128187;</div>
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.01em;">Your System</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; line-height: 1.5; margin-top: 0.25rem;">
+              Sends outbound messages.<br>Receives webhook decisions.
+            </div>
+          </div>
+
+          <!-- Crossings -->
+          <div class="lifecycle-crossings" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem 0; min-width: 9rem;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-secondary); font-weight: 600;">POST /api</span>
+              <div class="flow-arrow animated" style="font-size: 1.5rem; color: var(--primary);">&rarr;</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem;">
+              <div class="flow-arrow animated" style="font-size: 1.5rem; color: var(--secondary);">&larr;</div>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-secondary); font-weight: 600;">Webhook</span>
+            </div>
+          </div>
+
+          <!-- Comply side -->
+          <div style="border: 1px dashed rgba(118, 235, 226, 0.5); background: var(--secondary-light); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="font-size: 0.65rem; font-weight: 700; color: #039855; text-transform: uppercase; letter-spacing: 0.12em; text-align: center; margin-bottom: 0.25rem;">Comply</div>
+            <div class="flow-node teal shield-glow" style="text-align: center;">API Endpoint</div>
+            <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">&darr;</div>
+            <div class="flow-node amber" style="text-align: center;">Rules Engine</div>
+            <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">&darr;</div>
+            <div class="flow-node success" style="text-align: center;">Decision + Citations</div>
+            <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">&darr;</div>
+            <div class="flow-node primary" style="text-align: center;">Webhook Dispatch</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Ways to Integrate: REST API + MCP -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128268;</div> Two Ways to Integrate</div>
+        <div style="padding: 1.75rem;">
+          <div class="interface-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <!-- REST API -->
+            <div style="padding: 1.25rem 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg); border-top: 3px solid var(--primary); background: var(--surface);">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--primary); letter-spacing: 0.08em; margin-bottom: 0.5rem;">REST API</div>
+              <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">For systems and services</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.875rem;">
+                Traditional backend integration. POST payloads, receive signed webhook callbacks. Bearer token auth, OpenAPI 3.1 spec, idempotency keys.
+              </p>
+              <ul style="font-size: 0.8rem; color: var(--text-secondary); padding-left: 1.1rem; line-height: 1.7; margin: 0;">
+                <li>Any language, any platform</li>
+                <li>SDKs for TypeScript, Python, Go</li>
+                <li>Shadow mode for safe rollout</li>
+              </ul>
+            </div>
+
+            <!-- MCP -->
+            <div style="padding: 1.25rem 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg); border-top: 3px solid var(--accent-orange); background: var(--surface);">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--accent-orange); letter-spacing: 0.08em; margin-bottom: 0.5rem;">MODEL CONTEXT PROTOCOL</div>
+              <h3 style="font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.3;">For AI agents</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.875rem;">
+                Expose Comply as first-class tools to any MCP-compatible agent. The agent discovers Firewall, Safeguard, Audit, and Consent and calls them directly &mdash; no glue code, no custom tool schemas.
+              </p>
+              <ul style="font-size: 0.8rem; color: var(--text-secondary); padding-left: 1.1rem; line-height: 1.7; margin: 0;">
+                <li>Compatible with Claude, Cursor, and any MCP client</li>
+                <li>Tool definitions ship with the service</li>
+                <li>Same auth, same rules, same audit trail</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout callout-orange" style="margin-top: 1.5rem; margin-bottom: 0;">
+            <strong>Built for the AI world.</strong> Agents drafting collections messages, triaging inbound replies, or batch-auditing historical data can reach Comply natively. Every AI-driven decision is evaluated against the same rules as human-originated traffic &mdash; and captured in the same audit log.
+          </div>
+        </div>
+      </div>
+
+      <!-- API Endpoints Table -->
+      <div class="table-wrap fade-in" style="margin-bottom: 2rem;">
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Method</th>
+              <th>Response</th>
+              <th>Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary);">/api/firewall</code></td>
+              <td><span class="pill pill-primary">POST</span></td>
+              <td>202 &rarr; Webhook</td>
+              <td>Pre-send compliance check</td>
+            </tr>
+            <tr>
+              <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary);">/api/safeguard</code></td>
+              <td><span class="pill pill-primary">POST</span></td>
+              <td>202 &rarr; Webhook</td>
+              <td>Inbound vulnerability detection</td>
+            </tr>
+            <tr>
+              <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary);">/api/audit</code></td>
+              <td><span class="pill pill-primary">POST</span></td>
+              <td>202 &rarr; Webhook</td>
+              <td>Historical compliance analysis</td>
+            </tr>
+            <tr>
+              <td><code style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary);">/api/consent</code></td>
+              <td><span class="pill pill-primary">POST</span></td>
+              <td>200 OK</td>
+              <td>Record consent changes</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Webhook + Multi-Region Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;" class="fade-in">
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128232;</div> Webhook Delivery</div>
+          <div class="card-body">
+            <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+              <li><strong>HMAC-SHA256 signed</strong> &mdash; verify every webhook payload is authentic</li>
+              <li><strong>Retry with exponential backoff</strong> &mdash; guaranteed delivery with configurable retry policy</li>
+              <li><strong>Idempotent delivery</strong> &mdash; safe to replay without side effects</li>
+              <li><strong>Configurable endpoints</strong> &mdash; route decisions to different systems per type</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div aria-hidden="true" class="card-icon teal">&#127758;</div> Multi-Region Deployment</div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+              <span class="pill pill-teal" style="justify-content: center;">&#127462;&#127482; Sydney</span>
+              <span class="pill pill-primary" style="justify-content: center;">&#127482;&#127480; Virginia</span>
+              <span class="pill pill-primary" style="justify-content: center;">&#127468;&#127463; London</span>
+              <span class="pill pill-primary" style="justify-content: center;">&#127464;&#127462; Toronto</span>
+              <span class="pill pill-primary" style="justify-content: center;">&#127462;&#127466; Amsterdam</span>
+              <span class="pill pill-primary" style="justify-content: center;">&#127463;&#127479; S&atilde;o Paulo</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              Data stays in-region. Each deployment is independent. Australian data never leaves Australian infrastructure.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enterprise SSO -->
+      <div class="card fade-in" style="margin-bottom: 2rem;">
+        <div class="card-header"><div aria-hidden="true" class="card-icon primary">&#128273;</div> Enterprise Single Sign-On</div>
+        <div style="padding: 1.75rem;">
+          <div class="interface-grid" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.5rem;">
+            <div>
+              <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+                Comply authenticates humans through a <strong>dedicated identity gateway</strong> that fronts SAML 2.0 and OAuth 2.0 for every major enterprise IdP. No bespoke federation code, no shared credentials, no passwords stored in Comply.
+              </p>
+              <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8; margin: 0;">
+                <li><strong>SAML 2.0 &amp; OAuth 2.0</strong> &mdash; both SP-initiated and IdP-initiated flows (e.g. launching from an Okta dashboard tile)</li>
+                <li><strong>MFA enforced by your IdP</strong> &mdash; Comply defers to the policies your security team already operates</li>
+                <li><strong>JWT-based sessions</strong> &mdash; role and permission claims signed by the IdP, re-verified on every request</li>
+                <li><strong>Cross-region token exchange</strong> &mdash; one sign-in carries seamlessly across our regional deployments</li>
+              </ul>
+            </div>
+            <div style="padding: 1.25rem 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--primary); letter-spacing: 0.08em; margin-bottom: 0.75rem;">SUPPORTED IDENTITY PROVIDERS</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                <span class="pill pill-primary" style="justify-content: center;">Okta</span>
+                <span class="pill pill-primary" style="justify-content: center;">Entra&nbsp;ID</span>
+                <span class="pill pill-primary" style="justify-content: center;">Google&nbsp;Workspace</span>
+                <span class="pill pill-primary" style="justify-content: center;">PingFederate</span>
+                <span class="pill pill-primary" style="justify-content: center;">OneLogin</span>
+                <span class="pill pill-teal" style="justify-content: center;">Any SAML 2.0 IdP</span>
+              </div>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.55; margin-top: 0.875rem; margin-bottom: 0;">
+                Typical connection setup: under an hour with your IdP metadata. No Comply code changes required.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shadow Mode Callout -->
+      <div class="callout fade-in">
+        <strong>Shadow mode for safe onboarding.</strong> Evaluate messages without blocking delivery. See decisions, validate rules, build confidence before going live. Typical onboarding: 2 weeks in shadow mode, then gradual enforcement rollout.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 8: REGULATORY ALIGNMENT & RESULTS     -->
+  <!-- ============================================ -->
+  <section id="results" class="demo-section">
+    <div class="demo-section-inner">
+      <div class="section-header fade-in">
+        <div class="section-number" aria-hidden="true">8</div>
+        <h2 class="section-title">Regulatory Alignment &amp; Results</h2>
+      </div>
+
+      <!-- Regulatory Cards -->
+      <div class="fade-in" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div class="regulation-card">
+          <h4>ASIC RG 271</h4>
+          <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">Hardship identification</p>
+          <p>
+            Licensees must <em>identify</em> customers experiencing financial difficulty and respond with appropriate assistance. Comply&rsquo;s Safeguard detects hardship signals automatically at the point of contact &mdash; demonstrable evidence that the identification obligation was met for every customer, on every channel.
+          </p>
+        </div>
+        <div class="regulation-card">
+          <h4>NCCP Act</h4>
+          <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">Outbound contact conduct</p>
+          <p>
+            Governs how customers in financial difficulty may be contacted. Comply enforces contact timing windows, frequency limits, and required-disclosure language pre-send &mdash; preventing the breach instead of investigating it after the fact.
+          </p>
+        </div>
+        <div class="regulation-card">
+          <h4>General Insurance Code of Practice</h4>
+          <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">Vulnerability &amp; hardship (Pt.9 &amp; Pt.10)</p>
+          <p>
+            Sets the bar for vulnerable-customer handling and financial hardship across general insurance. Comply identifies family violence, elder abuse, claims-related crisis, and hardship signals &mdash; automatically activating the protocols GICOP requires.
+          </p>
+        </div>
+      </div>
+
+      <!-- Results Stats Grid -->
+      <div class="stats-grid fade-in" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2rem;">
+        <div class="stat-card">
+          <div class="stat-label">Compliance Rules</div>
+          <div class="stat-value" data-target="160" data-suffix="+">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Jurisdictions</div>
+          <div class="stat-value" data-target="9">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Evaluation Latency</div>
+          <div class="stat-value" data-target="3" data-prefix="<" data-suffix="s">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SLA Breaches</div>
+          <div class="stat-value" data-target="0">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Message Coverage</div>
+          <div class="stat-value" data-target="100" data-suffix="%">0</div>
+        </div>
+      </div>
+
+      <!-- Key Message -->
+      <div class="code-block fade-in" style="text-align: center;">
+        <pre style="font-size: 0.95rem; padding: 2rem; line-height: 1.8;">
+<span style="color: #76EBE2; font-weight: 700;">100%</span> of outbound communications evaluated.
+
+Not a sample. Not a spot-check.
+<span style="color: #ffffff; font-weight: 600;">Every single message</span>, with a full audit trail
+and legal citations.</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 9: GET STARTED (Dark Section)         -->
+  <!-- ============================================ -->
+  <section id="contact" class="demo-section dark-section">
+    <div class="demo-section-inner" style="text-align: center;">
+      <div class="section-header fade-in" style="justify-content: center;">
+        <div class="section-number" style="background: rgba(118, 235, 226, 0.15); color: var(--secondary);" aria-hidden="true">9</div>
+        <h2 class="section-title" style="color: #ffffff;">Get Started</h2>
+      </div>
+
+      <p class="fade-in" style="color: rgba(255,255,255,0.7); font-size: 1.1rem; max-width: 680px; margin: 0 auto 2rem; line-height: 1.7;">
+        You&rsquo;ve seen the product. The next step we&rsquo;re proposing for IAG is the one with the lowest possible risk &mdash; a <strong style="color: #ffffff;">retrospective audit on a sample of your historical communications</strong>. No integration. No live traffic. Just evidence on what&rsquo;s already happened, mapped to RG&nbsp;271, NCCP, and GICOP. Detail in the next section.
+      </p>
+
+      <div class="fade-in" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+        <div style="background: rgba(247,144,9, 0.12); border: 1px solid rgba(247,144,9, 0.45); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; text-align: center; min-width: 200px;">
+          <div aria-hidden="true" style="font-size: 1.5rem; margin-bottom: 0.5rem;">&#128203;</div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem;">Retrospective audit first</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Historical sample &mdash; no live traffic</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; text-align: center; min-width: 200px;">
+          <div aria-hidden="true" style="font-size: 1.5rem; margin-bottom: 0.5rem;">&#128737;</div>
+          <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">Shadow mode next</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">Observe before enforcing on live traffic</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; text-align: center; min-width: 200px;">
+          <div aria-hidden="true" style="font-size: 1.5rem; margin-bottom: 0.5rem;">&#9889;</div>
+          <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">Sits alongside your stack</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">No system replacement &middot; one REST call</div>
+        </div>
+      </div>
+
+      <!-- Trust Bar -->
+      <div class="fade-in" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; padding: 1rem 0; border-top: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; align-items: center; gap: 0.625rem; font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.02em;">
+          <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; background: rgba(118, 235, 226, 0.1); border: 1px solid rgba(118, 235, 226, 0.3); border-radius: var(--radius-sm); font-size: 0.6rem; font-weight: 800; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">SOC 2</span>
+          SOC 2 Type II audited
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.625rem; font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.02em;">
+          <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; background: rgba(118, 235, 226, 0.1); border: 1px solid rgba(118, 235, 226, 0.3); border-radius: var(--radius-sm); font-size: 0.6rem; font-weight: 800; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">ISO</span>
+          ISO/IEC 27001 certified
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.625rem; font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.02em;">
+          <span aria-hidden="true" style="font-size: 1rem;">&#127760;</span>
+          6 regions &middot; data residency guaranteed
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem; padding-top: 1.5rem;">
+        <p style="color: #ffffff; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">From reactive complaints to proactive intervention.</p>
+        <p style="color: rgba(255,255,255,0.5); font-size: 0.8125rem;">
+          InDebted &middot; Comply &middot; Compliance Intelligence for Insurance
+        </p>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ============================================ -->
+  <!-- FIXED PAGE FOOTER LOGO                        -->
+  <!-- ============================================ -->
+  <div class="page-footer">
+    <svg viewBox="0 0 779 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="137.986" height="137.986" rx="32.4673" fill="#76EBE2"/>
+      <path d="M20.2865 51.8551C20.2865 48.8665 22.7092 46.4438 25.6977 46.4438H54.5575C57.5461 46.4438 59.9688 48.8665 59.9688 51.8551C59.9688 54.8436 57.5461 57.2663 54.5575 57.2663H25.6977C22.7092 57.2663 20.2865 54.8436 20.2865 51.8551Z" fill="#000244"/>
+      <path d="M27.5021 33.8197C27.5021 30.8311 29.9248 28.4084 32.9133 28.4084H76.2031C79.1916 28.4084 81.6143 30.8311 81.6143 33.8197C81.6143 36.8082 79.1916 39.2309 76.2031 39.2309H32.9133C29.9248 39.2309 27.5021 36.8082 27.5021 33.8197Z" fill="#000244"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M25.6984 46.4458C22.7098 46.4458 20.2871 48.8685 20.2871 51.8571C20.2871 54.8456 22.7098 57.2683 25.6984 57.2683H62.675C65.6636 57.2683 68.0863 54.8456 68.0863 51.8571C68.0863 48.8685 65.6636 46.4458 62.675 46.4458H25.6984ZM36.5208 64.4832C33.5323 64.4832 31.1096 66.9059 31.1096 69.8945C31.1096 72.883 33.5323 75.3057 36.5208 75.3057H69.89C72.8785 75.3057 75.3012 72.883 75.3012 69.8945C75.3012 66.9059 72.8785 64.4832 69.89 64.4832H36.5208Z" fill="#000244"/>
+      <path d="M41.9319 87.9344C41.9319 84.9459 44.3545 82.5232 47.3431 82.5232H80.7123C83.7008 82.5232 86.1235 84.9459 86.1235 87.9344C86.1235 90.9229 83.7008 93.3456 80.7123 93.3456H47.3431C44.3545 93.3456 41.9319 90.9229 41.9319 87.9344Z" fill="#000244"/>
+      <rect x="52.7541" y="100.559" width="32.4673" height="10.8224" rx="5.41122" fill="#000244"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M77.1754 39.2306H63.5844V28.4082H77.1754C99.5546 28.4082 117.697 46.9821 117.697 69.8942C117.697 92.8063 99.5546 111.38 77.1754 111.38H63.5844V100.558H77.1754C93.7166 100.558 107.126 86.8292 107.126 69.8942C107.126 52.9592 93.7166 39.2306 77.1754 39.2306Z" fill="#000244"/>
+      <path d="M182.964 23.6345V117.603C182.964 118.066 182.772 118.509 182.432 118.836C182.092 119.163 181.63 119.347 181.148 119.347H164.369C163.887 119.347 163.426 119.163 163.085 118.836C162.745 118.509 162.553 118.066 162.553 117.603V23.6345C162.553 23.1721 162.745 22.7287 163.085 22.4018C163.426 22.0748 163.887 21.8911 164.369 21.8911H181.071C181.315 21.881 181.56 21.9187 181.789 22.0018C182.019 22.0848 182.228 22.2117 182.405 22.3746C182.582 22.5375 182.722 22.7331 182.819 22.9496C182.915 23.1662 182.964 23.3991 182.964 23.6345Z" fill="#000244"/>
+      <path d="M260.039 49.6087C265.926 55.4366 268.935 63.5558 268.935 74.0162V117.676C268.935 118.138 268.743 118.581 268.403 118.908C268.062 119.235 267.601 119.419 267.119 119.419H250.417C249.936 119.419 249.474 119.235 249.134 118.908C248.793 118.581 248.602 118.138 248.602 117.676V76.706C248.964 71.5464 247.257 66.4492 243.83 62.46C242.165 60.7881 240.146 59.4784 237.909 58.6192C235.672 57.7599 233.269 57.3711 230.863 57.4789C228.401 57.3595 225.94 57.7416 223.643 58.6001C221.345 59.4585 219.263 60.774 217.533 62.46C214.041 66.4013 212.283 71.4924 212.631 76.6562V117.676C212.631 118.138 212.44 118.581 212.099 118.908C211.759 119.235 211.297 119.419 210.816 119.419H193.958C193.477 119.419 193.015 119.235 192.674 118.908C192.334 118.581 192.143 118.138 192.143 117.676V43.7559C192.143 43.2935 192.334 42.8501 192.674 42.5232C193.015 42.1962 193.477 42.0125 193.958 42.0125H210.66C211.139 42.019 211.597 42.2047 211.936 42.5303C212.275 42.8558 212.469 43.2956 212.475 43.7559V49.2601C212.483 49.4271 212.54 49.5887 212.64 49.7254C212.74 49.8622 212.879 49.9685 213.04 50.0315C213.202 50.0945 213.378 50.1116 213.549 50.0808C213.721 50.05 213.879 49.9726 214.005 49.8578C216.516 47.306 219.508 45.2353 222.823 43.7559C228.942 41.1281 235.73 40.2819 242.345 41.3223C248.96 42.3626 255.112 45.2437 260.039 49.6087Z" fill="#000244"/>
+      <path d="M339.554 94.4154C345.364 88.8366 348.268 80.9913 348.268 70.7801C348.268 60.5688 345.364 52.7484 339.554 46.9952C333.745 41.2421 325.472 38.353 314.865 38.353H302.235C301.755 38.3594 301.297 38.5452 300.958 38.8708C300.619 39.1963 300.426 39.636 300.419 40.0964V101.04C300.426 101.501 300.619 101.94 300.958 102.266C301.297 102.592 301.755 102.777 302.235 102.784H314.865C325.472 102.784 333.745 99.9943 339.554 94.4154ZM343.73 27.8927C351.6 31.7159 358.129 37.6739 362.506 45.0277C367.078 52.905 369.371 61.8142 369.145 70.8299C369.374 79.7905 367.08 88.6443 362.506 96.4577C358.095 103.755 351.572 109.664 343.73 113.468C334.988 117.61 325.336 119.669 315.591 119.47H281.876C281.638 119.47 281.402 119.425 281.181 119.338C280.961 119.25 280.761 119.122 280.592 118.96C280.424 118.798 280.29 118.606 280.199 118.394C280.108 118.183 280.061 117.956 280.061 117.727V23.6338C280.061 23.1714 280.252 22.728 280.592 22.4011C280.933 22.0741 281.395 21.8904 281.876 21.8904H315.591C325.336 21.6919 334.988 23.7507 343.73 27.8927Z" fill="#000244"/>
+      <path d="M434.496 73.3965C434.737 73.3965 434.968 73.3047 435.138 73.1412C435.308 72.9777 435.404 72.756 435.404 72.5248C435.335 70.3896 434.799 68.2922 433.829 66.3696C432.859 64.447 431.478 62.7424 429.776 61.3671C425.998 58.3074 421.178 56.6934 416.238 56.8343C411.585 56.7175 407.054 58.2717 403.53 61.1928C400.203 64.1538 398.025 68.1159 397.358 72.4252C397.34 72.5522 397.349 72.6813 397.386 72.8045C397.423 72.9277 397.486 73.0422 397.572 73.1406C397.657 73.239 397.763 73.3193 397.882 73.3762C398.002 73.4332 398.132 73.4655 398.266 73.4712H434.574L434.496 73.3965ZM455.244 86.5716H398.188C398.061 86.5671 397.934 86.5892 397.816 86.6362C397.699 86.6833 397.593 86.7542 397.507 86.8441C397.421 86.9341 397.356 87.0409 397.317 87.1572C397.278 87.2735 397.265 87.3966 397.28 87.518C397.681 92.1461 399.809 96.4796 403.271 99.7217C406.895 102.868 411.64 104.553 416.524 104.429C419.792 104.621 423.046 103.879 425.875 102.296C428.705 100.714 430.983 98.3621 432.421 95.5376C432.508 95.4082 432.627 95.3017 432.767 95.2277C432.908 95.1538 433.065 95.1147 433.225 95.1142H453.376C453.519 95.1136 453.66 95.1446 453.789 95.2046C453.917 95.2646 454.029 95.3521 454.117 95.4603C454.205 95.5686 454.265 95.6947 454.294 95.829C454.323 95.9633 454.32 96.1022 454.284 96.2349C451.902 103.127 447.376 109.151 441.317 113.495C434.275 118.444 425.713 120.995 416.99 120.742C409.743 120.824 402.597 119.108 396.243 115.761C390.137 112.502 385.126 107.637 381.797 101.739C378.248 95.301 376.463 88.1016 376.61 80.8184C376.489 73.4822 378.271 66.2324 381.797 59.7234C385.013 53.8317 389.965 48.9807 396.035 45.7763C402.477 42.5973 409.61 40.9245 416.852 40.8942C424.094 40.8639 431.242 42.477 437.712 45.6019C443.693 48.6563 448.588 53.3568 451.768 59.1007C455.109 65.2835 456.735 72.1883 456.489 79.1497C456.495 81.4237 456.339 83.6954 456.022 85.9489C456.012 86.0431 455.983 86.1344 455.936 86.2174C455.888 86.3003 455.824 86.3731 455.746 86.4314C455.668 86.4896 455.579 86.5321 455.484 86.5562C455.389 86.5803 455.289 86.5855 455.192 86.5716H455.244Z" fill="#000244"/>
+      <path d="M665.054 73.3965C665.295 73.3965 665.525 73.3047 665.696 73.1412C665.866 72.9777 665.962 72.756 665.962 72.5248C665.893 70.3896 665.357 68.2922 664.387 66.3696C663.417 64.447 662.036 62.7424 660.334 61.3671C656.556 58.3074 651.736 56.6934 646.796 56.8343C642.143 56.7175 637.612 58.2717 634.088 61.1928C630.76 64.1538 628.583 68.1159 627.916 72.4252C627.898 72.5522 627.907 72.6813 627.944 72.8045C627.981 72.9277 628.044 73.0422 628.129 73.1406C628.215 73.239 628.32 73.3193 628.44 73.3762C628.56 73.4332 628.69 73.4655 628.823 73.4712H665.132L665.054 73.3965ZM685.801 86.5716H628.746C628.618 86.5671 628.492 86.5892 628.374 86.6362C628.257 86.6833 628.151 86.7542 628.065 86.8441C627.979 86.9341 627.914 87.0409 627.875 87.1572C627.835 87.2735 627.823 87.3966 627.838 87.518C628.239 92.1461 630.366 96.4796 633.829 99.7217C637.452 102.868 642.198 104.553 647.081 104.429C650.349 104.621 653.604 103.879 656.433 102.296C659.262 100.714 661.54 98.3621 662.979 95.5376C663.066 95.4082 663.185 95.3017 663.325 95.2277C663.465 95.1538 663.623 95.1147 663.783 95.1142H683.934C684.077 95.1136 684.218 95.1446 684.346 95.2046C684.475 95.2646 684.587 95.3521 684.675 95.4603C684.762 95.5686 684.823 95.6947 684.852 95.829C684.881 95.9633 684.878 96.1022 684.842 96.2349C682.46 103.127 677.934 109.151 671.875 113.495C664.832 118.444 656.271 120.995 647.548 120.742C640.257 120.845 633.064 119.129 626.671 115.761C620.517 112.52 615.459 107.654 612.096 101.739C608.547 95.301 606.762 88.1016 606.909 80.8184C606.787 73.4822 608.57 66.2324 612.096 59.7234C615.311 53.8317 620.264 48.9807 626.334 45.7763C632.775 42.5973 639.908 40.9245 647.15 40.8942C654.393 40.8639 661.54 42.477 668.01 45.6019C674.011 48.6483 678.924 53.3497 682.119 59.1007C685.558 65.2579 687.282 72.1642 687.124 79.1497C687.13 81.4237 686.974 83.6954 686.657 85.9489C686.649 86.0509 686.618 86.1499 686.566 86.2389C686.514 86.328 686.442 86.4049 686.355 86.4643C686.269 86.5237 686.169 86.5641 686.065 86.5827C685.96 86.6012 685.853 86.5974 685.75 86.5716H685.801Z" fill="#000244"/>
+      <path d="M524.085 68.3388C522.29 65.1143 519.596 62.4326 516.305 60.5932C513.08 58.8989 509.451 58.0405 505.776 58.1026C502.129 58.0921 498.547 59.021 495.402 60.7924C492.101 62.7085 489.41 65.4562 487.621 68.7373C485.643 72.4938 484.612 76.6443 484.612 80.8539C484.612 85.0634 485.643 89.2139 487.621 92.9704C490.043 97.2639 494.022 100.554 498.803 102.216C503.584 103.878 508.834 103.796 513.556 101.986C517.999 100.166 521.659 96.9403 523.93 92.8459C525.997 89.0552 527.024 84.8205 526.912 80.5425C527.142 76.3035 526.165 72.0845 524.085 68.3388ZM495.402 44.28C500.287 41.8865 505.712 40.6887 511.196 40.7932C517.787 40.7683 524.258 42.492 529.895 45.7744C535.541 49.1579 540.122 53.9534 543.147 59.6468C546.531 66.1328 548.214 73.3146 548.049 80.5674C548.199 87.8429 546.518 95.0456 543.147 101.563C540.165 107.376 535.581 112.294 529.895 115.784C524.279 119.113 517.794 120.841 511.196 120.765C505.712 120.846 500.291 119.64 495.402 117.253C491.916 115.506 488.781 113.179 486.143 110.379C486.022 110.246 485.863 110.151 485.685 110.104C485.508 110.058 485.32 110.063 485.145 110.119C484.971 110.175 484.817 110.279 484.704 110.418C484.591 110.558 484.523 110.726 484.509 110.902V117.702C484.503 118.162 484.309 118.602 483.97 118.927C483.631 119.253 483.173 119.439 482.694 119.445H465.992C465.511 119.445 465.049 119.261 464.708 118.934C464.368 118.607 464.177 118.164 464.177 117.702V17.7805C464.177 17.3181 464.368 16.8747 464.708 16.5477C465.049 16.2208 465.511 16.0371 465.992 16.0371H482.694C483.173 16.0435 483.631 16.2293 483.97 16.5549C484.309 16.8804 484.503 17.3201 484.509 17.7805V50.7306C484.509 50.9135 484.569 51.0918 484.681 51.2403C484.792 51.3887 484.949 51.4997 485.13 51.5575C485.311 51.6154 485.506 51.6172 485.688 51.5626C485.87 51.5081 486.029 51.3999 486.143 51.2536C488.712 48.3568 491.86 45.9853 495.402 44.28Z" fill="#000244"/>
+      <path d="M715.42 80.4678C715.316 84.74 716.351 88.9668 718.428 92.7462C720.682 96.8588 724.347 100.097 728.802 101.911C730.891 102.796 733.134 103.295 735.415 103.381C739.544 103.684 743.669 102.744 747.215 100.691C750.562 98.7908 753.299 96.042 755.125 92.7462C757.181 89.023 758.208 84.8554 758.108 80.6421C758.22 76.4198 757.192 72.2414 755.125 68.5131C753.305 65.2196 750.566 62.4774 747.215 60.5932C744.078 58.8015 740.492 57.8631 736.842 57.8784C733.12 57.8369 729.452 58.7389 726.209 60.4935C722.912 62.3376 720.218 65.0288 718.428 68.2641C716.399 72.0336 715.365 76.2245 715.42 80.4678ZM756.448 51.2536C756.569 51.3866 756.729 51.4823 756.906 51.5286C757.084 51.575 757.272 51.5699 757.446 51.514C757.621 51.4581 757.774 51.3539 757.887 51.2145C758 51.0752 758.068 50.9068 758.082 50.7306V17.7805C758.089 17.3201 758.282 16.8804 758.621 16.5549C758.96 16.2293 759.418 16.0435 759.897 16.0371H776.599C777.081 16.0371 777.542 16.2208 777.883 16.5477C778.223 16.8747 778.415 17.3181 778.415 17.7805V117.677C778.415 118.139 778.223 118.583 777.883 118.909C777.542 119.236 777.081 119.42 776.599 119.42H759.923C759.442 119.42 758.98 119.236 758.64 118.909C758.299 118.583 758.108 118.139 758.108 117.677V110.877C758.094 110.701 758.026 110.533 757.913 110.394C757.8 110.254 757.647 110.15 757.472 110.094C757.298 110.038 757.11 110.033 756.932 110.079C756.755 110.126 756.595 110.221 756.474 110.354C753.894 113.231 750.736 115.577 747.19 117.253C742.289 119.597 736.868 120.76 731.395 120.64C724.792 120.753 718.296 119.022 712.697 115.659C707.014 112.177 702.431 107.267 699.444 101.463C696.071 94.9378 694.39 87.7265 694.543 80.4429C694.383 73.1905 696.065 66.0099 699.444 59.5222C702.377 53.8104 706.935 49.013 712.59 45.6852C718.244 42.3575 724.764 40.6355 731.395 40.7185C736.88 40.6015 742.309 41.7999 747.19 44.2053C750.718 45.9618 753.862 48.3548 756.448 51.2536Z" fill="#000244"/>
+      <path d="M582.828 58.0526C582.706 58.0453 582.585 58.0629 582.471 58.1041C582.358 58.1453 582.255 58.2093 582.169 58.2918C582.083 58.3742 582.016 58.4732 581.974 58.5823C581.931 58.6914 581.912 58.808 581.92 58.9243V95.4608C581.805 96.4859 581.925 97.5227 582.269 98.499C582.614 99.4753 583.176 100.368 583.917 101.114C585.827 102.449 588.178 103.069 590.53 102.858H598.155C598.636 102.858 599.098 103.041 599.439 103.368C599.779 103.695 599.97 104.139 599.97 104.601V117.602C599.97 118.064 599.779 118.508 599.439 118.835C599.098 119.162 598.636 119.345 598.155 119.345H587.185C570.016 119.345 561.423 111.326 561.406 95.2865V58.9243C561.413 58.808 561.395 58.6914 561.352 58.5823C561.309 58.4732 561.243 58.3742 561.157 58.2918C561.071 58.2093 560.968 58.1453 560.854 58.1041C560.741 58.0629 560.619 58.0453 560.498 58.0526H553.6C553.118 58.0526 552.656 57.869 552.316 57.542C551.975 57.2151 551.784 56.7716 551.784 56.3092V43.8565C551.784 43.3941 551.975 42.9507 552.316 42.6237C552.656 42.2968 553.118 42.1131 553.6 42.1131H560.498C560.619 42.1204 560.741 42.1028 560.854 42.0616C560.968 42.0204 561.071 41.9564 561.157 41.874C561.243 41.7915 561.309 41.6925 561.352 41.5834C561.395 41.4743 561.413 41.3577 561.406 41.2414V24.6792C561.406 24.2168 561.597 23.7734 561.938 23.4464C562.278 23.1195 562.74 22.9358 563.221 22.9358H580.105C580.586 22.9358 581.048 23.1195 581.388 23.4464C581.729 23.7734 581.92 24.2168 581.92 24.6792V41.1418C581.912 41.2581 581.931 41.3747 581.974 41.4838C582.016 41.5928 582.083 41.6919 582.169 41.7743C582.255 41.8568 582.358 41.9207 582.471 41.962C582.585 42.0032 582.706 42.0208 582.828 42.0135H598.155C598.636 42.0135 599.098 42.1971 599.439 42.5241C599.779 42.851 599.97 43.2945 599.97 43.7568V56.2096C599.97 56.672 599.779 57.1154 599.439 57.4424C599.098 57.7693 598.636 57.953 598.155 57.953L582.828 58.0526Z" fill="#000244"/>
+    </svg>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- JAVASCRIPT                                    -->
+  <!-- ============================================ -->
+  <script>
+    // ============================================
+    // 0. HERO CTA — SHOW WHEN INTRO VIDEO ENDS (WITH FALLBACKS)
+    // ============================================
+    (function setupHeroCta() {
+      const heroVideo = document.querySelector('.hero-video');
+      const heroCta = document.getElementById('hero-cta');
+      if (!heroCta) return;
+
+      const showCta = () => heroCta.classList.add('visible');
+
+      if (!heroVideo) {
+        showCta();
+        return;
+      }
+
+      // Primary: CTA appears when video finishes playing
+      heroVideo.addEventListener('ended', showCta, { once: true });
+
+      // Fallback: if the video fails to load, show CTA immediately
+      heroVideo.addEventListener('error', showCta, { once: true });
+
+      // Safety net: guarantee CTA shows even if 'ended' never fires
+      // (e.g. playback stalled, user paused). Slightly longer than the
+      // 36.5s composition duration.
+      setTimeout(showCta, 42000);
+
+      // Reduced-motion users: reveal CTA immediately without waiting
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        showCta();
+      }
+    })();
+
+    // ============================================
+    // 1. SCROLL-SPY NAVIGATION
+    // ============================================
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.toc a');
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => link.classList.remove('active'));
+          const activeLink = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+          if (activeLink) activeLink.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' });
+
+    sections.forEach(section => navObserver.observe(section));
+
+    // ============================================
+    // 2. FADE-IN ON SCROLL
+    // ============================================
+    const fadeElements = document.querySelectorAll('.fade-in');
+
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    fadeElements.forEach(el => fadeObserver.observe(el));
+
+    // ============================================
+    // 3. COUNTER ANIMATIONS
+    // ============================================
+    function animateCounter(element) {
+      const target = parseFloat(element.dataset.target);
+      const decimals = parseInt(element.dataset.decimals || '0');
+      const suffix = element.dataset.suffix || '';
+      const prefix = element.dataset.prefix || '';
+      const duration = 1500;
+      const start = performance.now();
+
+      function formatNumber(num) {
+        if (decimals > 0) {
+          return num.toFixed(decimals);
+        }
+        return num.toLocaleString('en-US');
+      }
+
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = target * eased;
+        element.textContent = prefix + formatNumber(current) + suffix;
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    const counterElements = document.querySelectorAll('.stat-value[data-target]');
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    counterElements.forEach(el => counterObserver.observe(el));
+
+    // ============================================
+    // 4. DECISION GRID + TIMELINE ANIMATIONS
+    // ============================================
+    const animatedContainers = document.querySelectorAll('.decision-grid, .timeline-visible-trigger');
+    const containerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // For timeline triggers, add class to parent
+          if (entry.target.classList.contains('timeline-visible-trigger')) {
+            entry.target.classList.add('timeline-visible');
+          }
+          containerObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    animatedContainers.forEach(el => containerObserver.observe(el));
+
+    // ============================================
+    // 5. DEEP DIVE TOGGLES
+    // ============================================
+    document.querySelectorAll('.deep-dive-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        this.classList.toggle('open');
+        const panel = this.nextElementSibling;
+        if (panel && panel.classList.contains('deep-dive')) {
+          panel.classList.toggle('open');
+        }
+      });
+    });
+
+    // ============================================
+    // 6. FOOTER DARK/LIGHT TOGGLE
+    // ============================================
+    const pageFooter = document.querySelector('.page-footer');
+    const darkSections = document.querySelectorAll('.hero, .dark-section');
+    let darkVisible = new Set();
+
+    const footerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          darkVisible.add(entry.target);
+        } else {
+          darkVisible.delete(entry.target);
+        }
+      });
+      pageFooter.classList.toggle('on-dark', darkVisible.size > 0);
+    }, { threshold: 0, rootMargin: '0px 0px -90% 0px' });
+
+    darkSections.forEach(s => footerObserver.observe(s));
+  </script>
+
+  <!-- Workshop Footer Nav -->
+  <div style="max-width: 1100px; margin: 2rem auto 4rem; padding: 0 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-family: 'Manrope', sans-serif;">
+    <a href="02-product-suite.html" style="text-decoration: none; padding: 1.25rem 1.5rem; border: 1px solid #d5d7da; border-radius: 12px; color: inherit; background: #fff;">
+      <div style="font-size: 0.75rem; color: #717680; margin-bottom: 0.25rem;">← Previous · 02</div>
+      <div style="font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; color: #000244;">Where Comply fits</div>
+    </a>
+    <a href="04-next-steps.html" style="text-decoration: none; padding: 1.25rem 1.5rem; border: 1px solid #474CDE; border-radius: 12px; color: #fff; background: #474CDE; text-align: right;">
+      <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Next · 04</div>
+      <div style="font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;">Next steps →</div>
+    </a>
+  </div>
+
+</body>
+</html>
