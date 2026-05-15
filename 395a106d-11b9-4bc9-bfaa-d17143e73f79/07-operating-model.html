@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 · Operating Model — InDebted Product Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --error: #f04438;
+      --error-light: rgba(240,68,56, 0.08);
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.08);
+      --warning: #dc6803;
+      --warning-light: rgba(247,144,9, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 700px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; line-height: 1.6;
+    }
+
+    /* ===== Three-column model: today / not working / desired ===== */
+    .three-col {
+      display: grid;
+      grid-template-columns: 200px 1fr 1fr 1fr;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+      margin-bottom: 3rem;
+    }
+
+    .three-col-head {
+      display: contents;
+    }
+
+    .three-col-head > div {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .three-col-head .h-bucket { color: var(--text-dim); }
+    .three-col-head .h-today { color: var(--text-secondary); border-right: 1px solid var(--border); }
+    .three-col-head .h-broken { color: var(--error); border-right: 1px solid var(--border); background: rgba(240,68,56,0.04); }
+    .three-col-head .h-desired { color: var(--success); background: rgba(18,183,106,0.04); }
+
+    .three-col-row {
+      display: contents;
+    }
+
+    .three-col-row > div {
+      padding: 1.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.55;
+      border-bottom: 1px solid var(--divider);
+      vertical-align: top;
+    }
+
+    .three-col-row:last-child > div {
+      border-bottom: none;
+    }
+
+    .three-col-row .c-bucket {
+      background: var(--bg);
+      font-weight: 700;
+      color: var(--text);
+      border-right: 1px solid var(--border);
+    }
+
+    .c-bucket-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .three-col-row .c-today {
+      color: var(--text-secondary);
+      border-right: 1px solid var(--divider);
+    }
+
+    .three-col-row .c-today.prompt {
+      color: var(--text-dim);
+      font-style: italic;
+      background: var(--bg);
+    }
+
+    .three-col-row .c-broken {
+      color: var(--text-secondary);
+      border-right: 1px solid var(--divider);
+      background: rgba(240,68,56,0.015);
+    }
+
+    .three-col-row .c-broken strong {
+      color: var(--error);
+      font-weight: 700;
+    }
+
+    .three-col-row .c-desired {
+      color: var(--text);
+      background: rgba(18,183,106,0.02);
+    }
+
+    .three-col-row .c-desired strong {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .col-confirm {
+      display: inline-block;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      background: var(--warning-light);
+      color: var(--warning);
+      border-radius: 4px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* Status pill in the "next step" column */
+    .col-status {
+      display: inline-block;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .col-status.resolved { background: var(--success-light); color: var(--success); }
+    .col-status.progress { background: var(--warning-light); color: var(--warning); }
+    .col-status.open { background: var(--error-light); color: var(--error); }
+
+    /* Subgroup divider inside a matrix (e.g. "1. Account upload") */
+    .three-col-subhead {
+      grid-column: 1 / -1;
+      padding: 0.875rem 1.5rem;
+      background: var(--dark);
+      color: #fff;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .three-col-subhead .num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--secondary);
+      font-size: 0.625rem;
+    }
+
+    /* Part label above each matrix */
+    .part-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.875rem;
+      background: var(--dark);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .part-tag .num {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--secondary);
+      font-size: 0.625rem;
+    }
+    .part-tag .num::before { content: '['; opacity: 0.6; }
+    .part-tag .num::after { content: ']'; opacity: 0.6; }
+
+    /* ===== Single-page desired state ===== */
+    .desired-page {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .desired-page::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.06) 0%, transparent 60%);
+    }
+
+    .desired-inner { position: relative; z-index: 1; }
+
+    .desired-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .desired-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem;
+    }
+
+    .desired-title {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 0.5rem; max-width: 700px;
+    }
+
+    .desired-title em { font-style: normal; color: var(--secondary); }
+
+    .desired-subtitle {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.65);
+      line-height: 1.55; max-width: 600px;
+    }
+
+    .desired-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.875rem;
+      background: rgba(118,235,226,0.1);
+      border: 1px solid rgba(118,235,226,0.3);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--secondary);
+      letter-spacing: 0.05em;
+    }
+
+    .desired-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .desired-lever {
+      padding: 1.5rem 1.75rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .desired-lever:hover {
+      background: rgba(118,235,226,0.04);
+      border-color: rgba(118,235,226,0.2);
+    }
+
+    .desired-lever-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: #000244;
+      font-size: 0.7rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .desired-lever h4 {
+      font-size: 0.9375rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .desired-lever p {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+
+    .desired-lever .lever-spec {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+      color: var(--secondary);
+      letter-spacing: -0.01em;
+      line-height: 1.6;
+    }
+
+    .desired-lever .lever-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      margin-bottom: 0.6rem;
+    }
+
+    .lever-tag.client { background: rgba(247,144,9,0.15); color: var(--accent-orange); }
+    .lever-tag.indebted { background: rgba(118,235,226,0.15); color: var(--secondary); }
+    .lever-tag.both { background: rgba(116,114,199,0.15); color: #7472c7; }
+
+    .desired-foot {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(118,235,226,0.05);
+      border-left: 2px solid var(--secondary);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.55;
+    }
+
+    .desired-foot strong { color: var(--secondary); font-weight: 700; }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.85);
+      max-width: 640px; margin: 0 auto; line-height: 1.55;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 1024px) {
+      .three-col { grid-template-columns: 1fr; }
+      .three-col-head { display: none; }
+      .three-col-row > div { border-right: none !important; }
+      .three-col-row .c-bucket {
+        font-size: 0.875rem;
+        padding-top: 1.25rem;
+      }
+      .three-col-row .c-today::before { content: 'Today: '; font-weight: 700; color: var(--text-secondary); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .three-col-row .c-broken::before { content: "What's broken: "; font-weight: 700; color: var(--error); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .three-col-row .c-desired::before { content: 'Desired: '; font-weight: 700; color: var(--success); display: block; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+      .desired-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">07 / 08 · <strong>Operating model</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="06-client-journey.html">← Prev</a>
+        <a class="nav-btn primary" href="08-next-steps.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 07</div>
+      <h1>How the operating model <em>runs day-to-day</em>.</h1>
+      <p class="hero-sub">Bucket by bucket: data exchange, reporting, payments, settlement, KPIs, account retention. What we do, why it matters, and what we ask of clients in return — drawn from how every InDebted engagement actually runs at scale.</p>
+    </div>
+  </section>
+
+  <!-- AS-IS matrix: Part 1 + Part 2 -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Operating model</div>
+      <h2>What we do, why it matters, and what we ask of clients in return</h2>
+      <p>Twelve topics that shape how every engagement runs. The right-hand column is what we recommend on each — drawn from what works across our existing clients.</p>
+    </div>
+
+    <!-- PART 1 -->
+    <div class="part-tag"><span class="num">PART 1</span> Platform &amp; SOP issues</div>
+
+    <div class="three-col">
+      <div class="three-col-head">
+        <div class="h-bucket">Topic</div>
+        <div class="h-today">What this looks like in practice</div>
+        <div class="h-broken">Why it matters</div>
+        <div class="h-desired">What we ask of clients</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">01</span> Account upload / data exchange</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.1</div>
+          File format
+        </div>
+        <div class="c-today">A single unified file per portfolio, in the format agreed during scoping. Files land on our SFTP daily; structured errors flow back the same way.</div>
+        <div class="c-broken">A consistent format per drop is what enables <strong>straight-through processing</strong> — every minute spent fixing files is a minute not spent on accounts.</div>
+        <div class="c-desired">Agree the file format and field mapping during scoping. Drop files on our SFTP in the agreed layout.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.2</div>
+          Column naming &amp; data quality
+        </div>
+        <div class="c-today">Field-level validation matters: 'account number' vs 'card number', amounts in the right fields. Once Collect ingests, those fields drive treatment logic.</div>
+        <div class="c-broken">Mislabelled fields block automation. <strong>Auto-upload only stays on when files are clean</strong>; corrections after load distort treatment and reporting.</div>
+        <div class="c-desired">Validate field names and data quality before files leave your systems. This is what keeps auto-upload running.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.3</div>
+          Data integrity at handoff
+        </div>
+        <div class="c-today">Account numbers and balances loaded into Collect can't be corrected in place once ingested. Workarounds via manual transaction uploads distort account history.</div>
+        <div class="c-broken">Manual cleanup per account. <strong>Misleading records affect treatment logic and reporting</strong>.</div>
+        <div class="c-desired">Confirm data integrity before upload — pre-upload sign-off catches the rare bad batch.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.4</div>
+          Required data fields
+        </div>
+        <div class="c-today">Treatment quality depends on having last payment date, DOB (for credit-card customers), and a linked-liabilities indicator on every account.</div>
+        <div class="c-broken">Treatment sequencing weakens without last payment date; tracing is harder without DOB. <strong>No visibility on linked liabilities</strong> means joint-settlement requirements can't be anticipated.</div>
+        <div class="c-desired">Include these fields in the upload schema. The linked-liabilities flag is the most operationally important.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">01.5</div>
+          Balance changes carry transactions
+        </div>
+        <div class="c-today">When balances change (bank fees, interest, adjustments), Collect needs the supporting transaction record so account history stays accurate.</div>
+        <div class="c-broken">Updated-balance-only feeds create <strong>mismatches between Collect and your core banking</strong> — and force re-uploads that lose the change context.</div>
+        <div class="c-desired">Pair every balance change with a transaction record. No silent overwrites.</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">02</span> Reporting</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.1</div>
+          Payment report
+        </div>
+        <div class="c-today">Daily payment reports delivered T+1, by 10am local time, in the agreed format (encryption, decimal handling, file structure).</div>
+        <div class="c-broken">Standard reconciliation cadence — finance and ops teams plan around it.</div>
+        <div class="c-desired">Agree report format and delivery window during scoping. We accommodate compliance requirements (e.g. encryption-at-rest).</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.2</div>
+          Real-time payment view
+        </div>
+        <div class="c-today">Stripe dashboard access gives nominated teams real-time visibility on inbound payments. Beyond that, T+1 is the fastest standardised written report.</div>
+        <div class="c-broken">The visibility gap between <strong>customer payment and finance seeing it</strong> drives reconciliation friction if it isn't planned for.</div>
+        <div class="c-desired">Identify which teams need real-time visibility (typically ops and finance) — we'll wire the access during onboarding.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.3</div>
+          Payment file integrity
+        </div>
+        <div class="c-today">Payment files are deduplicated at source and validated on ingest. Same payment seen twice would distort commission and reconciliation.</div>
+        <div class="c-broken"><strong>Duplicates cascade through commission calculations and reconciliation</strong>; if they slip in, auto-upload pauses until they're cleared.</div>
+        <div class="c-desired">Deduplicate at source. This keeps auto-upload of payment files running.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.4</div>
+          Payout cadence (Stripe)
+        </div>
+        <div class="c-today">Stripe settlement timing is set by the local Stripe market. Most regions are T+2; some (e.g. UAE) are T+5 business days. Payout reports are paced to actual settlement.</div>
+        <div class="c-broken">The cycle between customer payment and money landing in your account affects <strong>cycle-end and month-end reconciliation</strong>.</div>
+        <div class="c-desired">Plan internal cycle-end and month-end cut-offs around the local settlement window. We'll publish the actual cadence for your market during scoping.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">02.5</div>
+          Activity report
+        </div>
+        <div class="c-today">Daily activity reports cover calls, SMS, emails — informing operational reviews and audit. Target lag from event to report is 1–2 days.</div>
+        <div class="c-broken">Reflects what's actually happening across all channels — without it, ops reviews are guesswork.</div>
+        <div class="c-desired">Align on which teams own activity-report consumption (ops + risk).</div>
+      </div>
+
+      <div class="three-col-subhead"><span class="num">03</span> Payments</div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">03.1</div>
+          Settlement timing
+        </div>
+        <div class="c-today">Stripe is our payment processor; settlement timing is set by the local Stripe market — typically T+2, sometimes longer (T+5 in some markets). Outside our control, but predictable.</div>
+        <div class="c-broken">You can't reconcile against core banking <strong>until the money physically lands</strong>. Impacts cycle-end and month-end cut-offs if not planned for.</div>
+        <div class="c-desired">Confirm internal cut-off behaviour during scoping. Some clients update customer balances at the InDebted-recorded payment event; others wait for landed funds. Both work — pick the one your finance team prefers.</div>
+      </div>
+
+    </div>
+
+    <!-- PART 2 -->
+    <div class="part-tag" style="margin-top: 2.5rem;"><span class="num">PART 2</span> Collections practices</div>
+
+    <div class="three-col">
+      <div class="three-col-head">
+        <div class="h-bucket">Topic</div>
+        <div class="h-today">What this looks like in practice</div>
+        <div class="h-broken">Why it matters</div>
+        <div class="h-desired">What we ask of clients</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">04</div>
+          Late-stage classification
+        </div>
+        <div class="c-today">Late-stage delinquency (typically 5+, 6+) functionally rolls regardless of treatment. We work these as recoveries, not active collections — payment plans and settlement offers are the right tools.</div>
+        <div class="c-broken">Treating late-stage as active collections forces tools (no settlements) that <strong>don't fit the customer's actual position</strong>.</div>
+        <div class="c-desired">Reclassify late-stage as recoveries. Lock interest accrual. Allow Collect to work them with payment plans + settlements (typically ≥180 DPD).</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">05</div>
+          Settlement authority
+        </div>
+        <div class="c-today">Settlement is a core lever. Two patterns we've seen work: a delegated authority grid (% discount × DPD × balance band), or a monthly settlement budget (aggregate envelope per allocation).</div>
+        <div class="c-broken">
+          Without delegated authority, every settlement waits for approval — <strong>deals are lost while waiting</strong>.
+          <div style="margin-top: 0.75rem;">With it, InDebted deploys capital where it works hardest; <strong>offers that would lift overall recovery actually go out</strong>.</div>
+        </div>
+        <div class="c-desired">
+          Agree a settlement framework before pilot starts.
+          <div style="margin-top: 0.75rem;">We strongly recommend the <strong>monthly Settlement Budget pattern</strong> (e.g. $ 250k aggregate / month). InDebted decides per-account use within the envelope; any overage is netted from the invoice. Maximises portfolio performance with a clear ceiling.</div>
+        </div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">06</div>
+          Shared KPIs
+        </div>
+        <div class="c-today">We measure on a shared scorecard agreed before pilot starts — placements, contacts, payments, settlements, spin-down.</div>
+        <div class="c-broken">Without shared definitions, both sides measure different things. <strong>Spin-down reports across agencies</strong> give a like-for-like benchmark.</div>
+        <div class="c-desired">Agree the KPI suite before pilot launch. Provide spin-down reports from incumbent agencies if available — we'll match them.</div>
+      </div>
+
+      <div class="three-col-row">
+        <div class="c-bucket">
+          <div class="c-bucket-num">07</div>
+          Account retention
+        </div>
+        <div class="c-today">Account-recall windows shape how the engine performs. Many traditional models recall and rotate after 30 days — too short for digital-first treatment.</div>
+        <div class="c-broken">
+          30 days <strong>prevents Collect from optimising contact time and channel per consumer</strong> — the engine has barely learned what works before the account is pulled.
+          <div style="margin-top: 0.75rem;">Engaged customers — opening messages, visiting the portal, on a payment plan — get recalled before they can complete payment. <strong>Especially impactful where consumers are paid monthly</strong>: a salary date outside the 30-day window means the customer can't action.</div>
+          <div style="margin-top: 0.75rem;">The next agency inherits no context, the customer is less likely to re-engage, PTPs in flight are lost.</div>
+        </div>
+        <div class="c-desired">Allow Collect to <strong>retain accounts across multiple months</strong> by default — and <strong>longer where the consumer is showing meaningful engagement</strong>. The engine optimises per consumer; engagement converts to payment when given the time to play out.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Single-page desired state -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="desired-page">
+      <div class="desired-inner">
+        <div class="desired-header">
+          <div>
+            <div class="desired-tag">The single page</div>
+            <h2 class="desired-title">Get these ten things right, <em>and the model works</em>.</h2>
+            <p class="desired-subtitle">Each lever maps directly to a topic above. Some are commitments we ask of clients; one is a joint commitment.</p>
+          </div>
+        </div>
+
+        <div class="desired-grid">
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">1</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Validate file quality at source</h4>
+            <p>Validate column names and field-level data quality before files leave your systems ('account number' vs 'card number', amounts in the right fields). This keeps auto-upload running.</p>
+            <div class="lever-spec">target: clean files, every batch<br>unblocks: auto-upload (accounts)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">2</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Confirm data integrity at handoff</h4>
+            <p>Account numbers and balances must be correct on upload — once in Collect they can't be corrected, only worked around with manual transactions that distort history.</p>
+            <div class="lever-spec">target: zero post-load corrections<br>review: pre-upload sign-off</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">3</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Include the required data fields</h4>
+            <p>Last payment date, DOB for credit-card customers, linked-liabilities indicator. The linked-liabilities flag is the most important — without it we can't anticipate joint-settlement requirements.</p>
+            <div class="lever-spec">required: last_payment_date, dob, linked_liabilities</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">4</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Transaction record with every balance change</h4>
+            <p>Bank fees, interest, and adjustments come with a supporting transaction. Updated-balance-only feeds create mismatches between Collect and your core banking.</p>
+            <div class="lever-spec">rule: no balance change without txn record</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">5</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Deduplicate payment files at source</h4>
+            <p>Same payment appearing across successive files distorts commission and reconciliation. Keeps auto-upload of payment files running.</p>
+            <div class="lever-spec">target: zero duplicates<br>unblocks: auto-upload (payments)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">6</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Treat late-stage as recoveries</h4>
+            <p>Late-stage accounts (typically 5+, 6+) are functionally recoveries. Reclassify, lock interest accrual, and let Collect work them with payment plans and settlements (≥180 DPD).</p>
+            <div class="lever-spec">scope: late-stage portfolio<br>tools: plans + settlements (≥180 DPD)</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">7</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Settlement authority grid</h4>
+            <p>Delegated authority within agreed % discount × DPD × balance bands. Flexibility on aged accounts where the alternative is zero recovery.</p>
+            <div class="lever-spec">grid: settlement-thresholds<br>auto-approve: within band</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">8</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Monthly settlement budget</h4>
+            <p>Per-allocation aggregate envelope (e.g. $ 250k / month). InDebted deploys it across accounts to maximise portfolio performance; any overage is netted from the invoice.</p>
+            <div class="lever-spec">budget: monthly_aggregate per allocation<br>overage: netted from invoice</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">9</div>
+            <span class="lever-tag both">Both</span>
+            <h4>Shared KPI suite + spin-down reports</h4>
+            <p>Agreed metrics with shared definitions so both sides measure the same thing. Spin-down reports across incumbent agencies give a like-for-like benchmark.</p>
+            <div class="lever-spec">scorecard: pilot-kpi-v1<br>add: agency spin-down reports</div>
+          </div>
+
+          <div class="desired-lever">
+            <div class="desired-lever-num">10</div>
+            <span class="lever-tag client">Client</span>
+            <h4>Extend account-retention window</h4>
+            <p>30-day recall is too short for digital-first treatment. Extending the window protects PTPs in progress, raises conversion, and reduces wasted effort across agencies.</p>
+            <div class="lever-spec">typical: ~30 days<br>recommended: 90+ days, extend on engagement</div>
+          </div>
+
+        </div>
+
+        <div class="desired-foot">
+          <strong>The point:</strong> these are the operational commitments we typically work through during scoping. Section 08 walks through what a phased pilot looks like — and how we'd land each of these in the right order.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing -->
+  <section class="section" style="padding-top: 0; padding-bottom: 2rem;">
+    <div class="close-frame">
+      <h3>That's the operating model.<br>Section 08 is how we get there together.</h3>
+      <p>Pilot phasing, scope, and the joint commitments that turn this from a workshop into a working partnership.</p>
+    </div>
+  </section>
+
+  <!-- Footer Nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="06-client-journey.html">
+      <div class="foot-nav-dir">← Previous · 06</div>
+      <div class="foot-nav-title">Typical client journey</div>
+    </a>
+    <a class="foot-nav next" href="08-next-steps.html">
+      <div class="foot-nav-dir">Next · 08</div>
+      <div class="foot-nav-title">Where we go from here →</div>
+    </a>
+  </div>
+
+</body>
+</html>

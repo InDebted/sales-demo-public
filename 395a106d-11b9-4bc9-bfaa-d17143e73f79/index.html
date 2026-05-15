@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InDebted — Product Workshop · Canada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.12);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --dark: #000244;
+      --darker: #000244;
+      --surface: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --text-muted: #a4a7ae;
+      --text-dim: #717680;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--darker);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ===== Hub Wrapper ===== */
+    .hub {
+      min-height: 100vh;
+      padding: 3rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hub::before, .hub::after {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+    }
+    .hub::before {
+      top: -30%; right: -10%;
+      width: 65%; height: 160%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.14) 0%, transparent 60%);
+      animation: drift1 22s ease-in-out infinite;
+    }
+    .hub::after {
+      bottom: -25%; left: -8%;
+      width: 55%; height: 140%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.08) 0%, transparent 60%);
+      animation: drift2 27s ease-in-out infinite;
+    }
+
+    @keyframes drift1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-3%, 4%); }
+    }
+    @keyframes drift2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(4%, -3%); }
+    }
+
+    .hub-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ===== Top Bar ===== */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .topbar-logo {
+      height: 28px;
+      opacity: 0.9;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+    }
+
+    .topbar-tag {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--secondary);
+    }
+
+    .topbar-right {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== Heading ===== */
+    .heading {
+      margin-bottom: 3.5rem;
+      max-width: 880px;
+    }
+
+    .heading-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin-bottom: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .heading-eyebrow::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--secondary);
+    }
+
+    .heading h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      color: #fff;
+      margin-bottom: 1.25rem;
+    }
+
+    .heading h1 em {
+      font-style: italic;
+      color: var(--secondary);
+    }
+
+    .heading p {
+      font-size: 1.0625rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.7;
+      font-weight: 500;
+    }
+
+    /* ===== Meta Strip ===== */
+    .meta-strip {
+      display: flex;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .meta-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .meta-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ===== Agenda Timeline ===== */
+    .agenda {
+      margin-bottom: 4rem;
+    }
+
+    .agenda-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .agenda-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .agenda-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .agenda-item {
+      display: grid;
+      grid-template-columns: 60px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.5rem 1.5rem 1.5rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+      position: relative;
+    }
+
+    .agenda-item:hover {
+      background: rgba(118,235,226,0.04);
+      border-color: rgba(118,235,226,0.25);
+      transform: translateX(4px);
+    }
+
+    .agenda-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--secondary);
+      border-radius: 0 2px 2px 0;
+      transition: height 0.25s ease;
+    }
+
+    .agenda-item:hover::before {
+      height: 70%;
+    }
+
+    .agenda-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.02em;
+    }
+
+    .agenda-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .agenda-content h3 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .agenda-content p {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .agenda-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+    }
+
+    .agenda-duration {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .agenda-arrow {
+      color: var(--text-dim);
+      font-size: 1rem;
+      transition: color 0.25s ease, transform 0.25s ease;
+    }
+
+    .agenda-item:hover .agenda-arrow {
+      color: var(--secondary);
+      transform: translateX(4px);
+    }
+
+    /* ===== Frame Quote ===== */
+    .frame {
+      margin: 3rem 0;
+      padding: 2rem 2.5rem;
+      border-left: 2px solid var(--secondary);
+      background: rgba(118,235,226,0.03);
+      border-radius: 0 12px 12px 0;
+    }
+
+    .frame-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .frame p {
+      font-size: 1.125rem;
+      color: var(--text);
+      line-height: 1.6;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .frame p em {
+      font-style: italic;
+      color: var(--secondary);
+    }
+
+    /* ===== Run of Show ===== */
+    .ros {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+
+    .ros-card {
+      padding: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .ros-card h4 {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .ros-card p {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--secondary);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 880px) {
+      .heading h1 { font-size: 2.5rem; }
+      .agenda-item {
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+      }
+      .agenda-time, .agenda-num { display: none; }
+      .ros { grid-template-columns: 1fr; }
+      .meta-strip { gap: 1.5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hub::before, .hub::after { animation: none; }
+      .agenda-item { transition: none; }
+      .agenda-item:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hub">
+    <div class="hub-inner">
+
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <svg class="topbar-logo" viewBox="0 0 779 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="137.986" height="137.986" rx="32.4673" fill="#76EBE2"/>
+            <path d="M20.2864 51.8551C20.2864 48.8665 22.7091 46.4438 25.6976 46.4438H54.5574C57.546 46.4438 59.9687 48.8665 59.9687 51.8551C59.9687 54.8436 57.546 57.2663 54.5574 57.2663H25.6976C22.7091 57.2663 20.2864 54.8436 20.2864 51.8551Z" fill="#000244"/>
+            <path d="M27.5021 33.8197C27.5021 30.8311 29.9248 28.4084 32.9133 28.4084H76.203C79.1916 28.4084 81.6143 30.8311 81.6143 33.8197C81.6143 36.8082 79.1916 39.2309 76.2031 39.2309H32.9133C29.9248 39.2309 27.5021 36.8082 27.5021 33.8197Z" fill="#000244"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M25.6984 46.4458C22.7098 46.4458 20.2871 48.8685 20.2871 51.8571C20.2871 54.8456 22.7098 57.2683 25.6984 57.2683H62.675C65.6636 57.2683 68.0863 54.8456 68.0863 51.8571C68.0863 48.8685 65.6636 46.4458 62.675 46.4458H25.6984ZM36.5208 64.4832C33.5323 64.4832 31.1096 66.9059 31.1096 69.8945C31.1096 72.883 33.5323 75.3057 36.5208 75.3057H69.89C72.8785 75.3057 75.3012 72.883 75.3012 69.8945C75.3012 66.9059 72.8785 64.4832 69.89 64.4832H36.5208Z" fill="#000244"/>
+            <path d="M41.9318 87.9344C41.9318 84.9459 44.3544 82.5232 47.343 82.5232H80.7122C83.7007 82.5232 86.1234 84.9459 86.1234 87.9344C86.1234 90.9229 83.7007 93.3456 80.7122 93.3456H47.343C44.3544 93.3456 41.9318 90.9229 41.9318 87.9344Z" fill="#000244"/>
+            <rect x="52.754" y="100.559" width="32.4673" height="10.8224" rx="5.41122" fill="#000244"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M77.1753 39.2306H63.5844V28.4082H77.1753C99.5546 28.4082 117.697 46.9821 117.697 69.8942C117.697 92.8063 99.5546 111.38 77.1753 111.38H63.5844V100.558H77.1753C93.7165 100.558 107.126 86.8292 107.126 69.8942C107.126 52.9592 93.7165 39.2306 77.1753 39.2306Z" fill="#000244"/>
+            <path d="M182.964 23.6346V117.603C182.964 118.066 182.772 118.509 182.432 118.836C182.092 119.163 181.63 119.347 181.148 119.347H164.369C163.887 119.347 163.426 119.163 163.085 118.836C162.745 118.509 162.553 118.066 162.553 117.603V23.6346C162.553 23.1722 162.745 22.7288 163.085 22.4018C163.426 22.0749 163.887 21.8912 164.369 21.8912H181.071C181.315 21.8811 181.56 21.9187 181.789 22.0018C182.019 22.0849 182.228 22.2117 182.405 22.3746C182.582 22.5375 182.722 22.7332 182.819 22.9497C182.915 23.1662 182.964 23.3992 182.964 23.6346Z" fill="white"/>
+            <path d="M260.039 49.6087C265.926 55.4366 268.935 63.5558 268.935 74.0161V117.676C268.935 118.138 268.743 118.581 268.403 118.908C268.062 119.235 267.601 119.419 267.119 119.419H250.417C249.936 119.419 249.474 119.235 249.134 118.908C248.793 118.581 248.602 118.138 248.602 117.676V76.7059C248.964 71.5463 247.257 66.4492 243.83 62.4599C242.165 60.788 240.146 59.4784 237.909 58.6191C235.672 57.7599 233.269 57.371 230.863 57.4788C228.401 57.3594 225.94 57.7415 223.643 58.6C221.345 59.4585 219.263 60.7739 217.533 62.4599C214.041 66.4012 212.283 71.4923 212.631 76.6561V117.676C212.631 118.138 212.44 118.581 212.099 118.908C211.759 119.235 211.297 119.419 210.815 119.419H193.958C193.477 119.419 193.015 119.235 192.674 118.908C192.334 118.581 192.143 118.138 192.143 117.676V43.7559C192.143 43.2935 192.334 42.8501 192.674 42.5231C193.015 42.1962 193.477 42.0125 193.958 42.0125H210.66C211.139 42.0189 211.597 42.2047 211.936 42.5302C212.275 42.8558 212.469 43.2955 212.475 43.7559V49.26C212.482 49.4271 212.54 49.5886 212.64 49.7254C212.74 49.8622 212.879 49.9684 213.04 50.0314C213.201 50.0944 213.378 50.1115 213.549 50.0807C213.721 50.0499 213.879 49.9725 214.005 49.8577C216.516 47.3059 219.508 45.2353 222.823 43.7559C228.942 41.128 235.73 40.2819 242.345 41.3222C248.96 42.3626 255.112 45.2437 260.039 49.6087Z" fill="white"/>
+            <path d="M339.554 94.4154C345.364 88.8366 348.268 80.9913 348.268 70.7801C348.268 60.5688 345.364 52.7484 339.554 46.9952C333.745 41.2421 325.472 38.353 314.865 38.353H302.235C301.755 38.3594 301.297 38.5452 300.958 38.8708C300.619 39.1963 300.426 39.636 300.419 40.0964V101.04C300.426 101.501 300.619 101.94 300.958 102.266C301.297 102.592 301.755 102.777 302.235 102.784H314.865C325.472 102.784 333.745 99.9943 339.554 94.4154ZM343.73 27.8927C351.6 31.7159 358.129 37.6739 362.506 45.0277C367.078 52.905 369.371 61.8142 369.145 70.8299C369.374 79.7905 367.08 88.6443 362.506 96.4577C358.095 103.755 351.572 109.664 343.73 113.468C334.988 117.61 325.336 119.669 315.591 119.47H281.876C281.638 119.47 281.402 119.425 281.181 119.338C280.961 119.25 280.761 119.122 280.592 118.96C280.424 118.798 280.29 118.606 280.199 118.394C280.108 118.183 280.061 117.956 280.061 117.727V23.6338C280.061 23.1714 280.252 22.728 280.592 22.4011C280.933 22.0741 281.395 21.8904 281.876 21.8904H315.591C325.336 21.6919 334.988 23.7507 343.73 27.8927Z" fill="white"/>
+            <path d="M434.496 73.3965C434.737 73.3965 434.968 73.3047 435.138 73.1412C435.308 72.9777 435.404 72.756 435.404 72.5248C435.335 70.3896 434.799 68.2922 433.829 66.3696C432.859 64.447 431.478 62.7424 429.776 61.3671C425.998 58.3074 421.178 56.6934 416.238 56.8343C411.585 56.7175 407.054 58.2717 403.53 61.1928C400.202 64.1538 398.025 68.1159 397.358 72.4252C397.34 72.5522 397.349 72.6813 397.386 72.8045C397.423 72.9277 397.486 73.0422 397.571 73.1406C397.657 73.239 397.763 73.3193 397.882 73.3762C398.002 73.4332 398.132 73.4655 398.266 73.4712H434.574L434.496 73.3965ZM455.244 86.5716H398.188C398.061 86.5671 397.934 86.5892 397.816 86.6362C397.699 86.6833 397.593 86.7542 397.507 86.8441C397.421 86.9341 397.356 87.0409 397.317 87.1572C397.278 87.2735 397.265 87.3966 397.28 87.518C397.681 92.1461 399.809 96.4796 403.271 99.7217C406.895 102.868 411.64 104.553 416.524 104.429C419.792 104.621 423.046 103.879 425.875 102.296C428.705 100.714 430.983 98.3621 432.421 95.5376C432.508 95.4082 432.627 95.3017 432.767 95.2277C432.908 95.1538 433.065 95.1147 433.225 95.1142H453.376C453.519 95.1136 453.66 95.1446 453.789 95.2046C453.917 95.2646 454.029 95.3521 454.117 95.4603C454.205 95.5686 454.265 95.6947 454.294 95.829C454.323 95.9633 454.32 96.1022 454.284 96.2349C451.902 103.127 447.376 109.151 441.317 113.495C434.275 118.444 425.713 120.995 416.99 120.742C409.743 120.824 402.597 119.108 396.243 115.761C390.137 112.502 385.126 107.637 381.797 101.739C378.248 95.301 376.463 88.1016 376.61 80.8184C376.489 73.4822 378.271 66.2324 381.797 59.7234C385.013 53.8317 389.965 48.9807 396.035 45.7763C402.477 42.5973 409.61 40.9245 416.852 40.8942C424.094 40.8639 431.242 42.477 437.712 45.6019C443.693 48.6563 448.588 53.3568 451.768 59.1007C455.109 65.2835 456.735 72.1883 456.489 79.1497C456.495 81.4237 456.339 83.6954 456.022 85.9489C456.012 86.0431 455.983 86.1344 455.936 86.2174C455.888 86.3003 455.824 86.3731 455.746 86.4314C455.668 86.4896 455.579 86.5321 455.484 86.5562C455.389 86.5803 455.289 86.5855 455.192 86.5716H455.244Z" fill="white"/>
+            <path d="M524.085 68.3388C522.29 65.1143 519.596 62.4326 516.305 60.5932C513.08 58.8989 509.451 58.0405 505.776 58.1026C502.129 58.0921 498.547 59.021 495.402 60.7924C492.101 62.7085 489.411 65.4562 487.621 68.7373C485.643 72.4938 484.613 76.6443 484.613 80.8539C484.613 85.0634 485.643 89.2139 487.621 92.9704C490.043 97.2639 494.022 100.554 498.803 102.216C503.584 103.878 508.834 103.796 513.556 101.986C517.999 100.166 521.659 96.9403 523.93 92.8459C525.997 89.0552 527.024 84.8205 526.912 80.5425C527.142 76.3035 526.165 72.0845 524.085 68.3388ZM495.402 44.28C500.287 41.8865 505.713 40.6887 511.196 40.7932C517.788 40.7683 524.258 42.492 529.895 45.7744C535.541 49.1579 540.122 53.9534 543.147 59.6468C546.531 66.1328 548.214 73.3146 548.049 80.5674C548.199 87.8429 546.518 95.0456 543.147 101.563C540.165 107.376 535.581 112.294 529.895 115.784C524.279 119.113 517.794 120.841 511.196 120.765C505.712 120.846 500.291 119.64 495.402 117.253C491.916 115.506 488.782 113.179 486.143 110.379C486.022 110.246 485.863 110.151 485.685 110.104C485.508 110.058 485.32 110.063 485.145 110.119C484.971 110.175 484.817 110.279 484.704 110.418C484.591 110.558 484.523 110.726 484.509 110.902V117.702C484.503 118.162 484.309 118.602 483.97 118.927C483.631 119.253 483.173 119.439 482.694 119.445H465.992C465.511 119.445 465.049 119.261 464.708 118.934C464.368 118.607 464.177 118.164 464.177 117.702V17.7805C464.177 17.3181 464.368 16.8747 464.708 16.5477C465.049 16.2208 465.511 16.0371 465.992 16.0371H482.694C483.173 16.0435 483.631 16.2293 483.97 16.5549C484.309 16.8804 484.503 17.3201 484.509 17.7805V50.7306C484.509 50.9135 484.569 51.0918 484.681 51.2403C484.792 51.3887 484.949 51.4997 485.13 51.5575C485.311 51.6154 485.506 51.6172 485.688 51.5626C485.87 51.5081 486.029 51.3999 486.143 51.2536C488.712 48.3568 491.86 45.9853 495.402 44.28Z" fill="white"/>
+            <path d="M582.828 58.0526C582.707 58.0453 582.585 58.0629 582.472 58.1041C582.358 58.1453 582.255 58.2093 582.169 58.2918C582.083 58.3742 582.017 58.4732 581.974 58.5823C581.931 58.6914 581.912 58.808 581.92 58.9243V95.4608C581.805 96.4859 581.925 97.5227 582.269 98.499C582.614 99.4753 583.176 100.368 583.917 101.114C585.827 102.449 588.178 103.069 590.53 102.858H598.155C598.636 102.858 599.098 103.041 599.439 103.368C599.779 103.695 599.97 104.139 599.97 104.601V117.602C599.97 118.064 599.779 118.508 599.439 118.835C599.098 119.162 598.636 119.345 598.155 119.345H587.185C570.016 119.345 561.423 111.326 561.406 95.2865V58.9243C561.413 58.808 561.395 58.6914 561.352 58.5823C561.309 58.4732 561.243 58.3742 561.157 58.2918C561.071 58.2093 560.968 58.1453 560.854 58.1041C560.741 58.0629 560.619 58.0453 560.498 58.0526H553.6C553.118 58.0526 552.656 57.869 552.316 57.542C551.975 57.2151 551.784 56.7716 551.784 56.3092V43.8565C551.784 43.3941 551.975 42.9507 552.316 42.6237C552.656 42.2968 553.118 42.1131 553.6 42.1131H560.498C560.619 42.1204 560.741 42.1028 560.854 42.0616C560.968 42.0204 561.071 41.9564 561.157 41.874C561.243 41.7915 561.309 41.6925 561.352 41.5834C561.395 41.4743 561.413 41.3577 561.406 41.2414V24.6792C561.406 24.2168 561.597 23.7734 561.938 23.4464C562.278 23.1195 562.74 22.9358 563.221 22.9358H580.105C580.586 22.9358 581.048 23.1195 581.388 23.4464C581.729 23.7734 581.92 24.2168 581.92 24.6792V41.1418C581.912 41.2581 581.931 41.3747 581.974 41.4838C582.017 41.5928 582.083 41.6919 582.169 41.7743C582.255 41.8568 582.358 41.9207 582.472 41.962C582.585 42.0032 582.707 42.0208 582.828 42.0135H598.155C598.636 42.0135 599.098 42.1971 599.439 42.5241C599.779 42.851 599.97 43.2945 599.97 43.7568V56.2096C599.97 56.672 599.779 57.1154 599.439 57.4424C599.098 57.7693 598.636 57.953 598.155 57.953L582.828 58.0526Z" fill="white"/>
+            <path d="M665.054 73.3965C665.295 73.3965 665.525 73.3047 665.696 73.1412C665.866 72.9777 665.961 72.756 665.961 72.5248C665.893 70.3896 665.356 68.2922 664.387 66.3696C663.417 64.447 662.036 62.7424 660.334 61.3671C656.556 58.3074 651.736 56.6934 646.796 56.8343C642.143 56.7175 637.612 58.2717 634.088 61.1928C630.76 64.1538 628.583 68.1159 627.916 72.4252C627.898 72.5522 627.907 72.6813 627.944 72.8045C627.981 72.9277 628.044 73.0422 628.129 73.1406C628.215 73.239 628.32 73.3193 628.44 73.3762C628.56 73.4332 628.69 73.4655 628.823 73.4712H665.132L665.054 73.3965ZM685.801 86.5716H628.746C628.618 86.5671 628.492 86.5892 628.374 86.6362C628.257 86.6833 628.151 86.7542 628.065 86.8441C627.979 86.9341 627.914 87.0409 627.874 87.1572C627.835 87.2735 627.823 87.3966 627.838 87.518C628.239 92.1461 630.366 96.4796 633.829 99.7217C637.452 102.868 642.198 104.553 647.081 104.429C650.349 104.621 653.604 103.879 656.433 102.296C659.262 100.714 661.54 98.3621 662.979 95.5376C663.066 95.4082 663.185 95.3017 663.325 95.2277C663.465 95.1538 663.623 95.1147 663.783 95.1142H683.934C684.077 95.1136 684.218 95.1446 684.346 95.2046C684.475 95.2646 684.587 95.3521 684.675 95.4603C684.762 95.5686 684.823 95.6947 684.852 95.829C684.881 95.9633 684.877 96.1022 684.842 96.2349C682.46 103.127 677.934 109.151 671.875 113.495C664.832 118.444 656.271 120.995 647.548 120.742C640.257 120.845 633.064 119.129 626.671 115.761C620.517 112.520 615.459 107.654 612.096 101.739C608.547 95.301 606.762 88.1016 606.909 80.8184C606.787 73.4822 608.570 66.2324 612.096 59.7234C615.311 53.8317 620.264 48.9807 626.334 45.7763C632.775 42.5973 639.908 40.9245 647.150 40.8942C654.393 40.8639 661.540 42.477 668.010 45.6019C674.011 48.6483 678.924 53.3497 682.119 59.1007C685.558 65.2579 687.282 72.1642 687.124 79.1497C687.130 81.4237 686.974 83.6954 686.657 85.9489C686.649 86.0509 686.618 86.1499 686.566 86.2389C686.514 86.328 686.442 86.4049 686.355 86.4643C686.269 86.5237 686.169 86.5641 686.065 86.5827C685.960 86.6012 685.852 86.5974 685.749 86.5716H685.801Z" fill="white"/>
+            <path d="M715.42 80.4678C715.316 84.74 716.351 88.9668 718.428 92.7462C720.682 96.8588 724.347 100.097 728.802 101.911C730.891 102.796 733.134 103.295 735.415 103.381C739.544 103.684 743.669 102.744 747.215 100.691C750.562 98.7908 753.299 96.042 755.125 92.7462C757.181 89.023 758.208 84.8554 758.108 80.6421C758.220 76.4198 757.192 72.2414 755.125 68.5131C753.305 65.2196 750.566 62.4774 747.215 60.5932C744.078 58.8015 740.492 57.8631 736.842 57.8784C733.120 57.8369 729.452 58.7389 726.209 60.4935C722.912 62.3376 720.218 65.0288 718.428 68.2641C716.399 72.0336 715.365 76.2245 715.420 80.4678ZM756.448 51.2536C756.569 51.3866 756.729 51.4823 756.906 51.5286C757.084 51.5750 757.272 51.5699 757.446 51.5140C757.621 51.4581 757.774 51.3539 757.887 51.2145C758 51.0752 758.068 50.9068 758.082 50.7306V17.7805C758.089 17.3201 758.282 16.8804 758.621 16.5549C758.960 16.2293 759.418 16.0435 759.897 16.0371H776.599C777.081 16.0371 777.542 16.2208 777.883 16.5477C778.223 16.8747 778.415 17.3181 778.415 17.7805V117.677C778.415 118.139 778.223 118.583 777.883 118.909C777.542 119.236 777.081 119.420 776.599 119.420H759.923C759.442 119.420 758.980 119.236 758.640 118.909C758.299 118.583 758.108 118.139 758.108 117.677V110.877C758.094 110.701 758.026 110.533 757.913 110.394C757.800 110.254 757.647 110.150 757.472 110.094C757.298 110.038 757.110 110.033 756.932 110.079C756.755 110.126 756.595 110.221 756.474 110.354C753.894 113.231 750.736 115.577 747.190 117.253C742.289 119.597 736.868 120.760 731.395 120.640C724.792 120.753 718.296 119.022 712.697 115.659C707.014 112.177 702.431 107.267 699.444 101.463C696.071 94.9378 694.390 87.7265 694.543 80.4429C694.383 73.1905 696.065 66.0099 699.444 59.5222C702.377 53.8104 706.935 49.0130 712.590 45.6852C718.244 42.3575 724.764 40.6355 731.395 40.7185C736.880 40.6015 742.309 41.7999 747.190 44.2053C750.718 45.9618 753.862 48.3548 756.448 51.2536Z" fill="white"/>
+          </svg>
+          <div class="topbar-divider"></div>
+          <div class="topbar-tag">Product Workshop · CA</div>
+        </div>
+        <div class="topbar-right">May 2026</div>
+      </div>
+
+      <!-- Heading -->
+      <div class="heading">
+        <div class="heading-eyebrow">Product Demo Workshop</div>
+        <h1>A leading global platform — <em>built for Canada</em></h1>
+        <p>This isn't a pitch. Today we're walking you through the operating model that powers collections for Westpac, Citizens Bank, American Express, Klarna, Revolut, Nubank and hundreds more of our great clients globally — and how we deliver it for CA institutions.</p>
+      </div>
+
+      <!-- Meta strip -->
+      <div class="meta-strip">
+        <div class="meta-item">
+          <div class="meta-label">Date</div>
+          <div class="meta-value">May 2026</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Format</div>
+          <div class="meta-value">Workshop · 8 sections</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Outcome</div>
+          <div class="meta-value">Pilot proposal · Joint action plan</div>
+        </div>
+      </div>
+
+      <!-- Frame quote -->
+      <div class="frame">
+        <div class="frame-label">Frame</div>
+        <p>
+          We've spent the last decade building InDebted into a market leader operating across nine countries. The path to success has always been the same — partner with exceptional clients, deliver best-in-class performance and consumer experience, and grow our business by growing with our clients.
+        </p>
+        </br>
+        <p>
+          Canada is a strategic market for us. The job today is to walk you through the operating model, our products, and take you "behind the scenes" on what makes InDebted different — calibrated for CA regulation (FCAC), local consumer expectations, and your portfolio shape.
+        </p>
+        </br>
+        <p>
+          We're doing this so that, by the end of the session, we have a shared view of what a partnership could look like and a clear next step that we both own — to the benefit of your customers, your stakeholders, and the regulators we all answer to.
+        </p>
+      </div>
+
+      <!-- Agenda timeline -->
+      <div class="agenda">
+        <div class="agenda-title">Run of show</div>
+        <div class="agenda-list">
+
+          <a class="agenda-item" href="01-who-we-are.html">
+            <div class="agenda-num">01</div>
+            <div class="agenda-content">
+              <h3>Who we are</h3>
+              <p>Our journey, the geographies we cover, and recent momentum and milestones.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="02-product-suite.html">
+            <div class="agenda-num">02</div>
+            <div class="agenda-content">
+              <h3>InDebted's product suite</h3>
+              <p>An overview of our core solutions, a sneak peak at what is coming, and a deep dive into Collet.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="03-receive-deep-dive.html">
+            <div class="agenda-num">03</div>
+            <div class="agenda-content">
+              <h3>Receive deep dive</h3>
+              <p>First-party collections, AI-first. When you want to keep collections in-house and bring AI-native intelligence to every account.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="04-collect-deep-dive.html">
+            <div class="agenda-num">04</div>
+            <div class="agenda-content">
+              <h3>Collect deep dive</h3>
+              <p>A side-by-side comparison of traditional collections vs InDebted.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="05-comply-deep-dive.html">
+            <div class="agenda-num">05</div>
+            <div class="agenda-content">
+              <h3>Comply deep dive</h3>
+              <p>Real-time compliance intelligence — the firewall, rules engine, audit trail, and how Comply runs alongside Collect (and standalone).</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="06-client-journey.html">
+            <div class="agenda-num">06</div>
+            <div class="agenda-content">
+              <h3>Typical client journey</h3>
+              <p>A-to-Z: scoping → loading → live operations → reporting. The same shape every InDebted client moves through.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="07-operating-model.html">
+            <div class="agenda-num">07</div>
+            <div class="agenda-content">
+              <h3>Operating model in practice</h3>
+              <p>How the platform runs day-to-day with live clients — the buckets that matter, the levers we tune, and where the value gets unlocked.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+          <a class="agenda-item" href="08-next-steps.html">
+            <div class="agenda-num">08</div>
+            <div class="agenda-content">
+              <h3>Next steps</h3>
+              <p>What a pilot looks like — phased, low-risk, and shaped around your portfolio. How we go from today to a working partnership.</p>
+            </div>
+            <div class="agenda-meta">
+              <div class="agenda-arrow">→</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Run of show notes -->
+      <div class="ros">
+        <div class="ros-card">
+          <h4>Q&amp;A discipline</h4>
+          <p>Each section has a built-in Q&amp;A buffer. Hold questions to the end of each section so we keep moving.</p>
+        </div>
+        <div class="ros-card">
+          <h4>Outcome</h4>
+          <p>By the end: a shared view of where a partnership could land, and a clear next step we both own.</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div>InDebted · The platform for modern debt recovery</div>
+        <div class="footer-links">
+          
+          
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</body>
+</html>
