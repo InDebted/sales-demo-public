@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 · Where InDebted Fits — InDebted for Transurban</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --client-green: #009d4e;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -30%; right: -15%;
+      width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--secondary); margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 720px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 760px; line-height: 1.6;
+    }
+
+    /* ===== Toll Journey Diagram ===== */
+    .journey {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff; border-radius: 20px;
+      padding: 3rem 2.5rem; margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .journey::before {
+      content: ''; position: absolute; top: -40%; left: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(0,157,78,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .journey-inner { position: relative; z-index: 1; }
+    .journey-head {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 2rem; gap: 2rem; flex-wrap: wrap;
+    }
+    .journey-head h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 0.35rem;
+    }
+    .journey-head h3 em { font-style: normal; color: var(--secondary); }
+    .journey-head p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.65);
+      max-width: 540px; line-height: 1.55;
+    }
+    .journey-legend {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.7); text-transform: uppercase;
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 3px;
+    }
+    .legend-dot.transurban { background: var(--client-green); }
+    .legend-dot.receive { background: #7472c7; }
+    .legend-dot.collect { background: var(--secondary); }
+    .legend-dot.comply { background: var(--accent-orange); }
+
+    /* Journey rail */
+    .journey-rail {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0; position: relative;
+    }
+    .journey-rail::before {
+      content: ''; position: absolute;
+      top: 24px; left: 8%; right: 8%; height: 2px;
+      background: linear-gradient(90deg,
+        rgba(0,157,78,0.5) 0%,
+        rgba(116,114,199,0.5) 30%,
+        rgba(118,235,226,0.5) 60%,
+        rgba(247,144,9,0.5) 90%);
+    }
+    .stage {
+      position: relative; z-index: 1;
+      padding: 0 0.5rem;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .stage-icon {
+      width: 50px; height: 50px; border-radius: 12px;
+      background: #000244;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;
+      font-weight: 700; color: #fff; margin-bottom: 1rem;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .stage.s1 .stage-icon { border-color: var(--client-green); color: var(--client-green); }
+    .stage.s2 .stage-icon { border-color: var(--client-green); color: var(--client-green); }
+    .stage.s3 .stage-icon { border-color: #7472c7; color: #7472c7; background: rgba(116,114,199,0.08); }
+    .stage.s4 .stage-icon { border-color: var(--secondary); color: var(--secondary); background: rgba(118,235,226,0.08); }
+    .stage.s5 .stage-icon { border-color: var(--secondary); color: var(--secondary); background: rgba(118,235,226,0.08); }
+    .stage.s6 .stage-icon { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(247,144,9,0.08); }
+
+    .stage-day {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.08em; margin-bottom: 0.35rem;
+    }
+    .stage-name {
+      font-size: 0.8125rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em; margin-bottom: 0.35rem;
+    }
+    .stage-owner {
+      font-size: 0.625rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.2rem 0.45rem;
+      border-radius: 4px; margin-bottom: 0.5rem;
+    }
+    .stage.s1 .stage-owner, .stage.s2 .stage-owner {
+      background: rgba(0,157,78,0.15); color: var(--client-green);
+    }
+    .stage.s3 .stage-owner {
+      background: rgba(116,114,199,0.15); color: #b1afd6;
+    }
+    .stage.s4 .stage-owner, .stage.s5 .stage-owner {
+      background: rgba(118,235,226,0.15); color: var(--secondary);
+    }
+    .stage.s6 .stage-owner {
+      background: rgba(247,144,9,0.15); color: var(--accent-orange);
+    }
+    .stage-desc {
+      font-size: 0.6875rem; color: rgba(255,255,255,0.5);
+      line-height: 1.45;
+    }
+
+    .journey-band {
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .band {
+      padding: 1rem 1.25rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid;
+    }
+    .band.receive { border-left-color: #7472c7; }
+    .band.collect { border-left-color: var(--secondary); }
+    .band.comply { border-left-color: var(--accent-orange); }
+    .band-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.625rem;
+      letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .band.receive .band-label { color: #b1afd6; }
+    .band.collect .band-label { color: var(--secondary); }
+    .band.comply .band-label { color: var(--accent-orange); }
+    .band-title {
+      font-size: 0.9375rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em; margin-bottom: 0.35rem;
+    }
+    .band-body {
+      font-size: 0.8125rem; color: rgba(255,255,255,0.65);
+      line-height: 1.55;
+    }
+
+    /* ===== Three products ===== */
+    .products-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem; margin-bottom: 3rem;
+    }
+    .product-card {
+      padding: 2rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 14px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .product-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--primary);
+    }
+    .product-card[data-color="purple"]::before { background: #7472c7; }
+    .product-card[data-color="teal"]::before { background: var(--secondary); }
+    .product-card[data-color="orange"]::before { background: var(--accent-orange); }
+
+    .product-num {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;
+    }
+    .product-name-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .product-name {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+    }
+    .product-status {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.2rem 0.45rem; border-radius: 4px;
+    }
+    .product-status.live { background: rgba(0,157,78,0.1); color: var(--client-green); }
+    .product-status.focus { background: var(--primary-light); color: var(--primary); }
+    .product-tag {
+      font-size: 0.8125rem; font-weight: 600;
+      color: var(--text-secondary); margin-bottom: 0.875rem;
+    }
+    .product-desc {
+      font-size: 0.875rem; color: var(--text-secondary);
+      line-height: 1.6; margin-bottom: 1.25rem;
+    }
+    .product-feats {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding-top: 1rem; border-top: 1px solid var(--divider);
+    }
+    .product-feats li {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      display: flex; gap: 0.5rem; line-height: 1.5;
+    }
+    .product-feats li::before {
+      content: ''; width: 4px; height: 4px; margin-top: 0.5rem;
+      border-radius: 50%; background: var(--primary); flex-shrink: 0;
+    }
+    .product-card[data-color="purple"] .product-feats li::before { background: #7472c7; }
+    .product-card[data-color="teal"] .product-feats li::before { background: var(--secondary); }
+    .product-card[data-color="orange"] .product-feats li::before { background: var(--accent-orange); }
+
+    .product-fit {
+      margin-top: 1.25rem; padding: 0.875rem 1rem;
+      background: rgba(0,157,78,0.06);
+      border-left: 2px solid var(--client-green);
+      border-radius: 0 8px 8px 0;
+    }
+    .product-fit-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+      font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--client-green); margin-bottom: 0.25rem;
+    }
+    .product-fit-body { font-size: 0.8125rem; color: var(--text); line-height: 1.55; font-weight: 500; }
+
+    /* ===== Integration ===== */
+    .integration {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    .integration h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .integration > p {
+      font-size: 0.9375rem; color: var(--text-secondary);
+      line-height: 1.6; max-width: 760px; margin-bottom: 2rem;
+    }
+    .int-flow {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr 80px 1fr;
+      gap: 1rem; align-items: center;
+    }
+    .int-box {
+      padding: 1.5rem 1.25rem;
+      background: var(--bg);
+      border-radius: 12px;
+      text-align: center;
+      border: 1px dashed var(--border);
+    }
+    .int-box.indebted {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border: none;
+    }
+    .int-box-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+      color: var(--text-dim); margin-bottom: 0.5rem;
+    }
+    .int-box.indebted .int-box-label { color: rgba(255,255,255,0.7); }
+    .int-box-name {
+      font-size: 1rem; font-weight: 800; letter-spacing: -0.01em;
+      margin-bottom: 0.25rem;
+    }
+    .int-box-detail {
+      font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;
+    }
+    .int-box.indebted .int-box-detail { color: rgba(255,255,255,0.8); }
+    .int-arrow {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .int-arrow span {
+      display: block;
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; padding: 3rem 2.5rem; border-radius: 16px; text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 1rem; color: rgba(255,255,255,0.85);
+      max-width: 720px; margin: 0 auto; line-height: 1.6;
+    }
+
+    /* ===== Section Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .journey-rail { grid-template-columns: repeat(3, 1fr); gap: 1rem 0; }
+      .journey-rail::before { display: none; }
+      .journey-band { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: 1fr; }
+      .int-flow {
+        grid-template-columns: 1fr;
+      }
+      .int-arrow {
+        transform: rotate(90deg);
+      }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Overview</a>
+        <div class="nav-crumbs">02 / 05 · <strong>Where InDebted fits</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="01-who-we-are.html">← Prev</a>
+        <a class="nav-btn primary" href="03-collect-deep-dive.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 02</div>
+      <h1>The unpaid-toll journey, <em>mapped</em>.<br>Three layers, one platform.</h1>
+      <p class="hero-sub">Receive intercepts early before things escalate. Collect handles the lift on accounts that didn't self-resolve. Comply wraps every interaction with rule-checks, vulnerability signals, and audit-grade evidence — so a regulator, an ombudsman, or a journalist can be answered the same day, not next quarter.</p>
+    </div>
+  </section>
+
+  <!-- Journey -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">The journey today</div>
+      <h2>From toll capture to resolution — where each layer plugs in.</h2>
+      <p>Today most of the unpaid-toll journey is owned by Linkt and the back-office, with a fall-off to enforcement at the end. Here's where InDebted's three products fit between the two — and why each one matters at a different stage of the journey.</p>
+    </div>
+
+    <div class="journey">
+      <div class="journey-inner">
+        <div class="journey-head">
+          <div>
+            <h3>Unpaid toll journey — <em>annotated</em></h3>
+            <p>A typical NSW/VIC trip-notice journey, with InDebted's layers shown where they create the most lift without disturbing the rest of your stack.</p>
+          </div>
+          <div class="journey-legend">
+            <div class="legend-item"><span class="legend-dot transurban"></span>Transurban / Linkt</div>
+            <div class="legend-item"><span class="legend-dot receive"></span>Receive</div>
+            <div class="legend-item"><span class="legend-dot collect"></span>Collect</div>
+            <div class="legend-item"><span class="legend-dot comply"></span>Comply</div>
+          </div>
+        </div>
+
+        <div class="journey-rail">
+          <div class="stage s1">
+            <div class="stage-icon">01</div>
+            <div class="stage-day">Day 0</div>
+            <div class="stage-name">Toll captured</div>
+            <div class="stage-owner">Linkt</div>
+            <div class="stage-desc">Trip logged, vehicle classified, account looked up.</div>
+          </div>
+          <div class="stage s2">
+            <div class="stage-icon">02</div>
+            <div class="stage-day">Day 3</div>
+            <div class="stage-name">Invoice issued</div>
+            <div class="stage-owner">Linkt</div>
+            <div class="stage-desc">Bill to account or email — Linkt-branded, payment-due.</div>
+          </div>
+          <div class="stage s3">
+            <div class="stage-icon">03</div>
+            <div class="stage-day">Day 14</div>
+            <div class="stage-name">First nudge</div>
+            <div class="stage-owner">Receive</div>
+            <div class="stage-desc">Soft digital reminder, self-serve resolution, no admin fee yet.</div>
+          </div>
+          <div class="stage s4">
+            <div class="stage-icon">04</div>
+            <div class="stage-day">Day 28</div>
+            <div class="stage-name">Final notice</div>
+            <div class="stage-owner">Collect</div>
+            <div class="stage-desc">Multi-channel, behaviour-led; payment plans, hardship detection.</div>
+          </div>
+          <div class="stage s5">
+            <div class="stage-icon">05</div>
+            <div class="stage-day">Day 56</div>
+            <div class="stage-name">Escalation</div>
+            <div class="stage-owner">Collect</div>
+            <div class="stage-desc">Final cadence before referral; vulnerable cohorts diverted.</div>
+          </div>
+          <div class="stage s6">
+            <div class="stage-icon">06</div>
+            <div class="stage-day">Always-on</div>
+            <div class="stage-name">Evidence</div>
+            <div class="stage-owner">Comply</div>
+            <div class="stage-desc">Every message rule-checked; full audit trail in one timeline.</div>
+          </div>
+        </div>
+
+        <div class="journey-band">
+          <div class="band receive">
+            <div class="band-label">Receive · Layer 1</div>
+            <div class="band-title">Catch what self-resolves</div>
+            <div class="band-body">A large share of unpaid tolls is admin failure — wrong card on file, forgotten reminder, changed address. Receive lifts those before they need a notice.</div>
+          </div>
+          <div class="band collect">
+            <div class="band-label">Collect · Layer 2</div>
+            <div class="band-title">Do the lift, keep the brand</div>
+            <div class="band-body">Behaviour-led, digital-first cadences on the accounts that need real engagement — without sounding like a debt collector or generating an ombudsman complaint.</div>
+          </div>
+          <div class="band comply">
+            <div class="band-label">Comply · Layer 3</div>
+            <div class="band-title">Defensible, transparent, auditable</div>
+            <div class="band-body">Wraps the other two — and your own outbound — with rule-checking, vulnerability flagging, and an evidence trail that maps to NSW Toll Reform and the National Credit Code.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three products -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">The three products</div>
+      <h2>One platform, three products. Adopt one, two, or all three.</h2>
+      <p>The platform is designed to be adopted in layers — you don't need to take all three to start. Most engagements begin with one product against a single cohort, then expand as the evidence builds.</p>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card" data-color="purple">
+        <div class="product-num">01</div>
+        <div class="product-name-row">
+          <div class="product-name">Receive</div>
+          <div class="product-status live">Live AU</div>
+        </div>
+        <div class="product-tag">Early-stage self-serve recovery</div>
+        <div class="product-desc">AI-powered software that intercepts customers in the &ldquo;forgot, will get to it&rdquo; window. Soft digital nudges, frictionless self-service, no admin fees — designed to lift the easy ones before they need escalation.</div>
+        <ul class="product-feats">
+          <li>White-labelled — runs under the Linkt brand</li>
+          <li>SMS, email, app-push, web</li>
+          <li>Behaviour-led send timing</li>
+          <li>One-tap pay / update-card / self-serve plans</li>
+        </ul>
+        <div class="product-fit">
+          <div class="product-fit-label">Fit for Transurban</div>
+          <div class="product-fit-body">A lot of unpaid tolls are admin failure, not refusal. Receive is built for exactly that cohort and stays in your brand.</div>
+        </div>
+      </div>
+
+      <div class="product-card" data-color="teal">
+        <div class="product-num">02</div>
+        <div class="product-name-row">
+          <div class="product-name">Collect</div>
+        </div>
+        <div class="product-tag">Independent, digital-first escalation</div>
+        <div class="product-desc">The escalation engine that takes over when Receive's in-brand contact hasn't resolved. Runs under the InDebted brand — a deliberate signal to the customer that they're now talking to an independent third party — without dragging Linkt's name into the firmer contact.</div>
+        <ul class="product-feats">
+          <li>InDebted-branded — the independent-escalation signal</li>
+          <li>Multi-channel (SMS / email / voice / push / portal)</li>
+          <li>Embedded payment plans and self-serve resolution</li>
+          <li>Hardship triage routes off the standard cadence</li>
+        </ul>
+        <div class="product-fit">
+          <div class="product-fit-label">Fit for Transurban</div>
+          <div class="product-fit-body">Lets Linkt stay soft and in-brand at Receive, and have a separate independent escalation step that doesn't carry Linkt's logo into the firmer conversation.</div>
+        </div>
+      </div>
+
+      <div class="product-card" data-color="orange">
+        <div class="product-num">03</div>
+        <div class="product-name-row">
+          <div class="product-name">Comply</div>
+        </div>
+        <div class="product-tag">Compliance + evidence layer</div>
+        <div class="product-desc">The regulated-communications layer that sits under the other two products — and over your own outbound. Every message rule-checked before send, every interaction evidenced, every vulnerability signal flagged in real time.</div>
+        <ul class="product-feats">
+          <li>Firewall: pre-send rule-check on every outbound</li>
+          <li>Safeguard: real-time vulnerability identification</li>
+          <li>Rules: 160+ production rules, jurisdiction-mapped</li>
+          <li>Audit + Consent: one-customer-one-timeline evidence</li>
+        </ul>
+        <div class="product-fit">
+          <div class="product-fit-label">Fit for Transurban</div>
+          <div class="product-fit-body">NSW Toll Reform asks for &ldquo;balanced, simpler, more transparent&rdquo;. Comply makes that demonstrable on every customer, every day.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integration -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="integration">
+      <h3>How it sits alongside Linkt</h3>
+      <p>The platform doesn't replace anything you have. Your back-office remains the system of record. InDebted plugs in as the recovery layer between &ldquo;invoice unpaid&rdquo; and &ldquo;referral to enforcement&rdquo; — Receive runs under Linkt's brand for early contact; Collect runs under InDebted's brand when an independent escalation step is the right move.</p>
+
+      <div class="int-flow">
+        <div class="int-box">
+          <div class="int-box-label">System of record</div>
+          <div class="int-box-name">Linkt / Back-office</div>
+          <div class="int-box-detail">Trip files, account state, billing source-of-truth</div>
+        </div>
+        <div class="int-arrow">
+          <span>→</span>
+          unpaid<br>cohort
+        </div>
+        <div class="int-box indebted">
+          <div class="int-box-label">Recovery layer</div>
+          <div class="int-box-name">InDebted Platform</div>
+          <div class="int-box-detail">Receive (Linkt-branded) · Collect (independent) · Comply (back-end)</div>
+        </div>
+        <div class="int-arrow">
+          <span>→</span>
+          payments<br>+ dispositions
+        </div>
+        <div class="int-box">
+          <div class="int-box-label">Post-recovery</div>
+          <div class="int-box-name">Linkt / Back-office</div>
+          <div class="int-box-detail">Reconciliation, account reactivation, enforcement referral if needed</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing frame -->
+  <section class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div class="close-frame">
+      <h3>Three layers. One platform. One audit trail.<br>Adopt at the pace the evidence justifies.</h3>
+      <p>Sections 03 and 04 go deeper on Collect and Comply respectively. Section 05 is a recap of the whole platform on a single page.</p>
+    </div>
+  </section>
+
+  <!-- Footer nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="01-who-we-are.html">
+      <div class="foot-nav-dir">← Prev · 01</div>
+      <div class="foot-nav-title">Who we are</div>
+    </a>
+    <a class="foot-nav next" href="03-collect-deep-dive.html">
+      <div class="foot-nav-dir">Next · 03</div>
+      <div class="foot-nav-title">Collect deep dive →</div>
+    </a>
+  </div>
+
+</body>
+</html>

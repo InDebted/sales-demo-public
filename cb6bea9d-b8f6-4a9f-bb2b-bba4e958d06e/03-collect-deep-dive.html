@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 · Collect Deep Dive — InDebted for Transurban</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --client-green: #009d4e;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -30%; right: -15%;
+      width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--secondary); margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 720px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 760px; line-height: 1.6;
+    }
+
+    /* ===== Problem framing ===== */
+    .problem {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .problem-stat {
+      padding: 1.5rem;
+      background: var(--bg);
+      border-radius: 12px;
+      border-top: 3px solid var(--client-green);
+    }
+    .problem-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .problem-stat-value em {
+      font-style: normal;
+      color: var(--client-green);
+    }
+    .problem-stat-label {
+      font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .problem-stat-sub {
+      font-size: 0.75rem; color: var(--text-dim); line-height: 1.4;
+    }
+    .problem-foot {
+      padding: 1.25rem 1.5rem;
+      border-left: 3px solid var(--accent-orange);
+      background: rgba(247,144,9,0.05);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .problem-foot strong { color: var(--accent-orange); font-weight: 700; }
+
+    /* ===== Engine pillars ===== */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .pillar {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative; overflow: hidden;
+    }
+    .pillar::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--primary);
+    }
+    .pillar[data-color="teal"]::before { background: var(--secondary); }
+    .pillar[data-color="purple"]::before { background: #7472c7; }
+    .pillar[data-color="orange"]::before { background: var(--accent-orange); }
+
+    .pillar-num {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;
+    }
+    .pillar h3 {
+      font-size: 1.375rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .pillar > p {
+      font-size: 0.9375rem; color: var(--text-secondary);
+      line-height: 1.6; margin-bottom: 1.25rem;
+    }
+    .pillar-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding-top: 1rem; border-top: 1px solid var(--divider);
+    }
+    .pillar-list li {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      display: flex; gap: 0.5rem; line-height: 1.5;
+    }
+    .pillar-list li::before {
+      content: ''; width: 4px; height: 4px; margin-top: 0.5rem;
+      border-radius: 50%; background: var(--primary); flex-shrink: 0;
+    }
+    .pillar[data-color="teal"] .pillar-list li::before { background: var(--secondary); }
+    .pillar[data-color="purple"] .pillar-list li::before { background: #7472c7; }
+    .pillar[data-color="orange"] .pillar-list li::before { background: var(--accent-orange); }
+
+    /* ===== Worked scenario ===== */
+    .scenario {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff; border-radius: 20px; padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .scenario::before {
+      content: ''; position: absolute; top: -50%; right: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .scenario-inner { position: relative; z-index: 1; }
+    .scenario-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 2rem; gap: 2rem; flex-wrap: wrap;
+    }
+    .scenario-head h3 {
+      font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 0.5rem;
+    }
+    .scenario-head h3 em { font-style: normal; color: var(--secondary); }
+    .scenario-head p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.65);
+      max-width: 540px; line-height: 1.6;
+    }
+    .persona {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      min-width: 240px;
+    }
+    .persona-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 0.35rem;
+    }
+    .persona-name {
+      font-size: 1rem; font-weight: 700; color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .persona-detail {
+      font-size: 0.8125rem; color: rgba(255,255,255,0.65);
+      line-height: 1.5;
+    }
+
+    .scenario-timeline {
+      display: flex; flex-direction: column; gap: 0.875rem;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 100px 40px 1fr;
+      gap: 1.25rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .step::after {
+      content: '';
+      position: absolute;
+      left: 119px; top: 36px; bottom: -16px;
+      width: 2px;
+      background: rgba(118,235,226,0.15);
+    }
+    .step:last-child::after { display: none; }
+    .step-when {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.05em;
+      padding-top: 0.5rem;
+      text-align: right;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #000244;
+      border: 2px solid var(--secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--secondary);
+      margin-top: 0.3rem; position: relative; z-index: 1;
+    }
+    .step.win .step-dot {
+      background: var(--secondary); color: #000244;
+      box-shadow: 0 0 16px rgba(118,235,226,0.4);
+    }
+    .step-body {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .step-channel {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.625rem;
+    }
+    .step-channel-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(118,235,226,0.12);
+      color: var(--secondary);
+    }
+    .step-channel-tag.sms { background: rgba(118,235,226,0.12); color: var(--secondary); }
+    .step-channel-tag.email { background: rgba(116,114,199,0.18); color: #b1afd6; }
+    .step-channel-tag.push { background: rgba(247,144,9,0.15); color: var(--accent-orange); }
+    .step-channel-tag.web { background: rgba(0,157,78,0.15); color: #6ed29e; }
+    .step-channel-tag.voice { background: rgba(240,68,56,0.15); color: #ff9a91; }
+    .step-channel-decision {
+      font-size: 0.6875rem; color: rgba(255,255,255,0.5);
+      letter-spacing: 0.02em;
+    }
+    .step-msg {
+      font-size: 0.9375rem; color: #fff;
+      line-height: 1.55; margin-bottom: 0.625rem;
+      font-weight: 500;
+    }
+    .step-rationale {
+      font-size: 0.75rem; color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+      padding-top: 0.625rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .step-rationale strong { color: var(--secondary); font-weight: 700; }
+    .step.win .step-msg { color: var(--secondary); font-weight: 700; }
+
+    /* ===== Brand grade strip ===== */
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .brand-card {
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .brand-card-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.125rem; font-weight: 800; margin-bottom: 1rem;
+    }
+    .brand-card h4 {
+      font-size: 1.0625rem; font-weight: 800;
+      letter-spacing: -0.01em; margin-bottom: 0.5rem;
+    }
+    .brand-card p {
+      font-size: 0.875rem; color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ===== Results ===== */
+    .results {
+      background: linear-gradient(135deg, var(--success) 0%, #047858 100%);
+      color: #fff; border-radius: 20px; padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .results::before {
+      content: '';
+      position: absolute; top: -30%; left: -10%;
+      width: 50%; height: 160%;
+      background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .results-inner { position: relative; z-index: 1; }
+    .results-head {
+      margin-bottom: 2rem;
+    }
+    .results-head .eyebrow {
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0.5rem;
+    }
+    .results-head h3 {
+      font-size: 1.75rem; font-weight: 800;
+      letter-spacing: -0.02em; color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .results-head p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.85);
+      max-width: 600px; line-height: 1.6;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .result {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .result-value {
+      font-size: 2.25rem; font-weight: 800;
+      letter-spacing: -0.04em; color: #fff;
+      margin-bottom: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .result-label {
+      font-size: 0.75rem; color: rgba(255,255,255,0.9);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .result-sub {
+      font-size: 0.75rem; color: rgba(255,255,255,0.65);
+      line-height: 1.4;
+    }
+    .results-foot {
+      margin-top: 2rem; padding: 1.25rem 1.5rem;
+      background: rgba(0,0,0,0.15);
+      border-radius: 10px;
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.55;
+    }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; padding: 3rem 2.5rem; border-radius: 16px; text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 1rem; color: rgba(255,255,255,0.85);
+      max-width: 720px; margin: 0 auto; line-height: 1.6;
+    }
+
+    /* ===== Section Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .problem-grid { grid-template-columns: repeat(2, 1fr); }
+      .pillars-grid { grid-template-columns: 1fr; }
+      .brand-grid { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(2, 1fr); }
+      .step { grid-template-columns: 1fr; }
+      .step::after { display: none; }
+      .step-when { text-align: left; padding-top: 0; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Overview</a>
+        <div class="nav-crumbs">03 / 05 · <strong>Collect deep dive</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="02-product-suite.html">← Prev</a>
+        <a class="nav-btn primary" href="04-comply-deep-dive.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 03 · Collect</div>
+      <h1>Built for the volume profile of <em>tolling</em>.<br>Not retrofitted onto it.</h1>
+      <p class="hero-sub">Most unpaid-toll balances sit in the sub-thousand-dollar range where digital collections clearly out-performs the traditional letter/call/agency motion. But unlike a telco, you can't disconnect a car from the road — so a long tail of larger balances builds up that needs a different handling shape. The platform has to do both, and not turn either into a headline.</p>
+    </div>
+  </section>
+
+  <!-- The volume problem -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">The volume profile</div>
+      <h2>Two cohorts, not one. Both need the platform.</h2>
+      <p>The framing below is a qualitative read of the tolling profile, not a Transurban-supplied figure. Real numbers would need to come from your data.</p>
+    </div>
+
+    <div class="problem">
+      <div class="problem-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="problem-stat" style="border-top-color: var(--secondary);">
+          <div class="problem-stat-label">Cohort A · the bulk</div>
+          <div class="problem-stat-value" style="font-size: 1.5rem; letter-spacing: -0.02em;">Sub-thousand-dollar balances</div>
+          <div class="problem-stat-sub" style="margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55;">Small enough that an agent-handled letter/call cycle costs more than the debt itself. Large enough that a self-serve digital prompt with a one-tap payment path reliably converts. This is the volume of the problem, and it's exactly the cohort digital collections was built for.</div>
+        </div>
+        <div class="problem-stat" style="border-top-color: var(--accent-orange);">
+          <div class="problem-stat-label">Cohort B · the long tail</div>
+          <div class="problem-stat-value" style="font-size: 1.5rem; letter-spacing: -0.02em;">Balances above the sweet spot</div>
+          <div class="problem-stat-sub" style="margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55;">Toll operators can't disconnect a car the way a telco can disconnect a phone. Account-holders with multiple vehicles, fleet usage, or long unaddressed periods can accumulate balances that need a different handling shape — softer-touch, longer plans, hardship-aware — not the same cadence stretched louder.</div>
+        </div>
+      </div>
+      <div class="problem-foot">
+        <strong>The implication:</strong> the platform has to do both — the digital lift on the bulk, and a softer-touch escalation on the long tail — and not turn the long-tail conversation into the headline-generating event. A traditional letter/call/agency motion handles the long tail poorly and the bulk uneconomically; that's the gap the platform is built for.
+      </div>
+    </div>
+  </section>
+
+  <!-- Engine pillars -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">What Collect actually does</div>
+      <h2>The four things the engine does on every customer, every day.</h2>
+      <p>Collect is a decisioning engine wrapped in a multi-channel comms platform. These are the four moves it makes — and the four moves the traditional model can't.</p>
+    </div>
+
+    <div class="pillars-grid">
+      <div class="pillar" data-color="teal">
+        <div class="pillar-num">01</div>
+        <h3>Multi-channel orchestration</h3>
+        <p>Reach customers across SMS, email, voice, web, and customer portal — with the platform owning the &ldquo;next best channel&rdquo; decision per customer, not the agent.</p>
+        <ul class="pillar-list">
+          <li>One outbound rail across every channel — not one tool per channel</li>
+          <li>Engagement signals (deliverability, open, response) feed the next decision</li>
+          <li>Channel-of-last-success bias — talk to people where they actually talk back</li>
+          <li>Runs under the InDebted brand — the independent-escalation step after Linkt's own contact</li>
+        </ul>
+      </div>
+
+      <div class="pillar" data-color="purple">
+        <div class="pillar-num">02</div>
+        <h3>Behaviour-led timing and content</h3>
+        <p>Models trained on a decade of recovery interactions decide when to send, how often, and which content variant to pick — instead of a static templated cadence.</p>
+        <ul class="pillar-list">
+          <li>Time-of-day + day-of-week tuned per customer's engagement history</li>
+          <li>Content variants tested continuously rather than re-templated annually</li>
+          <li>Hardship signals route off the standard cadence into Safeguard (see next section)</li>
+          <li>The same customer doesn't get the same message twice if the first didn't land</li>
+        </ul>
+      </div>
+
+      <div class="pillar" data-color="orange">
+        <div class="pillar-num">03</div>
+        <h3>Self-serve resolution layer</h3>
+        <p>The cheapest customer interaction is the one that didn't need staff. Customer portal is built so &ldquo;pay now,&rdquo; &ldquo;set up a plan,&rdquo; &ldquo;dispute the trip,&rdquo; and &ldquo;tell us you're struggling&rdquo; are all one-tap journeys — including in the SMS link, not just on the portal.</p>
+        <ul class="pillar-list">
+          <li>One-tap pay (Apple Pay, Google Pay, card, BPAY)</li>
+          <li>Self-serve payment plans with affordability bands</li>
+          <li>Dispute / vehicle-not-mine flows that route to the right back-office team</li>
+          <li>Vulnerability self-declaration with sensitive-handling routing</li>
+        </ul>
+      </div>
+
+      <div class="pillar" data-color="teal">
+        <div class="pillar-num">04</div>
+        <h3>Closed-loop learning</h3>
+        <p>Every interaction feeds back into the model. What worked on similar customers last quarter is what the platform tries first this quarter — rather than running last year's letter template against this year's cohort.</p>
+        <ul class="pillar-list">
+          <li>Recovery vs cost-to-resolve tracked per cohort</li>
+          <li>Complaint and dispute signals fed back as a guardrail, not just a KPI</li>
+          <li>Continuous model updates rather than annual template review</li>
+          <li>Operator dashboards on the same data the model sees</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Worked scenario -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">Worked scenario</div>
+      <h2>An escalation cohort, walked end-to-end.</h2>
+      <p>What Collect does on one synthetic customer who didn't respond to Linkt's in-brand contact — and is now seeing an independent escalation step. Persona and content are illustrative.</p>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-inner">
+        <div class="scenario-head">
+          <div>
+            <h3>Sarah, three trips, <em>$24.30 outstanding</em></h3>
+            <p>Sydney-based, M2 commuter. Three unpaid trips over a fortnight. Card on file expired three weeks ago. Linkt's own in-brand reminders went unread. No hardship flags. The next planned step is a formal notice + admin fee — or, instead, an independent contact from InDebted.</p>
+          </div>
+          <div class="persona">
+            <div class="persona-label">Customer profile</div>
+            <div class="persona-name">Sarah · synthetic</div>
+            <div class="persona-detail">
+              3 unpaid trips · $24.30 total<br>
+              Expired card on file<br>
+              Linkt-brand emails unread<br>
+              SMS-engaged · no hardship flags
+            </div>
+          </div>
+        </div>
+
+        <div class="scenario-timeline">
+
+          <div class="step">
+            <div class="step-when">Day 28<br>09:48</div>
+            <div class="step-dot">1</div>
+            <div class="step-body">
+              <div class="step-channel">
+                <span class="step-channel-tag sms">SMS · InDebted-branded</span>
+                <span class="step-channel-decision">Channel: SMS (engagement signal) · Tone: neutral · One-tap pay link</span>
+              </div>
+              <div class="step-msg">&ldquo;Hi Sarah — this is InDebted, contacting you on behalf of Linkt. $24.30 is outstanding on your account from three recent trips. You can sort it in one tap here, no extra fees today: in.dbt/p/4f2x.&rdquo;</div>
+              <div class="step-rationale"><strong>Why the independent step:</strong> Same factual ask, different sender. The shift from in-brand to an independent third party is itself a signal — without Linkt's name being attached to the firmer message.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-when">Day 28<br>09:52</div>
+            <div class="step-dot">2</div>
+            <div class="step-body">
+              <div class="step-channel">
+                <span class="step-channel-tag web">Portal · InDebted</span>
+                <span class="step-channel-decision">Customer opens link · identity-bound portal · pay + card-update flow</span>
+              </div>
+              <div class="step-msg">Sarah taps through. Portal recognises her off the link, surfaces the three trips, offers card update + Apple Pay. She updates the card and pays.</div>
+              <div class="step-rationale"><strong>Why it converts:</strong> Identity is bound off the SMS — no login friction. The portal makes the resolution path obvious and finishes the job the in-brand reminders started.</div>
+            </div>
+          </div>
+
+          <div class="step win">
+            <div class="step-when">Day 28<br>09:53</div>
+            <div class="step-dot">✓</div>
+            <div class="step-body">
+              <div class="step-channel">
+                <span class="step-channel-tag">Resolved</span>
+                <span class="step-channel-decision">Outcome posted back to Linkt · cohort exit</span>
+              </div>
+              <div class="step-msg">$24.30 paid. Card on file refreshed. No admin fee accrued. No call. No formal notice.</div>
+              <div class="step-rationale"><strong>What didn't happen:</strong> No agency referral. No state-revenue path. No Linkt-branded firm contact. The escalation step did the lift, the in-brand layer stayed soft.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-when">contrast</div>
+            <div class="step-dot">×</div>
+            <div class="step-body">
+              <div class="step-channel">
+                <span class="step-channel-tag email">Counterfactual</span>
+                <span class="step-channel-decision">What a traditional escalation path tends to do</span>
+              </div>
+              <div class="step-msg">Without an independent digital escalation step, the next move is typically a paper notice with an admin fee, then an agency referral, then state-revenue handover. End-to-end cost on a $24.30 debt commonly exceeds the debt itself.</div>
+              <div class="step-rationale"><strong>The difference:</strong> Same customer. Same balance. The independent digital step is meant to resolve the easy ones before the expensive, brand-exposed path begins.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brand-grade -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">How Collect protects the Linkt brand</div>
+      <h2>Independence is the point, not the side-effect.</h2>
+      <p>Toll roads carry brand exposure that other verticals don't — fines become news stories, robo-calls become tweets. The two-brand pathway is how Collect is designed to handle that.</p>
+    </div>
+
+    <div class="brand-grid">
+      <div class="brand-card">
+        <div class="brand-card-icon">L→I</div>
+        <h4>Two brands, one journey</h4>
+        <p>Linkt's name stays on the in-brand reminders (Receive). The firmer escalation arrives from a recognisably separate sender (InDebted). That separation is itself a tested signal — and it keeps Linkt out of the part of the conversation most likely to generate a screenshot.</p>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-icon">T</div>
+        <h4>Tone tuned to context</h4>
+        <p>Content variants are chosen for the customer and the stage — not a single template fired at every cohort. The aim is to avoid both the &ldquo;debt collector&rdquo; tone and the &ldquo;passive ping&rdquo; tone that misses the cohort entirely.</p>
+      </div>
+      <div class="brand-card">
+        <div class="brand-card-icon">G</div>
+        <h4>Complaint signal as a guardrail</h4>
+        <p>Recovery rate isn't read in isolation. Complaint and dispute volume from the same cohort gets read alongside it, so a lift in recovery that comes with a spike in complaints is a problem the operating team sees, not a number the dashboard hides.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="results">
+      <div class="results-inner">
+        <div class="results-head">
+          <div class="eyebrow" style="color: rgba(255,255,255,0.8);">The metrics we'd want to move</div>
+          <h3>What success looks like — to be quantified against your baseline at pilot.</h3>
+          <p>We deliberately haven't put specific numbers against these. Tolling has its own volume and balance profile; any honest baseline would need to come from your data rather than a percentage from a different vertical. The directions and the categories are the part to align on first.</p>
+        </div>
+
+        <div class="results-grid">
+          <div class="result">
+            <div class="result-value">↑</div>
+            <div class="result-label">Resolution rate</div>
+            <div class="result-sub">on the escalation cohort, vs Linkt's current incumbent path</div>
+          </div>
+          <div class="result">
+            <div class="result-value">↓</div>
+            <div class="result-label">Cost-to-resolve</div>
+            <div class="result-sub">digital-first, self-serve over agent-heavy</div>
+          </div>
+          <div class="result">
+            <div class="result-value">↓</div>
+            <div class="result-label">Complaint &amp; dispute volume</div>
+            <div class="result-sub">on the same cohort, same window</div>
+          </div>
+          <div class="result">
+            <div class="result-value">↓</div>
+            <div class="result-label">Time-to-resolution</div>
+            <div class="result-sub">for the slice that resolves digitally</div>
+          </div>
+        </div>
+
+        <div class="results-foot">
+          The headline metric isn't recovery rate alone — it's the gap between recovery rate and complaint rate. If recovery lifts and complaints lift with it, that's not a win worth claiming. The platform is built to make that trade-off measurable, not assumed.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing frame -->
+  <section class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div class="close-frame">
+      <h3>Collect does the independent lift.<br>Comply provides the evidence.</h3>
+      <p>Now to the layer that sits under both Receive and Collect — and over whatever Linkt's existing outbound is doing today — turning &ldquo;we believe we did the right thing&rdquo; into &ldquo;here is the evidence, on this customer, on this day, in this channel.&rdquo;</p>
+    </div>
+  </section>
+
+  <!-- Footer nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="02-product-suite.html">
+      <div class="foot-nav-dir">← Prev · 02</div>
+      <div class="foot-nav-title">Where InDebted fits</div>
+    </a>
+    <a class="foot-nav next" href="04-comply-deep-dive.html">
+      <div class="foot-nav-dir">Next · 04</div>
+      <div class="foot-nav-title">Comply deep dive →</div>
+    </a>
+  </div>
+
+</body>
+</html>

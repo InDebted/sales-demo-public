@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 · Comply Deep Dive — InDebted for Transurban</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --client-green: #009d4e;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --success: #039855;
+      --error: #f04438;
+      --warning: #dc6803;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -30%; right: -15%;
+      width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(247,144,9,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent-orange); margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent-orange); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-orange) 0%, #fcd34d 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 720px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 760px; line-height: 1.6;
+    }
+
+    /* ===== NSW Toll Reform mapping ===== */
+    .reform {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    .reform-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;
+    }
+    .reform-head h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .reform-head p {
+      font-size: 0.9375rem; color: var(--text-secondary);
+      line-height: 1.55; max-width: 640px;
+    }
+    .reform-source {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      padding: 0.5rem 0.875rem;
+      background: rgba(0,157,78,0.08);
+      color: var(--client-green);
+      border-radius: 8px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .reform-rows {
+      display: flex; flex-direction: column; gap: 0.875rem;
+    }
+    .reform-row {
+      display: grid;
+      grid-template-columns: 1.2fr 40px 1.2fr;
+      gap: 1rem; align-items: stretch;
+    }
+    .reform-ask, .reform-give {
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .reform-ask {
+      background: rgba(0,157,78,0.05);
+      border-left: 3px solid var(--client-green);
+    }
+    .reform-give {
+      background: var(--primary-light);
+      border-left: 3px solid var(--primary);
+    }
+    .reform-ask-label, .reform-give-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .reform-ask-label { color: var(--client-green); }
+    .reform-give-label { color: var(--primary); }
+    .reform-ask-body, .reform-give-body {
+      font-size: 0.875rem; color: var(--text);
+      line-height: 1.55; font-weight: 500;
+    }
+    .reform-arrow {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim);
+      font-size: 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== Five pillars ===== */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .pillar {
+      padding: 1.75rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .pillar::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--accent-orange);
+    }
+    .pillar-num {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;
+    }
+    .pillar h3 {
+      font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .pillar > p {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      line-height: 1.55; margin-bottom: 1rem;
+    }
+    .pillar-when {
+      margin-top: auto;
+      padding-top: 0.875rem;
+      border-top: 1px solid var(--divider);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+    .pillar-when strong { color: var(--accent-orange); font-weight: 700; }
+
+    /* ===== Vulnerable scenario ===== */
+    .scenario {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff; border-radius: 20px; padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .scenario::before {
+      content: ''; position: absolute; top: -50%; right: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(247,144,9,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .scenario-inner { position: relative; z-index: 1; }
+    .scenario-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 2rem; gap: 2rem; flex-wrap: wrap;
+    }
+    .scenario-head h3 {
+      font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 0.5rem;
+    }
+    .scenario-head h3 em { font-style: normal; color: var(--accent-orange); }
+    .scenario-head p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.65);
+      max-width: 540px; line-height: 1.6;
+    }
+    .persona {
+      background: rgba(247,144,9,0.08);
+      border: 1px solid rgba(247,144,9,0.25);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      min-width: 240px;
+    }
+    .persona-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent-orange);
+      margin-bottom: 0.35rem;
+    }
+    .persona-name {
+      font-size: 1rem; font-weight: 700; color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .persona-detail {
+      font-size: 0.8125rem; color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+    }
+
+    .scenario-timeline {
+      display: flex; flex-direction: column; gap: 0.875rem;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 120px 40px 1fr;
+      gap: 1.25rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .step::after {
+      content: '';
+      position: absolute;
+      left: 139px; top: 36px; bottom: -16px;
+      width: 2px;
+      background: rgba(247,144,9,0.15);
+    }
+    .step:last-child::after { display: none; }
+    .step-when {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.05em;
+      padding-top: 0.5rem;
+      text-align: right;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #000244;
+      border: 2px solid var(--accent-orange);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--accent-orange);
+      margin-top: 0.3rem; position: relative; z-index: 1;
+    }
+    .step.win .step-dot {
+      background: var(--accent-orange); color: #000244;
+      box-shadow: 0 0 16px rgba(247,144,9,0.4);
+    }
+    .step-body {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .step-tag {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+      background: rgba(247,144,9,0.15);
+      color: var(--accent-orange);
+    }
+    .step-tag.firewall { background: rgba(240,68,56,0.15); color: #ff9a91; }
+    .step-tag.safeguard { background: rgba(247,144,9,0.15); color: var(--accent-orange); }
+    .step-tag.rules { background: rgba(116,114,199,0.15); color: #b1afd6; }
+    .step-tag.audit { background: rgba(118,235,226,0.12); color: var(--secondary); }
+    .step-tag.consent { background: rgba(0,157,78,0.15); color: #6ed29e; }
+    .step-msg {
+      font-size: 0.9375rem; color: #fff;
+      line-height: 1.55; margin-bottom: 0.625rem;
+      font-weight: 500;
+    }
+    .step-rationale {
+      font-size: 0.75rem; color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+      padding-top: 0.625rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .step-rationale strong { color: var(--accent-orange); font-weight: 700; }
+
+    /* ===== Audit timeline preview ===== */
+    .audit-preview {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    .audit-preview h3 {
+      font-size: 1.5rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .audit-preview > p {
+      font-size: 0.9375rem; color: var(--text-secondary);
+      line-height: 1.6; max-width: 700px; margin-bottom: 2rem;
+    }
+    .audit-mock {
+      background: #0a0e2a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      color: #cbd5e1;
+      overflow-x: auto;
+    }
+    .audit-mock-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 0.875rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .audit-mock-title {
+      color: #fff; font-weight: 700; font-size: 0.875rem;
+    }
+    .audit-mock-meta {
+      color: #94a3b8; font-size: 0.7rem;
+    }
+    .audit-row {
+      display: grid;
+      grid-template-columns: 130px 100px 1fr 80px;
+      gap: 1rem;
+      padding: 0.625rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      align-items: center;
+    }
+    .audit-row:last-child { border-bottom: none; }
+    .audit-ts { color: #76EBE2; }
+    .audit-event { color: #fcd34d; font-weight: 600; }
+    .audit-detail { color: #e2e8f0; }
+    .audit-status {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .audit-status.ok { background: rgba(3,152,85,0.2); color: #6ed29e; }
+    .audit-status.flag { background: rgba(247,144,9,0.2); color: #fcd34d; }
+    .audit-status.block { background: rgba(240,68,56,0.2); color: #ff9a91; }
+
+    /* ===== Standalone option ===== */
+    .standalone {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .standalone-card {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative; overflow: hidden;
+    }
+    .standalone-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--primary);
+    }
+    .standalone-card[data-color="orange"]::before { background: var(--accent-orange); }
+    .standalone-card h4 {
+      font-size: 1.25rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .standalone-card .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      background: var(--primary-light); color: var(--primary);
+      border-radius: 4px; margin-bottom: 0.75rem;
+    }
+    .standalone-card[data-color="orange"] .tag {
+      background: rgba(247,144,9,0.1); color: var(--accent-orange);
+    }
+    .standalone-card p {
+      font-size: 0.9375rem; color: var(--text-secondary);
+      line-height: 1.6; margin-bottom: 1rem;
+    }
+    .standalone-card ul {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding-top: 1rem; border-top: 1px solid var(--divider);
+    }
+    .standalone-card li {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      display: flex; gap: 0.5rem; line-height: 1.5;
+    }
+    .standalone-card li::before {
+      content: ''; width: 4px; height: 4px; margin-top: 0.5rem;
+      border-radius: 50%; background: var(--primary); flex-shrink: 0;
+    }
+    .standalone-card[data-color="orange"] li::before { background: var(--accent-orange); }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--accent-orange) 0%, #fb7c10 100%);
+      color: #fff; padding: 3rem 2.5rem; border-radius: 16px; text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 1rem; color: rgba(255,255,255,0.92);
+      max-width: 720px; margin: 0 auto; line-height: 1.6;
+    }
+
+    /* ===== Section Footer Nav ===== */
+    .section-footer {
+      max-width: 1200px; margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+      .reform-row { grid-template-columns: 1fr; }
+      .reform-arrow { transform: rotate(90deg); }
+      .standalone { grid-template-columns: 1fr; }
+      .audit-row { grid-template-columns: 1fr; gap: 0.25rem; }
+      .step { grid-template-columns: 1fr; }
+      .step::after { display: none; }
+      .step-when { text-align: left; padding-top: 0; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Overview</a>
+        <div class="nav-crumbs">04 / 05 · <strong>Comply deep dive</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="03-collect-deep-dive.html">← Prev</a>
+        <a class="nav-btn primary" href="05-next-steps.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 04 · Comply</div>
+      <h1>The layer that makes &ldquo;balanced, simpler, more <em>transparent</em>&rdquo; demonstrable.<br>On every customer. Every day.</h1>
+      <p class="hero-sub">NSW Toll Reform doesn't ask whether you have a policy. It asks whether you can show, on a specific customer, on a specific day, in a specific channel, that the right rules were applied, the vulnerability signals were caught, and the audit trail is intact. Comply is the layer that makes that evidence a by-product of every interaction — not a quarterly forensic exercise.</p>
+    </div>
+  </section>
+
+  <!-- NSW Toll Reform mapping -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">What the reform actually asks</div>
+      <h2>The NSW Toll Reform agenda, mapped to what Comply provides.</h2>
+      <p>The Dec 2025 NSW Toll Reform announcement uses three words repeatedly: balanced, simpler, transparent. Each of those translates into a specific operational obligation. Each obligation maps to a Comply capability.</p>
+    </div>
+
+    <div class="reform">
+      <div class="reform-head">
+        <div>
+          <h3>Reform asks <span style="color: var(--text-dim);">→</span> Platform provides</h3>
+          <p>Three obligations the agenda is making concrete, and the Comply mechanism that turns each one into evidence rather than rhetoric.</p>
+        </div>
+        <div class="reform-source">Source · NSW Govt, Dec 2025</div>
+      </div>
+
+      <div class="reform-rows">
+
+        <div class="reform-row">
+          <div class="reform-ask">
+            <div class="reform-ask-label">The ask · Balanced</div>
+            <div class="reform-ask-body">Recovery action proportionate to circumstance — hardship and vulnerability identified at the point of contact, not after escalation.</div>
+          </div>
+          <div class="reform-arrow">→</div>
+          <div class="reform-give">
+            <div class="reform-give-label">The mechanism · Safeguard</div>
+            <div class="reform-give-body">Real-time vulnerability scoring on inbound messages, outbound copy, and customer behaviour. Hardship cohorts auto-routed off the standard cadence into a softer track, with a documented decision.</div>
+          </div>
+        </div>
+
+        <div class="reform-row">
+          <div class="reform-ask">
+            <div class="reform-ask-label">The ask · Simpler</div>
+            <div class="reform-ask-body">Customers should be able to understand what they owe, why, and what their options are — without parsing four notices and a fee schedule.</div>
+          </div>
+          <div class="reform-arrow">→</div>
+          <div class="reform-give">
+            <div class="reform-give-label">The mechanism · Rules + Consent</div>
+            <div class="reform-give-body">Rule library enforces plain-language, one-message-one-action standards. Consent layer tracks what the customer has agreed to (channel, frequency, contact times) and blocks anything that contradicts it before send.</div>
+          </div>
+        </div>
+
+        <div class="reform-row">
+          <div class="reform-ask">
+            <div class="reform-ask-label">The ask · Transparent</div>
+            <div class="reform-ask-body">A regulator, ombudsman, or journalist asks for the full history on a single customer. You can produce it the same day, not after a forensic project.</div>
+          </div>
+          <div class="reform-arrow">→</div>
+          <div class="reform-give">
+            <div class="reform-give-label">The mechanism · Audit</div>
+            <div class="reform-give-body">One-customer-one-timeline view of every message sent, rule applied, signal raised, decision taken, and human override — exportable to PDF or API. The evidence is a by-product, not a project.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Five pillars -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">The five pillars</div>
+      <h2>What Comply actually is, behind the brochure.</h2>
+      <p>Five components, each doing a discrete job. None depends on you adopting Collect. All five can wrap your existing Linkt outbound on day one.</p>
+    </div>
+
+    <div class="pillars-grid">
+
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <h3>Firewall</h3>
+        <p>Pre-send rule-check on every outbound message — SMS, email, voice script, letter. Blocks or auto-amends anything that fails a rule before it reaches the customer.</p>
+        <div class="pillar-when"><strong>When it fires:</strong> milliseconds before send</div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <h3>Safeguard</h3>
+        <p>Real-time vulnerability identification from inbound text, voice, and behaviour. Routes the customer off the standard cadence into a sensitive-handling track with a documented reason.</p>
+        <div class="pillar-when"><strong>When it fires:</strong> on every interaction</div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <h3>Rules</h3>
+        <p>160+ jurisdiction-mapped rules, maintained by a dedicated legal team. Covers NSW Toll Reform, National Credit Code, Privacy Act, ACMA Spam Act, AFCA, and the state revenue regimes.</p>
+        <div class="pillar-when"><strong>When it fires:</strong> continuously, version-controlled</div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">04</div>
+        <h3>Audit</h3>
+        <p>One-customer-one-timeline view of every event. Filterable, exportable, queryable. The evidence layer for regulator queries, ombudsman complaints, and journalist questions.</p>
+        <div class="pillar-when"><strong>When it fires:</strong> always-on; query on demand</div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">05</div>
+        <h3>Consent</h3>
+        <p>Tracks every consent given, withdrawn, or implied — channel, frequency, hours, language. Blocks any outbound that would violate a consent, before it's queued.</p>
+        <div class="pillar-when"><strong>When it fires:</strong> pre-queue + on-update</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Vulnerable scenario -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">Worked scenario</div>
+      <h2>A vulnerable-customer journey, walked end-to-end.</h2>
+      <p>Same shape as the Collect scenario, but for the customer who should never have got the standard cadence. What the five pillars do — together — to catch the signal, divert the cadence, and produce the evidence.</p>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-inner">
+        <div class="scenario-head">
+          <div>
+            <h3>David, two trips, $19.80 — but the conversation has changed.</h3>
+            <p>Brisbane account holder. Two unpaid trips. Replies to the first SMS with: &ldquo;I lost my job last week, I can't pay this right now, please don't keep messaging me.&rdquo; A signal arrives. The platform has to act on it — and evidence it.</p>
+          </div>
+          <div class="persona">
+            <div class="persona-label">Customer profile</div>
+            <div class="persona-name">David · synthetic</div>
+            <div class="persona-detail">
+              2 unpaid trips · $19.80<br>
+              Inbound SMS reply<br>
+              Hardship language present<br>
+              Frequency-cap risk
+            </div>
+          </div>
+        </div>
+
+        <div class="scenario-timeline">
+
+          <div class="step">
+            <div class="step-when">00:00<br>customer reply</div>
+            <div class="step-dot">1</div>
+            <div class="step-body">
+              <div class="step-tag safeguard">Safeguard · NLU scoring</div>
+              <div class="step-msg">Inbound SMS scored: hardship signal 0.94, frequency-fatigue signal 0.71, no-contact-request signal 0.88. Three signals, all over threshold, on one message.</div>
+              <div class="step-rationale"><strong>What it caught:</strong> &ldquo;I lost my job&rdquo; is hardship. &ldquo;Please don't keep messaging me&rdquo; is a contact-frequency preference and a partial consent withdrawal. The platform doesn't need the customer to say &ldquo;I'm in hardship&rdquo; verbatim.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-when">00:01<br>cadence change</div>
+            <div class="step-dot">2</div>
+            <div class="step-body">
+              <div class="step-tag consent">Consent · auto-update</div>
+              <div class="step-msg">Outbound contact frequency reduced from &ldquo;standard&rdquo; to &ldquo;sensitive-handling&rdquo;. SMS cadence dropped from 14-day to 30-day. Voice + push channels disabled until reviewed. Decision logged.</div>
+              <div class="step-rationale"><strong>What it produced:</strong> The customer's preference is now binding on the platform. Anything trying to send to David outside the sensitive-handling track gets blocked at queue-time — even if a different team starts a different campaign.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-when">00:01<br>cohort move</div>
+            <div class="step-dot">3</div>
+            <div class="step-body">
+              <div class="step-tag safeguard">Safeguard · cohort routing</div>
+              <div class="step-msg">David moved to hardship cohort. Standard Collect cadence cancelled. Hardship cadence offers an interest-frozen plan, a longer payment window, and a clear human-contact option. No admin fee accrues.</div>
+              <div class="step-rationale"><strong>What it avoided:</strong> The next standard touch would have been a $14 admin fee notice. The cohort move prevented it — and the prevention itself is logged as an event, so the question &ldquo;why wasn't this customer charged the fee?&rdquo; has an answer on the timeline.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-when">02:00<br>response</div>
+            <div class="step-dot">4</div>
+            <div class="step-body">
+              <div class="step-tag firewall">Firewall · pre-send check</div>
+              <div class="step-msg">A reply SMS is drafted: &ldquo;Thanks for letting us know, David — we've paused the messages and put your account on hold for 30 days. When you're ready, here's a no-fee payment plan.&rdquo; Firewall passes it — plain-language ✓, no fee mention without amount ✓, no implied urgency ✓.</div>
+              <div class="step-rationale"><strong>What it checked:</strong> 17 rules including NSW Toll Reform plain-language standard, National Credit Code s.86 hardship language, Privacy Act notice handling, ACMA Spam Act unsubscribe, and the AFCA hardship-response template.</div>
+            </div>
+          </div>
+
+          <div class="step win">
+            <div class="step-when">always-on<br>evidence</div>
+            <div class="step-dot">✓</div>
+            <div class="step-body">
+              <div class="step-tag audit">Audit · timeline ready</div>
+              <div class="step-msg">If a regulator, ombudsman, or journalist asks tomorrow: &ldquo;How did Linkt handle David?&rdquo;, the answer is one click. Every signal, every decision, every message, every rule applied, every override, in one timeline. Export to PDF or pipe to API.</div>
+              <div class="step-rationale"><strong>The difference:</strong> Without Comply, the same query is a two-week forensic project across email, contact-centre logs, billing records, and CRM. With Comply, it's a permalink.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audit timeline mock -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="audit-preview">
+      <h3>What the audit timeline looks like</h3>
+      <p>One customer. One scrollable view. Every event captured with the rule that triggered it, the model that scored it, and the human who reviewed it. The screenshot below is a stylised representation of the David scenario — what the regulator would actually see.</p>
+
+      <div class="audit-mock">
+        <div class="audit-mock-head">
+          <div class="audit-mock-title">customer://linkt/AU-7842913 — David · audit timeline</div>
+          <div class="audit-mock-meta">5 events · last 4h · v1.42</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-ts">14:08:22.041</div>
+          <div class="audit-event">SMS.IN</div>
+          <div class="audit-detail">inbound · &ldquo;I lost my job last week, I can't pay this right now…&rdquo;</div>
+          <div class="audit-status flag">3 signals</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-ts">14:08:22.087</div>
+          <div class="audit-event">SAFEGUARD.SCORE</div>
+          <div class="audit-detail">hardship=0.94 · freq-fatigue=0.71 · no-contact=0.88 · rule=R-NSW-217</div>
+          <div class="audit-status flag">over-threshold</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-ts">14:08:22.142</div>
+          <div class="audit-event">CONSENT.UPDATE</div>
+          <div class="audit-detail">sms.cadence: standard → sensitive · voice: enabled → disabled · push: enabled → disabled</div>
+          <div class="audit-status ok">applied</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-ts">14:08:22.198</div>
+          <div class="audit-event">COHORT.MOVE</div>
+          <div class="audit-detail">cohort: collect.standard → safeguard.hardship · admin-fee accrual halted</div>
+          <div class="audit-status ok">routed</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-ts">14:10:08.503</div>
+          <div class="audit-event">FIREWALL.CHECK</div>
+          <div class="audit-detail">17 rules evaluated · plain-language ✓ · hardship-response ✓ · NSW-reform-tone ✓</div>
+          <div class="audit-status ok">passed → send</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Standalone option -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">Adoption shape</div>
+      <h2>Comply works two ways. Pick the one that fits.</h2>
+      <p>You don't have to adopt Collect to adopt Comply. Most engagements with regulated incumbents start with Comply standalone — wrapping the existing outbound — and add the Collect engine after the evidence is in.</p>
+    </div>
+
+    <div class="standalone">
+
+      <div class="standalone-card" data-color="orange">
+        <span class="tag">Lower-risk shape</span>
+        <h4>Comply standalone</h4>
+        <p>Comply wraps Linkt's existing recovery outbound. We don't touch your Collect motion, your back-office, or your customer-facing brand. We provide the Firewall, Safeguard, Rules, Audit, and Consent layers as an API your existing platform calls into.</p>
+        <ul>
+          <li>Read-only Comply Audit on historical notices — week one</li>
+          <li>Firewall + Safeguard wired into a single outbound stream — month one</li>
+          <li>Full audit timeline for any customer — month two</li>
+          <li>No customer-facing change · no Linkt re-brand · low blast radius</li>
+        </ul>
+      </div>
+
+      <div class="standalone-card">
+        <span class="tag">Bigger-impact shape</span>
+        <h4>Comply + Collect together</h4>
+        <p>The combined platform — Collect engine wrapped by Comply layer — is where the brand and recovery economics step-change. The path there is typically incremental, with each step justified by the evidence the previous one produced.</p>
+        <ul>
+          <li>Collect runs a defined cohort (e.g. one region, one stage)</li>
+          <li>Comply provides the audit + rule wrap on the same cohort</li>
+          <li>Compare recovery, complaint, sentiment vs control</li>
+          <li>Expand cohort by cohort as evidence justifies</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Closing frame -->
+  <section class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div class="close-frame">
+      <h3>&ldquo;Balanced, simpler, more transparent.&rdquo;<br>Now demonstrable — per customer, per day, per channel.</h3>
+      <p>The platform is shipping today and the rule library is maintained continuously. Section 05 is a recap of the platform on a single page — useful as a take-away.</p>
+    </div>
+  </section>
+
+  <!-- Footer nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="03-collect-deep-dive.html">
+      <div class="foot-nav-dir">← Prev · 03</div>
+      <div class="foot-nav-title">Collect deep dive</div>
+    </a>
+    <a class="foot-nav next" href="05-next-steps.html">
+      <div class="foot-nav-dir">Next · 05</div>
+      <div class="foot-nav-title">Summary →</div>
+    </a>
+  </div>
+
+</body>
+</html>
