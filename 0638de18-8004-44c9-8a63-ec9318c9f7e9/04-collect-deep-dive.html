@@ -1,0 +1,2619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 · Collect Deep Dive — InDebted Product Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --primary-hover: #545fe3;
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --surface-alt: #f6f6f6;
+      --text: #000244;
+      --text-primary: #071c55;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --sidebar-bg: #000244;
+      --dark: #000244;
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.07);
+      --warning: #dc6803;
+      --warning-light: rgba(247,144,9, 0.08);
+      --error: #f04438;
+      --error-light: rgba(240,68,56, 0.08);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 0.875rem;
+      --shadow: 0 1px 3px rgba(0, 2, 68, 0.04), 0 1px 2px rgba(0, 2, 68, 0.02);
+      --shadow-lg: 0 4px 12px rgba(0, 2, 68, 0.06), 0 2px 4px rgba(0, 2, 68, 0.03);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+    }
+
+    section[id] { scroll-margin-top: 110px; }
+
+    /* ===== Workshop Nav (sticky) ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0.75rem 1.5rem 0;
+    }
+    .workshop-nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    .subsection-nav {
+      display: flex; gap: 0.125rem; overflow-x: auto;
+      max-width: 1280px; margin: 0.5rem auto 0;
+      padding: 0.5rem 0;
+      border-top: 1px solid var(--divider);
+      scrollbar-width: thin;
+    }
+    .subsection-nav::-webkit-scrollbar { height: 0; }
+    .subsection-nav a {
+      font-size: 0.7rem; color: var(--text-secondary); text-decoration: none;
+      padding: 0.4rem 0.625rem; border-radius: 5px;
+      white-space: nowrap; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .subsection-nav a:hover { background: var(--primary-light); color: var(--primary); }
+    .subsection-nav a.active { background: var(--primary-light); color: var(--primary); }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 720px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1280px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; line-height: 1.6;
+    }
+
+    /* ===== Generic demo elements (cards, pills, flow nodes) ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease;
+    }
+    .card:hover { box-shadow: var(--shadow-lg); }
+
+    .card-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--divider);
+      font-weight: 700; font-size: 0.95rem;
+    }
+
+    .card-icon {
+      width: 2rem; height: 2rem;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .card-icon.primary { background: var(--primary-light); color: var(--primary); }
+    .card-icon.teal { background: var(--secondary-light); color: #039855; }
+    .card-icon.amber { background: var(--warning-light); color: var(--warning); }
+    .card-icon.success { background: var(--success-light); color: var(--success); }
+
+    .card-body { padding: 1.5rem; }
+
+    /* Pills */
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.25rem 0.75rem; border-radius: 9999px;
+      font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    }
+    .pill-primary { background: var(--primary-light); color: var(--primary); }
+    .pill-teal { background: var(--secondary-light); color: #039855; }
+    .pill-success { background: var(--success-light); color: var(--success); }
+    .pill-warning { background: var(--warning-light); color: var(--warning); }
+    .pill-neutral { background: var(--divider); color: var(--text-secondary); }
+
+    /* Callouts */
+    .callout {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--primary);
+      background: var(--primary-light);
+      font-size: 0.875rem;
+      margin: 1rem 0;
+    }
+    .callout-warning { border-left-color: var(--warning); background: var(--warning-light); }
+    .callout-success { border-left-color: var(--success); background: var(--success-light); }
+
+    /* Flow diagrams */
+    .flow-diagram {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding: 1.5rem;
+    }
+    .flow-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .flow-node {
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius-lg);
+      font-size: 0.8rem; font-weight: 600;
+      white-space: nowrap;
+    }
+    .flow-node.primary, .flow-node-primary {
+      background: var(--primary-light); color: var(--primary);
+      border: 1px solid rgba(71, 76, 222, 0.2);
+    }
+    .flow-node.teal, .flow-node-teal {
+      background: var(--secondary-light); color: #039855;
+      border: 1px solid rgba(118, 235, 226, 0.3);
+    }
+    .flow-node.purple, .flow-node-purple {
+      background: rgba(116,114,199, 0.08); color: #7472c7;
+      border: 1px solid rgba(116,114,199, 0.2);
+    }
+    .flow-node.amber, .flow-node-amber {
+      background: var(--warning-light); color: var(--warning);
+      border: 1px solid rgba(247,144,9, 0.2);
+    }
+    .flow-node.success, .flow-node-success {
+      background: var(--success-light); color: var(--success);
+      border: 1px solid rgba(18,183,106, 0.2);
+    }
+    .flow-node-label {
+      font-size: 0.625rem; text-transform: uppercase;
+      letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 0.15rem;
+    }
+    .flow-node-title { font-weight: 700; }
+    .flow-arrow { color: var(--text-secondary); font-size: 1.1rem; flex-shrink: 0; }
+
+    /* Stat cards */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text);
+    }
+    .stat-sub {
+      font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      background: var(--surface); box-shadow: var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      background: var(--bg); padding: 0.875rem 1.25rem;
+      text-align: left; font-weight: 700; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-secondary); border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--divider);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* Deep-dive expandable */
+    .deep-dive { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .deep-dive.open { max-height: 3000px; }
+    .deep-dive-toggle { cursor: pointer; user-select: none; }
+    .deep-dive-toggle .chevron {
+      transition: transform 0.3s ease; display: inline-block;
+    }
+    .deep-dive-toggle.open .chevron { transform: rotate(180deg); }
+
+    /* Section header (section-number + section-title) */
+    .section-num-wrap {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+    }
+    .section-number {
+      width: 2.25rem; height: 2.25rem;
+      background: var(--primary-light); color: var(--primary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .section-title-text {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+    }
+
+    /* EN/AR crossfade */
+    .cx-lang-stack { position: relative; display: inline-block; }
+    .cx-lang-stack img { display: block; }
+    .cx-lang-stack .cx-ar {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      animation: cx-lang-fade 20s ease-in-out infinite;
+    }
+    @keyframes cx-lang-fade {
+      0%, 45% { opacity: 0; }
+      50%, 95% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Shield glow */
+    @keyframes shieldGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(118, 235, 226, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(118, 235, 226, 0.5), 0 0 50px rgba(118, 235, 226, 0.15); }
+    }
+    .shield-glow { animation: shieldGlow 3s ease-in-out infinite; }
+
+    /* Decision grid stagger */
+    .decision-grid .card {
+      opacity: 0; transform: translateY(15px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .decision-grid.visible .card:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0.1s; }
+    .decision-grid.visible .card:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+    .decision-grid.visible .card:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+    .decision-grid.visible .card:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+
+    /* Fade-in */
+    .fade-in {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ===== Workshop-specific: Split View ===== */
+    /* ===== Evolution three-tier ===== */
+    .evolution-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .evolution-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .evolution-col--us {
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(118,235,226,0.05) 100%);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(71,76,222,0.08);
+    }
+    .evolution-tag {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    .evolution-col--us .evolution-tag { color: var(--primary); }
+    .evolution-col h4 {
+      font-size: 1.0625rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .evolution-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .evolution-col ul li {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding-left: 1rem;
+      position: relative;
+    }
+    .evolution-col ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+    .evolution-col--us ul li::before { background: var(--primary); }
+    .evolution-foot {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.625rem 0.875rem;
+      border-radius: 8px;
+      line-height: 1.4;
+    }
+    .evolution-foot--bad { background: var(--error-light); color: var(--error); }
+    .evolution-foot--ok { background: rgba(71,76,222,0.08); color: var(--primary); }
+    .evolution-foot--good {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff;
+    }
+
+    .splitview {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: var(--shadow); margin-bottom: 0;
+    }
+    .splitview-head {
+      display: grid; grid-template-columns: 200px 1fr 1fr;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .splitview-head .col-bucket {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex; align-items: center;
+    }
+    .splitview-head .col-traditional, .splitview-head .col-indebted {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.875rem; font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .splitview-head .col-traditional {
+      background: var(--error-light); color: var(--error);
+      border-right: 1px solid var(--border);
+    }
+    .splitview-head .col-indebted {
+      background: var(--success-light); color: var(--success);
+    }
+    .col-icon {
+      font-size: 0.75rem; width: 24px; height: 24px;
+      border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-weight: 700;
+    }
+    .col-icon.bad { background: var(--error); color: #fff; }
+    .col-icon.good { background: var(--success); color: #fff; }
+
+    .splitview-row {
+      display: grid; grid-template-columns: 200px 1fr 1fr;
+      border-bottom: 1px solid var(--divider);
+    }
+    .splitview-row:last-child { border-bottom: none; }
+    .splitview-row:hover { background: rgba(71,76,222,0.02); }
+    .row-bucket {
+      padding: 1.5rem; background: var(--bg);
+      font-size: 0.8125rem; font-weight: 700; color: var(--text);
+      display: flex; flex-direction: column; gap: 0.25rem;
+      border-right: 1px solid var(--border);
+    }
+    .row-bucket-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; color: var(--text-dim);
+      letter-spacing: 0.1em; font-weight: 500;
+    }
+    .row-traditional, .row-indebted {
+      padding: 1.5rem; font-size: 0.8125rem;
+      color: var(--text-secondary); line-height: 1.55;
+    }
+    .row-traditional {
+      border-right: 1px solid var(--divider);
+      background: rgba(240,68,56,0.015);
+    }
+    .row-indebted { background: rgba(18,183,106,0.02); }
+    .row-traditional ul, .row-indebted ul {
+      list-style: none; padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 0.45rem;
+    }
+    .row-traditional li, .row-indebted li {
+      display: flex; gap: 0.5rem; align-items: flex-start;
+    }
+    .row-traditional li::before {
+      content: '✕'; color: var(--error);
+      font-weight: 700; flex-shrink: 0;
+      font-size: 0.7rem; margin-top: 0.15rem;
+    }
+    .row-indebted li::before {
+      content: '✓'; color: var(--success);
+      font-weight: 700; flex-shrink: 0;
+      font-size: 0.7rem; margin-top: 0.15rem;
+    }
+
+    /* ===== Workshop: Pain Cards ===== */
+    .pains-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+    .pain-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .pain-head {
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(135deg, rgba(240,68,56,0.04) 0%, rgba(240,68,56,0.01) 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.875rem;
+    }
+    .pain-num {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--error); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 800; flex-shrink: 0;
+    }
+    .pain-title {
+      font-size: 1.125rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.15rem;
+    }
+    .pain-meta {
+      font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;
+    }
+    .pain-body {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    }
+    .pain-side { padding: 1.5rem; }
+    .pain-side.bad {
+      background: rgba(240,68,56,0.02);
+      border-right: 1px solid var(--divider);
+    }
+    .pain-side.good { background: rgba(18,183,106,0.02); }
+    .pain-side-label {
+      font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 0.875rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .pain-side.bad .pain-side-label { color: var(--error); }
+    .pain-side.good .pain-side-label { color: var(--success); }
+    .pain-narrative {
+      font-size: 0.875rem; color: var(--text);
+      line-height: 1.6; margin-bottom: 0.875rem;
+    }
+    .pain-narrative strong { font-weight: 700; }
+    .pain-side.bad .pain-narrative strong { color: var(--error); }
+    .pain-side.good .pain-narrative strong { color: var(--success); }
+    .pain-detail {
+      font-size: 0.75rem; color: var(--text-secondary);
+      line-height: 1.55; padding: 0.75rem;
+      background: var(--surface); border-radius: 8px;
+      border: 1px solid var(--divider);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .pain-detail strong { color: var(--text); }
+
+    /* ===== Workshop: Event-driven architecture ===== */
+    .arch-wrap {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff; border-radius: 20px; padding: 2.75rem;
+      position: relative; overflow: hidden;
+    }
+    .arch-wrap::before {
+      content: ''; position: absolute;
+      top: -30%; right: -10%; width: 60%; height: 180%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.06) 0%, transparent 60%);
+    }
+    .arch-inner { position: relative; z-index: 1; }
+    .arch-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem;
+    }
+    .arch-title {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      color: #fff; margin-bottom: 1rem; max-width: 700px;
+    }
+    .arch-title em { font-style: normal; color: var(--secondary); }
+    .arch-sub {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.7); line-height: 1.6;
+      max-width: 700px; margin-bottom: 2rem;
+    }
+    .arch-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+    .arch-side h4 {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .arch-side.bad h4 { color: #fecdca; }
+    .arch-side.good h4 { color: var(--secondary); }
+    .arch-flow {
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .arch-step {
+      padding: 0.875rem 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      font-size: 0.8125rem; color: rgba(255,255,255,0.85);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.01em;
+    }
+    .arch-side.bad .arch-step { border-left: 3px solid #f04438; }
+    .arch-side.good .arch-step { border-left: 3px solid var(--secondary); }
+    .arch-events {
+      margin-top: 1rem; padding: 1rem;
+      background: rgba(118,235,226,0.04);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; color: var(--secondary); line-height: 1.8;
+    }
+
+    /* ===== Workshop: US Customer Story ===== */
+    .story-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    .story-head {
+      padding: 2rem 2.5rem;
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(118,235,226,0.05) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .story-eyebrow {
+      font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--primary); margin-bottom: 0.5rem;
+    }
+    .story-head h3 {
+      font-size: 1.625rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .story-head h3 em { font-style: normal; color: var(--primary); }
+    .story-meta {
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+      margin-top: 1rem; font-size: 0.8125rem; color: var(--text-secondary);
+    }
+    .story-meta-item strong { color: var(--text); font-weight: 700; }
+    .story-body { padding: 2.5rem; }
+    .story-timeline {
+      display: flex; flex-direction: column; gap: 0;
+      position: relative; padding-left: 2rem;
+    }
+    .story-timeline::before {
+      content: ''; position: absolute;
+      left: 0.75rem; top: 0.5rem; bottom: 0.5rem;
+      width: 2px; background: var(--divider); border-radius: 1px;
+    }
+    .story-step { position: relative; padding: 0 0 1.5rem 0; }
+    .story-step::before {
+      content: ''; position: absolute;
+      left: -2rem; top: 0.4rem;
+      width: 14px; height: 14px;
+      border-radius: 50%; background: var(--surface);
+      border: 2px solid var(--primary);
+      transform: translateX(0.0625rem);
+    }
+    .story-step.success::before {
+      background: var(--success); border-color: var(--success);
+    }
+    .story-step-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem; color: var(--text-dim);
+      letter-spacing: 0.05em; margin-bottom: 0.25rem;
+    }
+    .story-step-title {
+      font-size: 0.9375rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.35rem;
+    }
+    .story-step-title em {
+      font-style: normal; color: var(--primary);
+      font-family: 'JetBrains Mono', monospace; font-weight: 500;
+      font-size: 0.85em; padding: 0.1rem 0.4rem;
+      background: var(--primary-light); border-radius: 4px;
+      margin-left: 0.375rem;
+    }
+    .story-step-desc {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .story-takeaway {
+      margin-top: 2rem; padding: 1.5rem 1.75rem;
+      background: linear-gradient(135deg, var(--success-light) 0%, rgba(18,183,106,0.02) 100%);
+      border-left: 3px solid var(--success);
+      border-radius: 0 10px 10px 0;
+    }
+    .story-takeaway-label {
+      font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--success); margin-bottom: 0.5rem;
+    }
+    .story-takeaway p {
+      font-size: 0.9375rem; color: var(--text); line-height: 1.6;
+    }
+    .story-takeaway p strong { color: var(--success); }
+    .story-pre-empt {
+      margin-top: 1rem; padding: 1.25rem 1.5rem;
+      background: rgba(247,144,9,0.05);
+      border-left: 3px solid var(--accent-orange);
+      border-radius: 0 10px 10px 0;
+    }
+    .story-pre-empt-label {
+      font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--accent-orange); margin-bottom: 0.5rem;
+    }
+    .story-pre-empt p {
+      font-size: 0.875rem; color: var(--text); line-height: 1.6;
+    }
+
+    /* ===== Workshop: Channel Logic ===== */
+    .channel-wrap {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .channel-card {
+      padding: 2rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .channel-card h3 {
+      font-size: 1.25rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .channel-card p {
+      font-size: 0.875rem; color: var(--text-secondary);
+      line-height: 1.55; margin-bottom: 1.25rem;
+    }
+    .channel-list {
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .channel-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg); border-radius: 8px;
+      font-size: 0.8125rem;
+    }
+    .channel-status {
+      font-size: 0.625rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.2rem 0.5rem; border-radius: 4px; flex-shrink: 0;
+    }
+    .channel-status.allowed { background: var(--success-light); color: var(--success); }
+    .channel-status.blocked { background: var(--error-light); color: var(--error); }
+    .channel-status.roadmap { background: rgba(247,144,9,0.1); color: var(--accent-orange); }
+    .channel-status.optional { background: var(--warning-light); color: var(--warning); }
+    .channel-name { flex: 1; font-weight: 600; color: var(--text); }
+    .channel-note { font-size: 0.7rem; color: var(--text-secondary); }
+
+    /* ===== Workshop: Q&A ===== */
+    .questions {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem 2.5rem;
+    }
+    .questions h3 {
+      font-size: 1.25rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .questions p {
+      font-size: 0.875rem; color: var(--text-secondary);
+      line-height: 1.55; margin-bottom: 1.5rem;
+    }
+    .qa-list {
+      display: flex; flex-direction: column; gap: 0.625rem;
+    }
+    .qa-item {
+      padding: 1rem 1.25rem; background: var(--bg);
+      border-radius: 10px; border-left: 3px solid var(--primary);
+    }
+    .qa-question {
+      font-size: 0.875rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.35rem;
+      display: flex; gap: 0.5rem;
+    }
+    .qa-question::before {
+      content: 'Q'; color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; flex-shrink: 0;
+    }
+    .qa-answer {
+      font-size: 0.8125rem; color: var(--text-secondary);
+      line-height: 1.55; padding-left: 1.25rem;
+    }
+
+    /* ===== Workshop: Human Work ===== */
+    .human-card {
+      background: linear-gradient(135deg, rgba(247,144,9,0.06) 0%, rgba(247,144,9,0.01) 100%);
+      border: 1px solid rgba(247,144,9,0.2);
+      border-radius: 14px; padding: 2rem 2.5rem;
+    }
+    .human-card h3 {
+      font-size: 1.25rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem; color: #b54708;
+    }
+    .human-card > p {
+      font-size: 0.9375rem; color: var(--text);
+      line-height: 1.6; margin-bottom: 1.5rem;
+    }
+    .human-card > p strong { color: #b54708; font-weight: 700; }
+    .human-modes {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.875rem;
+    }
+    .human-mode {
+      padding: 1.25rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .human-mode-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.625rem; color: #b54708;
+      letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 600;
+    }
+    .human-mode h4 {
+      font-size: 0.875rem; font-weight: 700; margin-bottom: 0.35rem;
+    }
+    .human-mode p {
+      font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;
+    }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.85);
+      max-width: 640px; margin: 0 auto; line-height: 1.55;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1280px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in { opacity: 1; transform: none; transition: none; }
+      .deep-dive { transition: none; }
+      .shield-glow { animation: none; }
+      .decision-grid .card { opacity: 1; transform: none; transition: none; }
+      .cx-lang-stack .cx-ar { animation: none; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .splitview-head, .splitview-row { grid-template-columns: 140px 1fr 1fr; }
+      .pain-body { grid-template-columns: 1fr; }
+      .pain-side.bad { border-right: none; border-bottom: 1px solid var(--divider); }
+      .arch-grid { grid-template-columns: 1fr; }
+      .channel-wrap { grid-template-columns: 1fr; }
+      .human-modes { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .splitview-head, .splitview-row { grid-template-columns: 1fr; }
+      .row-bucket { border-right: none; border-bottom: 1px solid var(--divider); }
+      .row-traditional { border-right: none; border-bottom: 1px solid var(--divider); }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">04 / 08 · <strong>Collect deep dive</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="03-receive-deep-dive.html">← Prev</a>
+        <a class="nav-btn primary" href="05-comply-deep-dive.html">Next →</a>
+      </div>
+    </div>
+    <nav class="subsection-nav">
+      <a href="#splitview">Operating model</a>
+      <a href="#overview">How Collect works</a>
+      <a href="#intelligence">Intelligence engine</a>
+      <a href="#story">Case study</a>
+      <a href="#ai">AI everywhere</a>
+      <a href="#architecture">Event-driven</a>
+      <a href="#channels">Channels</a>
+      <a href="#channel-logic">Per-client channels</a>
+      <a href="#cx">Customer experience</a>
+      <a href="#comply">Comply firewall</a>
+      <a href="#client-portal">Client portal</a>
+      <a href="#learning">Learning loop</a>
+      <a href="#results">Results &amp; roadmap</a>
+      <a href="#human">Human work</a>
+    </nav>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 04</div>
+      <h1>Two operating models, side by side.<br><em>Same portfolio. Different physics.</em></h1>
+      <p class="hero-sub">The longest section because it's the most important. We compare operating models, then go deep on every layer of how Collect actually works — the intelligence engine, the AI, the event-driven architecture, the channels, the firewall, the customer experience, the dispute portal. Plus: real-world friction points we typically see in traditional collections, a customer case study, and the human work that still happens behind the engine.</p>
+    </div>
+  </section>
+
+  <!-- 1a. Three-tier evolution of debt collection -->
+  <section class="section" id="evolution">
+    <div class="section-head">
+      <div class="eyebrow">The evolution of debt collection</div>
+      <h2>Traditional, Digital, AI-powered. We're the third thing.</h2>
+      <p>The industry has moved through generations. Most of the market has caught up to "digital". We built Collect for what comes next.</p>
+    </div>
+
+    <div class="evolution-grid">
+      <div class="evolution-col">
+        <div class="evolution-tag">Traditional</div>
+        <h4>Contact-centre collections</h4>
+        <ul>
+          <li>Contact centre-based operations</li>
+          <li>Analog engagement — phone calls, letters</li>
+          <li>Intuition-led decision making</li>
+          <li>Agent-reliant resolution</li>
+          <li>~0.5% customer engagement rate</li>
+          <li>Process-driven compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--bad">Poor experience, high risk, unscalable, inefficient</div>
+      </div>
+
+      <div class="evolution-col">
+        <div class="evolution-tag">Digital</div>
+        <h4>Platform-based collections</h4>
+        <ul>
+          <li>Platform-based operations</li>
+          <li>Digital engagement — email, SMS</li>
+          <li>Data-driven decisioning</li>
+          <li>Customer self-serve capability</li>
+          <li>~3% customer engagement rate</li>
+          <li>Code-controlled compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--ok">Modern experience, scalable, engaging, user-friendly</div>
+      </div>
+
+      <div class="evolution-col evolution-col--us">
+        <div class="evolution-tag">AI-powered</div>
+        <h4>AI-native collections</h4>
+        <ul>
+          <li>AI-native operations</li>
+          <li>Omnichannel engagement powered by language models</li>
+          <li>AI and ML personalise the end-to-end experience</li>
+          <li>Customers self-serve with AI agents</li>
+          <li>5–7% customer engagement rate</li>
+          <li>AI-driven compliance</li>
+        </ul>
+        <div class="evolution-foot evolution-foot--good">Next-generation personalisation, intuition, scalability, efficiency</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. Splitview operating model comparison (workshop) -->
+  <section class="section" id="splitview">
+    <div class="section-head">
+      <div class="eyebrow">Stage by stage · 7 buckets</div>
+      <h2>How Collect runs vs. how a traditional agency runs</h2>
+      <p>Same portfolio, same regulators, same customer base. The difference is the operating model — every row below is a real, operational divergence. We open here because everything else explains why.</p>
+    </div>
+
+    <div class="splitview">
+      <div class="splitview-head">
+        <div class="col-bucket">Stage</div>
+        <div class="col-traditional"><span class="col-icon bad">✕</span> Traditional agency</div>
+        <div class="col-indebted"><span class="col-icon good">✓</span> Collect by InDebted</div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">01</div>Onboarding</div>
+        <div class="row-traditional"><ul>
+          <li>Manual intake and assignment by agents</li>
+          <li>Human triage on every account before action</li>
+          <li>Days-to-weeks before first contact</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>SFTP placement, automated validation, no manual triage</li>
+          <li>Account enters lifecycle and is decisioned within minutes</li>
+          <li>First compliant outbound on day-of-placement</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">02</div>Data exchange</div>
+        <div class="row-traditional"><ul>
+          <li>Batch spreadsheets emailed back and forth</li>
+          <li>No validation — bad rows discovered after impact</li>
+          <li>No feedback loop, errors silently absorbed</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Daily file ingestion against a versioned API contract</li>
+          <li>Real-time validation with structured error responses</li>
+          <li>Feedback loop on errors — issuer sees and fixes upstream</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">03</div>Collections</div>
+        <div class="row-traditional"><ul>
+          <li>Static call lists, fixed templates</li>
+          <li>Human-dependent decisioning — outcome depends on who picks up the file</li>
+          <li>One channel at a time, retry logic in agent's head</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Intelligence engine: channel, timing, message, offer per account in real-time</li>
+          <li>313 automated handlers running event-driven workflows</li>
+          <li>Bilingual AI messaging (EN/AR) tuned per consumer</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">04</div>Compliance</div>
+        <div class="row-traditional"><ul>
+          <li>Spot-check QA on a sample of calls/letters</li>
+          <li>No real-time gate — non-compliant comms reach customers</li>
+          <li>Audit trail rebuilt manually if regulator asks</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Comply firewall on every outbound, 160+ rules evaluated pre-send</li>
+          <li>LLM-powered checks beyond keyword matching</li>
+          <li>Full machine-readable audit trail, regulator-ready in seconds</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">05</div>Customer experience</div>
+        <div class="row-traditional"><ul>
+          <li>Call-centre dependent — customer must wait in a queue</li>
+          <li>No self-serve resolution path</li>
+          <li>Limited digital engagement, paper-heavy processes</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Self-serve Customer Portal: 4 of every 5 customers resolve without an agent</li>
+          <li>4.6/5 customer satisfaction across digital channels</li>
+          <li>Settlement, payment plan setup, and dispute filing all in-app</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">06</div>Reporting &amp; KPIs</div>
+        <div class="row-traditional"><ul>
+          <li>Manual reports, often in different formats per agency</li>
+          <li>No shared KPI definitions — comparisons impossible</li>
+          <li>No spin-down or roll-rate visibility</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Automated dashboards: spin-down curves, roll rates, channel performance</li>
+          <li>Same KPI definitions across every client globally</li>
+          <li>Digital engagement metrics down to per-message lift</li>
+        </ul></div>
+      </div>
+
+      <div class="splitview-row">
+        <div class="row-bucket"><div class="row-bucket-num">07</div>Payments</div>
+        <div class="row-traditional"><ul>
+          <li>Manual payment tracking, often in spreadsheets</li>
+          <li>Delayed reconciliation — sometimes weeks</li>
+          <li>Payment plan management requires call-back loops</li>
+        </ul></div>
+        <div class="row-indebted"><ul>
+          <li>Stripe T+2 settlement, daily automated reconciliation</li>
+          <li>Digital plan management — customer can change cadence in-app</li>
+          <li>Failed payment retry logic + intelligent re-engagement</li>
+        </ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. How Collect Works (from demo §1) -->
+  <section class="section" id="overview">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">1</div>
+      <div class="section-title-text">How Collect Works</div>
+    </div>
+
+    <!-- Flow diagram -->
+    <div class="fade-in" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+      <div class="flow-node primary" style="text-align: center;">
+        <div class="flow-node-label">Intake</div>
+        <div class="flow-node-title">Account Referral</div>
+      </div>
+      <div class="flow-node teal" style="text-align: center;">
+        <div class="flow-node-label">Compliance</div>
+        <div class="flow-node-title">Scrubs &amp; Initial Notice</div>
+      </div>
+      <div class="flow-node purple" style="text-align: center;">
+        <div class="flow-node-label">Intelligence</div>
+        <div class="flow-node-title">Strategy Engine</div>
+      </div>
+      <div class="flow-node amber" style="text-align: center;">
+        <div class="flow-node-label">Engagement</div>
+        <div class="flow-node-title">Multi-Channel</div>
+      </div>
+      <div class="flow-node success" style="text-align: center;">
+        <div class="flow-node-label">Resolution</div>
+        <div class="flow-node-title">Payment, Settle &amp; Payout</div>
+      </div>
+    </div>
+
+    <!-- Event annotations -->
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+      <div style="background: var(--sidebar-bg); border-radius: var(--radius-md); padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; color: rgba(255,255,255,0.6); line-height: 1.8;">
+        <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem; font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.05em;">Intake</div>
+        AccountCreated<br>AccountBalanceUpdated<br>BalanceBreakdownConfigured
+      </div>
+      <div style="background: var(--sidebar-bg); border-radius: var(--radius-md); padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; color: rgba(255,255,255,0.6); line-height: 1.8;">
+        <div style="color: #039855; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.05em;">Compliance</div>
+        DeceasedScrubRequired<br>NOACompleted<br>ESIGNConsentGranted
+      </div>
+      <div style="background: var(--sidebar-bg); border-radius: var(--radius-md); padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; color: rgba(255,255,255,0.6); line-height: 1.8;">
+        <div style="color: #7472c7; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.05em;">Intelligence</div>
+        ChannelSelection<br>TimeToSend<br>TemplateSelection
+      </div>
+      <div style="background: var(--sidebar-bg); border-radius: var(--radius-md); padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; color: rgba(255,255,255,0.6); line-height: 1.8;">
+        <div style="color: var(--warning); font-weight: 600; margin-bottom: 0.25rem; font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.05em;">Engagement</div>
+        EmailMessageInitiated<br>EmailMessageDelivered<br>SMSDelivered<br>EmailMessageOpened
+      </div>
+      <div style="background: var(--sidebar-bg); border-radius: var(--radius-md); padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.625rem; color: rgba(255,255,255,0.6); line-height: 1.8;">
+        <div style="color: var(--success); font-weight: 600; margin-bottom: 0.25rem; font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.05em;">Resolution</div>
+        PaymentPlanSetupSucceeded<br>ChargeSucceeded<br>AccountSettled<br>PayoutSucceeded
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid fade-in" style="margin-bottom: 1.5rem;">
+      <div class="stat-card">
+        <div class="stat-label">Active Accounts</div>
+        <div class="stat-value" data-target="3000000" data-suffix="+">3M+</div>
+        <div class="stat-sub">Across 9 countries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Automated Handlers</div>
+        <div class="stat-value" data-target="313">313</div>
+        <div class="stat-sub">Event-driven microservices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Communication Channels</div>
+        <div class="stat-value" data-target="6">6</div>
+        <div class="stat-sub">Email, SMS, Letter, Portal, Chat, WhatsApp</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Operation</div>
+        <div class="stat-value">24/7</div>
+        <div class="stat-sub">Continuous automated collection within compliant hours, anywhere on the planet. Customer Portal is available and accepts payment 24/7.</div>
+      </div>
+    </div>
+
+    <div class="callout fade-in">
+      <p><strong>Every account follows its own unique path through Collect.</strong> There is no predetermined strategy — the system uses machine learning and AI in real-time to determine the most effective next action for each consumer, based on prior behaviour, account/customer data, and compliance rules.</p>
+    </div>
+  </section>
+
+  <!-- 3. Intelligence Engine (from demo §2) -->
+  <section class="section" id="intelligence">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">2</div>
+      <div class="section-title-text">The Intelligence Engine</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;">
+      There is no predetermined collection strategy. Real-time intelligence determines: what channel, what time, what message, what offer.
+    </p>
+
+    <!-- Hero account: Ahmed -->
+    <div class="card fade-in" style="margin-bottom: 2rem; border-left: 3px solid var(--primary);">
+      <div class="card-body" style="display: flex; align-items: center; gap: 1.5rem;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">A</span>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.9375rem;">Ahmed Al-Mansouri</div>
+          <div style="color: var(--text-secondary); font-size: 0.8125rem;">Credit Card — $12,450 outstanding · 45 days past due</div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <span class="pill pill-primary">Active</span>
+            <span class="pill pill-warning">DPD 45</span>
+            <span class="pill pill-teal">UAE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Visualisation: 4 branches -->
+    <div class="decision-grid fade-in" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 2rem;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon primary">📧</div>
+          <h3 style="font-size: 0.95rem;">Channel</h3>
+        </div>
+        <div class="card-body">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Candidates evaluated:</div>
+          <div style="display: flex; gap: 0.375rem; flex-wrap: wrap;">
+            <span class="pill pill-neutral">SMS</span>
+            <span class="pill pill-success" style="font-weight: 700;">Email ✓</span>
+            <span class="pill pill-neutral">Letter</span>
+          </div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.5rem;">Selected by <strong style="color: var(--text);">ChannelSelectionMAB</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon teal">⏰</div>
+          <h3 style="font-size: 0.95rem;">Timing</h3>
+        </div>
+        <div class="card-body">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Optimal window:</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text);">10:30 AM</div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.25rem;">Gulf Standard Time</div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.5rem;">Using <strong style="color: var(--text);">CustomerEngagementHistory</strong> via <strong style="color: var(--text);">TimeToSendRemote</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon amber">✏️</div>
+          <h3 style="font-size: 0.95rem;">Message</h3>
+        </div>
+        <div class="card-body">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Combination of AI-drafted and templated:</div>
+          <div style="display: flex; gap: 0.375rem; flex-wrap: wrap;">
+            <span class="pill pill-success" style="font-weight: 700;">AI-drafted personalised ✓</span>
+            <span class="pill pill-primary" style="font-weight: 700;">Journey-optimised templates ✓</span>
+          </div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.5rem;">AI-drafted messages generate click rates up to <strong style="color: var(--text);">2× traditional templated messages</strong> — both running side by side, evaluated by the engine.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon success">🎁</div>
+          <h3 style="font-size: 0.95rem;">Offer</h3>
+        </div>
+        <div class="card-body">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Arrangement terms:</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text);">6 × $2,075</div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.25rem;">Monthly payment plan</div>
+          <div style="font-size: 0.6875rem; color: var(--text-secondary); margin-top: 0.5rem;">Based on <strong style="color: var(--text);">PropensityToPay</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Message -->
+    <div class="fade-in" style="background: var(--sidebar-bg); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 2rem; text-align: center;">
+      <p style="color: #fff; font-size: 1.125rem; font-weight: 700; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+        "Don't ask us who is getting called tomorrow.<br>
+        <span style="color: var(--secondary);">Ask us what machine learning model is being used."</span>
+      </p>
+    </div>
+
+    <!-- Deep-Dive Panels -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+      <!-- Panel 1: Experimentation Framework -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon primary">🔬</div>
+          <h3 style="font-size: 0.875rem;">Experimentation Framework</h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+              Every decision the engine makes is controlled by an experiment feature. Each feature has multiple competing functions — from ML models to random baselines — with weighted traffic allocation.
+            </p>
+            <div style="margin-bottom: 1.25rem;">
+              <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">channel-selection</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Which channel?</div>
+              <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <span class="pill pill-primary">ChannelSelectionMAB</span>
+                <span class="pill pill-neutral">ChannelSelectionRandom</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.6875rem;">
+                <span style="color: var(--text-secondary);">60% MAB · 40% Random</span>
+                <div style="flex: 1; height: 6px; background: var(--divider); border-radius: 9999px; overflow: hidden;">
+                  <div style="width: 60%; height: 100%; background: var(--primary); border-radius: 9999px;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom: 1.25rem;">
+              <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">time-to-send</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">When to send?</div>
+              <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <span class="pill pill-primary">TimeToSendRemote</span>
+                <span class="pill pill-neutral">TimeToSendRandom</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.6875rem;">
+                <span style="color: var(--text-secondary);">70% DS Model · 30% Random</span>
+                <div style="flex: 1; height: 6px; background: var(--divider); border-radius: 9999px; overflow: hidden;">
+                  <div style="width: 70%; height: 100%; background: #039855; border-radius: 9999px;"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">email-template-selection</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Which template?</div>
+              <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <span class="pill pill-primary">EmailTemplateSelectionExistingDSRemote</span>
+                <span class="pill pill-neutral">EmailTemplateSelectionRandom</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.6875rem;">
+                <span style="color: var(--text-secondary);">50% DS · 30% Sequence · 20% Random</span>
+                <div style="flex: 1; height: 6px; background: var(--divider); border-radius: 9999px; overflow: hidden;">
+                  <div style="width: 50%; height: 100%; background: var(--warning); border-radius: 9999px;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="border-top: 1px solid var(--divider); padding-top: 1rem; margin-top: 1rem;">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.7;">
+                <strong style="color: var(--text);">How it works:</strong> Deterministic bucketing assigns each account to a function variant. Priority-based targeting uses <strong style="color: var(--text);">expr-lang boolean expressions</strong> to define targeting rules.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Data Science Models -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon teal">🧠</div>
+          <h3 style="font-size: 0.875rem;">Data Science &amp; ML Models</h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+              The decision engine ingests a rich feature vector for every account. These signals feed into ML models that determine the optimal action.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📅</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Days Past Due</div>
+              </div>
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">💰</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Outstanding Balance</div>
+              </div>
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">💬</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Engagement History</div>
+              </div>
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">⏰</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Time &amp; Day</div>
+              </div>
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📈</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Response Rates</div>
+              </div>
+              <div style="background: var(--bg); border-radius: var(--radius-md); padding: 1rem; text-align: center;">
+                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📱</div>
+                <div style="font-weight: 700; font-size: 0.8125rem;">Channel Preference</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Template Optimisation -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon amber">📈</div>
+          <h3 style="font-size: 0.875rem;">Template Optimisation</h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+              Multi-Armed Bandit continuously optimises template selection. Templates compete; system shifts traffic to better performers.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Template</th><th>Variant</th><th>Open</th><th>Click</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 600;">payment_reminder_v3</td>
+                    <td>EN-AE</td>
+                    <td style="font-weight: 700; color: var(--success);">42.3%</td>
+                    <td style="font-weight: 700; color: var(--success);">18.7%</td>
+                    <td><span class="pill pill-success">Leader</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">payment_reminder_v2</td>
+                    <td>EN-AE</td><td>38.1%</td><td>15.2%</td>
+                    <td><span class="pill pill-warning">Challenger</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">payment_reminder_v1</td>
+                    <td>EN-AE</td><td>31.4%</td><td>11.8%</td>
+                    <td><span class="pill pill-neutral">Retiring</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">payment_reminder_v1</td>
+                    <td>AR-AE</td><td>35.6%</td><td>14.1%</td>
+                    <td><span class="pill pill-warning">Challenger</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Case Study (workshop) -->
+  <section class="section" id="story">
+    <div class="section-head">
+      <div class="eyebrow">Case study</div>
+      <h2>A real customer · $3,098.82 paid in full · zero phone calls, one undelivered SMS, one recovered failed payment</h2>
+    </div>
+
+    <div class="story-wrap">
+      <div class="story-head">
+        <div class="story-eyebrow">Credit card · Placed 27 March 2026</div>
+        <h3>$3,098.82 paid in full · <em>zero phone calls</em></h3>
+        <div class="story-meta">
+          <div class="story-meta-item">Account: <strong>$3,098.82 outstanding</strong></div>
+          <div class="story-meta-item">Outcome: <strong>Paid in full</strong></div>
+          <div class="story-meta-item">Calls made by us: <strong>0</strong></div>
+          <div class="story-meta-item">Resolution time: <strong>25 days</strong></div>
+        </div>
+      </div>
+      <div class="story-body">
+
+        <div class="story-timeline">
+          <div class="story-step">
+            <div class="story-step-time">Day 0 · 27 March</div>
+            <div class="story-step-title">Account placed <em>AccountCreated</em></div>
+            <div class="story-step-desc">Credit card · $3,098.82 outstanding.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 0 · &lt;4 hours after placement</div>
+            <div class="story-step-title">Initial Notice email sent <em>ChannelSelectionMAB → EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Engine selects email as the opening channel — the strongest baseline for this segment. Balance summary, settlement options, link to portal.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 1</div>
+            <div class="story-step-title">Email 2 sent <em>EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Follow-up email. Delivered, not opened.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 7</div>
+            <div class="story-step-title">Email 3 sent <em>EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Cadence widens — no engagement signals yet, so the engine spaces sends out rather than burning frequency.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 9</div>
+            <div class="story-step-title">SMS attempted <em>SMSMessageInitiated</em></div>
+            <div class="story-step-desc">Engine introduces SMS to test a second channel alongside email.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 11</div>
+            <div class="story-step-title">SMS returned undelivered <em>SMSDeliveryFailed</em></div>
+            <div class="story-step-desc">Carrier returned undelivered. SMS removed from candidate channels for this account.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 14</div>
+            <div class="story-step-title">Switch back to email — send time pulled earlier <em>TimeToSend → EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Engine returns to email and moves the send slot earlier in the customer's day. Opened — no click.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 15</div>
+            <div class="story-step-title">Email — earlier still <em>TimeToSend → EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Send time moves forward again. Opened — no click. Engagement is climbing but the customer hasn't acted.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 21</div>
+            <div class="story-step-title">Email at earliest allowable time · opened, clicked, payment failed <em>PortalSessionStarted → ChargeFailed</em></div>
+            <div class="story-step-desc">Send slot pulled to the earliest compliant send time. Customer opened, clicked through to the portal, initiated a payment — the charge failed at the processor. Engine logs the failure and holds off before re-prompting.</div>
+          </div>
+          <div class="story-step">
+            <div class="story-step-time">Day 24</div>
+            <div class="story-step-title">Re-prompt email at earliest allowable time <em>EmailMessageInitiated</em></div>
+            <div class="story-step-desc">Recovery email sent at the earliest compliant send slot. Opened and clicked.</div>
+          </div>
+          <div class="story-step success">
+            <div class="story-step-time">Day 25</div>
+            <div class="story-step-title">Paid in full · $3,098.82 <em>ChargeSucceeded → AccountSettled</em></div>
+            <div class="story-step-desc">Customer completed the payment from the portal. Stripe authorised, account settled.</div>
+          </div>
+        </div>
+
+        <div class="story-takeaway">
+          <div class="story-takeaway-label">What this illustrates</div>
+          <p><strong>Collect adapted to the signals it was seeing.</strong> When SMS came back undelivered, it was dropped from the channel mix. When opens started rising on email, the send slot was pulled earlier and earlier into the customer's day until they engaged. When the first payment failed, the engine waited rather than nudge again immediately — and recovered the account three days later. The point isn't that email beats SMS or phone. It's that the system chose the right next action based on what the customer was actually doing.</p>
+        </div>
+
+        <div class="story-pre-empt">
+          <div class="story-pre-empt-label">If a bank looked only at a flat activity report</div>
+          <p>Three reasonable questions would surface: <em>why was there no call? why were emails still being sent after a failed payment? why were there gaps between actions?</em> Standard reporting shows what was sent and when. It doesn't show what the system was reading — open patterns, send-time fit, the failed-charge cooldown. Visible activity can look passive while live engagement is happening underneath.</p>
+          <p style="margin-top: 0.75rem;">Traditional agencies apply a deterministic workflow — call, chase, repeat. Collect makes decisions from events and engagement signals. <strong>We don't judge success by whether the same action ran on every account; we judge it by whether the system chose the right next action.</strong> Some accounts should stay longer in Collect for exactly this reason — active engagement may already be in motion in ways the bank's standard reports won't surface.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. AI-Powered (from demo §3) -->
+  <section class="section" id="ai">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">3</div>
+      <div class="section-title-text">AI is our operating system</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;" class="fade-in">
+      InDebted was among the earliest in the industry to invest in AI — not just as a feature, but as a foundation. Today, AI powers the way we build, operate, and scale: across product, compliance, engineering, and customer experience. The next layers show what that looks like in Collect — drafted communications, real-time compliance, inbound reply analysis, vulnerability detection.
+    </p>
+
+    <!-- AI Pipeline -->
+    <div class="flow-diagram fade-in" style="margin-bottom: 2rem;">
+      <div class="flow-row" style="width: 100%;">
+        <div class="flow-node primary" style="flex: 1;">
+          <div class="flow-node-label">Generate</div>
+          <div class="flow-node-title">Composer AI</div>
+          <div style="font-size: 0.625rem; opacity: 0.7; margin-top: 0.15rem;">LLM writes the message</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node teal" style="flex: 1;">
+          <div class="flow-node-label">Validate</div>
+          <div class="flow-node-title">Quality Gates</div>
+          <div style="font-size: 0.625rem; opacity: 0.7; margin-top: 0.15rem;">Checks pass</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node purple" style="flex: 1;">
+          <div class="flow-node-label">Evaluate</div>
+          <div class="flow-node-title">Comply Firewall</div>
+          <div style="font-size: 0.625rem; opacity: 0.7; margin-top: 0.15rem;">AI vs rules</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node success" style="flex: 1;">
+          <div class="flow-node-label">Deliver</div>
+          <div class="flow-node-title">Send</div>
+          <div style="font-size: 0.625rem; opacity: 0.7; margin-top: 0.15rem;">Personalised &amp; compliant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Composer Card -->
+    <div class="card fade-in" style="margin-bottom: 1.5rem; border-left: 3px solid var(--primary);">
+      <div class="card-header">
+        <div class="card-icon primary">🤖</div>
+        <h3 style="font-size: 0.95rem;">Composer — AI-Generated Communications</h3>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Emails and SMS sent through Collect are <strong>increasingly generated by AI</strong> — not selected from a static template library. The Composer module uses LLMs to write personalised, compliance-aware messages for each individual customer. Bespoke AI-generated messages have <strong style="color: #039855;">up to 2× engagement</strong> compared to templated messages.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <div style="font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.5rem;">Customer Context Inputs</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.375rem;">
+              <span class="pill pill-primary">Name</span>
+              <span class="pill pill-primary">Balance</span>
+              <span class="pill pill-primary">Days on File</span>
+              <span class="pill pill-primary">Payment History</span>
+              <span class="pill pill-primary">Portal Visits</span>
+              <span class="pill pill-primary">Open Rate</span>
+              <span class="pill pill-primary">Click Rate</span>
+              <span class="pill pill-primary">Active Plans</span>
+              <span class="pill pill-primary">Settlement Offers</span>
+              <span class="pill pill-primary">Locale</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.5rem;">AI-Optimised Dimensions</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.375rem;">
+              <span class="pill pill-teal">Persuasion Angle</span>
+              <span class="pill pill-teal">Email Structure</span>
+              <span class="pill pill-teal">Opening Style</span>
+              <span class="pill pill-teal">Payment Framing</span>
+              <span class="pill pill-teal">Tone</span>
+              <span class="pill pill-teal">CTA Placement</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--sidebar-bg); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;">
+          <div style="font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem;">Example: What the AI generates for Ahmed</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.8); line-height: 1.8;">
+            <span style="color: var(--secondary);">Subject:</span> A simple way to manage your Citizens Bank balance<br>
+            <span style="color: var(--secondary);">Body:</span> Hello Michael, we understand managing finances can feel overwhelming. Your current balance of $12,450 with Citizens Bank can be resolved with a flexible plan from $2,075/month...<br>
+            <span style="color: rgba(255,255,255,0.4);">// Personalised · Empathetic tone · Plan framing · Compliant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quality Gates Card -->
+    <div class="card fade-in" style="margin-bottom: 1.5rem;">
+      <div class="card-header">
+        <div class="card-icon teal">✅</div>
+        <h3 style="font-size: 0.95rem;">Quality Gates — AI With Guardrails</h3>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Every AI-generated message passes through automated quality gates before it can be sent:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div style="padding: 0.75rem; background: var(--bg); border-radius: var(--radius-md);">
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">🔒 Compliance Check</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">No threatening language, required disclosures, creditor identification</div>
+          </div>
+          <div style="padding: 0.75rem; background: var(--bg); border-radius: var(--radius-md);">
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">📋 Template Validation</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Required placeholders present — unsubscribe, payment link, company details</div>
+          </div>
+          <div style="padding: 0.75rem; background: var(--bg); border-radius: var(--radius-md);">
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">📏 Character Limits</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">SMS validated against encoding and character limits</div>
+          </div>
+          <div style="padding: 0.75rem; background: var(--bg); border-radius: var(--radius-md);">
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">🛡️ Settlement Offers</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Offer terms validated — amounts, expiry, discount %</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safeguard Card -->
+    <div class="card fade-in" style="margin-bottom: 1.5rem;">
+      <div class="card-header">
+        <div class="card-icon amber">👁</div>
+        <h3 style="font-size: 0.95rem;">Safeguard — AI Reads Inbound Messages Too</h3>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">When a customer replies, AI analyses their message for vulnerability signals — financial hardship, complaints, disputes, or emotional distress. It <strong>flags safety and compliance issues</strong> and the system adapts its approach automatically.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          <span class="pill pill-warning">Vulnerability Detection</span>
+          <span class="pill pill-warning">Sentiment Analysis</span>
+          <span class="pill pill-warning">Complaint Flagging</span>
+          <span class="pill pill-warning">Dispute Recognition</span>
+          <span class="pill pill-warning">Safety Flags</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: var(--sidebar-bg); border-radius: var(--radius-xl); padding: 2rem; text-align: center;" class="fade-in">
+      <p style="color: #fff; font-size: 1.125rem; font-weight: 700; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+        AI writes the message. AI checks compliance. AI reads the reply.<br>
+        <span style="color: var(--secondary);">Every interaction is intelligent — from first contact to resolution.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 5. Event-driven architecture (workshop) -->
+  <section class="section" id="architecture">
+    <div class="section-head">
+      <div class="eyebrow">Why this works · Architecture</div>
+      <h2>The plumbing under the engine</h2>
+      <p>Everything you've just seen — the decisions, the AI generation, the multi-channel orchestration — runs on a single architectural choice. There is no customer table. Everything is an event.</p>
+    </div>
+
+    <div class="arch-wrap">
+      <div class="arch-inner">
+        <div class="arch-tag">Event-driven · 313 handlers · 170+ services</div>
+        <div class="arch-title">There is no <em>customer table</em>. Everything is an event.</div>
+        <p class="arch-sub">Traditional collections systems are built around a relational customer record. Collect is built around an event log. Every state change — a payment, a balance update, an email open, a portal visit — is a fact written to the wire. State is computed, not stored.</p>
+
+        <div class="arch-grid">
+          <div class="arch-side bad">
+            <h4>Traditional (state-based)</h4>
+            <div class="arch-flow">
+              <div class="arch-step">SELECT * FROM customers WHERE id = ?</div>
+              <div class="arch-step">UPDATE customers SET balance = ? — overwrites prior</div>
+              <div class="arch-step">Human reads spreadsheet → hands to agent</div>
+              <div class="arch-step">No history of how state arrived</div>
+              <div class="arch-step">Race conditions when sources update simultaneously</div>
+            </div>
+          </div>
+
+          <div class="arch-side good">
+            <h4>Collect (event-driven)</h4>
+            <div class="arch-flow">
+              <div class="arch-step">AccountCreated → InitialBalance: 12,450 dirham</div>
+              <div class="arch-step">EmailMessageDelivered → opened at 23:42</div>
+              <div class="arch-step">PortalSessionStarted → settlement page viewed</div>
+              <div class="arch-step">ChannelSelectionMAB → fired EmailMessageInitiated</div>
+              <div class="arch-step">PaymentPlanSetupSucceeded</div>
+              <div class="arch-step">AccountPaymentReceived</div>
+              <div class="arch-step">AccountPaymentReceivedThroughClient</div>
+            </div>
+            <div class="arch-events">313 handlers · 170+ services · 0 monolithic queries</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Communication Channels (from demo §4) -->
+  <section class="section" id="channels">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">4</div>
+      <div class="section-title-text">Communication Channels</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;">
+      The right message, at the right time, through the right channel — in the language your customers prefer.
+    </p>
+
+    <!-- Channel cards grid -->
+    <div class="fade-in" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 2rem;">
+
+      <!-- Email -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon primary"><img src="shared-logos/Email.png" alt="Email" style="width: 1.25rem; height: 1.25rem; object-fit: contain;"></div>
+          <h3 style="font-size: 0.875rem;">Email <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.7rem; margin-left: 0.5rem;">98.2% deliverability</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>Dedicated sending domain: <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">email.ae.indebted.co</code></li>
+              <li>IP warmup, domain reputation monitoring</li>
+              <li>SendGrid integration with unsubscribe group management</li>
+              <li>Templates: <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">payment_plan_confirmation</code>, <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">payment_plan_reminder</code>, <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">payment_plan_charge_failed_v2</code></li>
+              <li>Tracking: Initiated → Delivered → Opened → LinkClicked</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SMS -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon teal"><img src="shared-logos/sms.png" alt="SMS" style="width: 1.25rem; height: 1.25rem; object-fit: contain;"></div>
+          <h3 style="font-size: 0.875rem;">SMS <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.7rem; margin-left: 0.5rem;">94.7% delivery</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>Twilio integration with country-specific account</li>
+              <li>GSM7 (en-AE), UCS2 (ar-AE) encoding</li>
+              <li>Opt-out compliance via <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">SMSOptOutReceived</code></li>
+              <li>Burst SMS for time-sensitive messages</li>
+              <li>Secure code delivery for portal authentication</li>
+              <li>Template selection via DS Remote or MAB</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Letters -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon amber">✉️</div>
+          <h3 style="font-size: 0.875rem;">Letters <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.7rem; margin-left: 0.5rem;">Legal compliance</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>Notice of Assignment (NOA) — mandatory legal notice when debt is assigned</li>
+              <li>Provider: Latitude (physical mail delivery)</li>
+              <li>Notice of Transfer for ownership changes</li>
+              <li>Events: NOARequired → NOACompleted</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Portal -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon success">💳</div>
+          <h3 style="font-size: 0.875rem;">Customer Portal <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.7rem; margin-left: 0.5rem;">Mobile-first</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>InDebted-branded React responsive web portal</li>
+              <li>Secure code authentication — no login</li>
+              <li>Pay in full, payment plan, partial payment</li>
+              <li>Affordability assessment for sustainable arrangements</li>
+              <li>Detailed in §5 (Customer Experience) below</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Web Chat -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon primary">💬</div>
+          <h3 style="font-size: 0.875rem;">Web Chat <span style="font-weight: 400; color: var(--text-secondary); font-size: 0.7rem; margin-left: 0.5rem;">Real-time</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>Twilio-powered chat integration</li>
+              <li>Endpoint: <code style="font-size: 0.75rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">api.ae.indebted.co/webchat</code></li>
+              <li>Real-time customer interaction</li>
+              <li>Case submission and resolution tracking</li>
+              <li>Events: CaseSubmitted → CaseResolved → CaseFinalized</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- WhatsApp -->
+      <div class="card">
+        <div class="card-header deep-dive-toggle">
+          <div class="card-icon primary"><img src="shared-logos/whatsapp logo.png" alt="WhatsApp" style="width: 1.25rem; height: 1.25rem; object-fit: contain;"></div>
+          <h3 style="font-size: 0.875rem;">WhatsApp <span style="font-weight: 400; color: var(--accent-orange); font-size: 0.7rem; margin-left: 0.5rem;">Coming Soon</span></h3>
+          <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+        </div>
+        <div class="deep-dive">
+          <div class="card-body">
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <li>WhatsApp Business API — UAE's preferred messaging channel</li>
+              <li>Rich messages: payment links, interactive buttons, document sharing</li>
+              <li>Two-way conversations with automated and human-assisted flows</li>
+              <li>Full Comply firewall evaluation before every message</li>
+              <li>On the regional roadmap — pending client compliance sign-off</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ahmed's Communication Timeline -->
+    <h3 style="font-size: 1rem; font-weight: 700; margin: 2rem 0 1rem;">Ahmed's Communication Journey</h3>
+
+    <div style="position: relative; padding-left: 2rem; border-left: 2px solid var(--border); margin-left: 0.5rem;">
+      <div style="margin-bottom: 1.25rem; position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Day 1</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">NOA Email Sent</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);"><code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">AccountNotificationOfAssignmentCompleted</code> — NOA sent in English (en-AE)</div>
+      </div>
+      <div style="margin-bottom: 1.25rem; position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: #039855; border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: #039855; text-transform: uppercase; letter-spacing: 0.05em;">Day 3</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">Follow-up SMS</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);"><code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">SMSDelivered</code> — Secure code + payment portal link via Twilio</div>
+      </div>
+      <div style="margin-bottom: 1.25rem; position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Day 5</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">Email Campaign</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);"><code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">payment_reminder_v3</code>, selected by EmailTemplateSelectionSequence</div>
+      </div>
+      <div style="margin-bottom: 1.25rem; position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Day 6</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">Email Opened &amp; Clicked</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);"><code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">EmailMessageOpened</code> → <code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">EmailMessageLinkClicked</code></div>
+      </div>
+      <div style="margin-bottom: 1.25rem; position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--warning); border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: var(--warning); text-transform: uppercase; letter-spacing: 0.05em;">Day 7</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">Portal Visit</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);">Ahmed enters secure code, views balance ($12,450)</div>
+      </div>
+      <div style="position: relative;">
+        <div style="position: absolute; left: -2.5rem; top: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--success); border: 2px solid var(--surface);"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600; color: var(--success); text-transform: uppercase; letter-spacing: 0.05em;">Day 7</div>
+        <div style="font-weight: 700; font-size: 0.875rem;">Payment Plan Created</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);"><code style="font-size: 0.7rem; background: var(--divider); padding: 0.125rem 0.375rem; border-radius: 4px;">PaymentPlanSetupSucceeded</code> — 6 × $2,075/month via Stripe</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Channel logic (workshop) -->
+  <section class="section" id="channel-logic">
+    <div class="section-head">
+      <div class="eyebrow">Channel selection logic</div>
+      <h2>The engine chooses — from the channels you enable</h2>
+      <p>Clients opt channels in or out based on their own preferences. Collect works with whatever set is allowed. The more options the engine has, the more lift it can deliver — every channel removed has measurable impact.</p>
+    </div>
+
+    <div class="channel-wrap">
+      <div class="channel-card">
+        <h3>What Collect can do</h3>
+        <p>Seven channels, fully orchestrated by the intelligence engine. Each fires its own event stream, each contributes to the next channel decision.</p>
+        <div class="channel-list">
+          <div class="channel-row"><span class="channel-name">Email</span><span class="channel-note">Decisioned send time, content per account</span></div>
+          <div class="channel-row"><span class="channel-name">SMS</span><span class="channel-note">Carrier-aware, delivery-receipt feedback</span></div>
+          <div class="channel-row"><span class="channel-name">Letter</span><span class="channel-note">Print partner integrations, jurisdiction-specific</span></div>
+          <div class="channel-row"><span class="channel-name">Customer Portal</span><span class="channel-note">InDebted-branded, EN/AR, mobile-first</span></div>
+          <div class="channel-row"><span class="channel-name">Live chat</span><span class="channel-note">Live agent escalation when needed</span></div>
+          <div class="channel-row"><span class="channel-name">WhatsApp</span><span class="channel-note">Where regulator and consumer-consent permit</span></div>
+          <div class="channel-row"><span class="channel-name">AI Voice</span><span class="channel-note">Decisioned voice agent, EN + AR, compliance guardrails</span></div>
+        </div>
+      </div>
+
+      <div class="channel-card">
+        <h3>Configured per client</h3>
+        <p>Each client's permitted set is configurable per portfolio, per region, per consumer cohort. Some clients enable the full suite; some restrict for compliance, brand, or operational reasons. The engine respects whatever's allowed and adapts.</p>
+        <div class="channel-list">
+          <div class="channel-row"><span class="channel-status allowed">Required</span><span class="channel-name">Email</span><span class="channel-note">Primary channel for most clients</span></div>
+          <div class="channel-row"><span class="channel-status allowed">Typically</span><span class="channel-name">SMS</span><span class="channel-note">Targeted at higher-value accounts</span></div>
+          <div class="channel-row"><span class="channel-status allowed">Typically</span><span class="channel-name">Letter</span><span class="channel-note">Fallback for high-value, hard-to-contact customers</span></div>
+          <div class="channel-row"><span class="channel-status allowed">Always</span><span class="channel-name">Customer Portal</span><span class="channel-note">InDebted-branded, EN/AR self-serve</span></div>
+          <div class="channel-row"><span class="channel-status optional">Optional</span><span class="channel-name">Live chat</span><span class="channel-note">Not yet enabled in UAE</span></div>
+          <div class="channel-row"><span class="channel-status blocked">Unavailable</span><span class="channel-name">WhatsApp</span><span class="channel-note">Not available in UAE</span></div>
+          <div class="channel-row"><span class="channel-status allowed">Live</span><span class="channel-name">AI Voice</span><span class="channel-note">Decisioned voice agent — available at launch, gated on pilot scope</span></div>
+        </div>
+        <div style="margin-top: 1rem; padding: 0.875rem 1rem; background: var(--primary-light); border-left: 3px solid var(--primary); border-radius: 0 8px 8px 0; font-size: 0.8125rem; line-height: 1.55; color: var(--text);">
+          <strong style="color: var(--primary);">Recommendation:</strong> enable the full set unless there's a specific compliance reason to restrict. The engine can always be tuned tighter — but every channel removed costs lift.
+        </div>
+        <div style="margin-top: 0.75rem; padding: 0.875rem 1rem; background: var(--bg); border: 1px solid var(--divider); border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: var(--text-secondary);">
+          <strong style="color: var(--text);">For example:</strong> Afterpay in the US has restricted SMS as a matter of internal policy, despite SMS being legal in the jurisdiction. The engine respects that. The data shows a roughly <strong style="color: var(--text);">7% reduction in dollars collected</strong> as a direct result. Their decision — and they're comfortable with the trade-off. Worth understanding the cost before similar decisions are made.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Customer Experience (from demo §6) -->
+  <section class="section" id="cx">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">5</div>
+      <div class="section-title-text">Customer Experience</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;" class="fade-in">
+      A respectful, modern experience that makes it easy to resolve debt — in the customer's language. Up to 9 out of 10 customers self-serve without ever interacting with an agent.
+    </p>
+
+    <!-- Customer journey flow -->
+    <div class="fade-in" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; margin-bottom: 2rem; width: 100%;">
+      <div style="flex: 1; background: var(--primary-light); border: 1px solid rgba(71,76,222,0.15); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="margin-bottom: 0.15rem;"><img src="shared-logos/Email.png" alt="Email" style="width: 1.25rem; height: 1.25rem; object-fit: contain;"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Receives Email</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">→</div>
+      <div style="flex: 1; background: var(--secondary-light); border: 1px solid rgba(118,235,226,0.15); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="font-size: 1rem; margin-bottom: 0.15rem;">🔗</div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Clicks Link</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">→</div>
+      <div style="flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="font-size: 1rem; margin-bottom: 0.15rem;">💰</div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Sees Balance &amp; Offers</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">→</div>
+      <div style="flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="font-size: 1rem; margin-bottom: 0.15rem;">📅</div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Builds Their Plan</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">→</div>
+      <div style="flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="margin-bottom: 0.15rem;"><img src="shared-logos/Stripe wordmark - Blurple.svg" alt="Stripe" style="height: 1rem; object-fit: contain;"></div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Pays Account</div>
+      </div>
+      <div style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">→</div>
+      <div style="flex: 1; background: var(--success-light); border: 1px solid rgba(3,152,85,0.15); border-radius: var(--radius-md); padding: 0.5rem 0.875rem; text-align: center;">
+        <div style="font-size: 1rem; margin-bottom: 0.15rem;">✅</div>
+        <div style="font-size: 0.6875rem; font-weight: 600;">Manages Plan</div>
+      </div>
+    </div>
+
+    <!-- Three portal views side by side -->
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;" class="fade-in">What the Customer Sees</h3>
+
+    <!-- EN-ONLY-START -->
+    <!-- Email screen: single, centered (monolingual regions) -->
+    <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;" class="fade-in">
+      <div style="text-align: center;">
+        <img src="screenshots/email-1.png" alt="Customer email" style="max-height: 480px; width: auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));">
+        <div style="margin-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Customer email</div>
+      </div>
+    </div>
+    <!-- EN-ONLY-END -->
+
+    <!-- Bridge: how emails and the portal are continuously improved -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;" class="fade-in">
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Email · always optimising</div>
+          <p style="font-size: 0.8125rem;">Subject lines, copy, CTAs and send-times are continuously tested against open, click and conversion. A blend of <strong>approved templates</strong> and <strong>generated content</strong> — templated for compliance-critical flows, generated where personalisation lifts response.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Portal · always iterating</div>
+          <p style="font-size: 0.8125rem;">Funnel conversion is the unit we move. Every screen below has been A/B tested — layout, offer presentation, plan defaults, affordability flow — to lift the share of customers who land, choose, and complete without an agent.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2rem; justify-items: center;" class="fade-in">
+
+      <div style="text-align: center;">
+        <div class="cx-lang-stack" style="max-height: 480px;">
+          <img src="screenshots/cx-settlement-offers.png" alt="Settlement offers — English" style="max-height: 480px; width: auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));">
+        </div>
+        <div style="margin-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Settlement Offers</div>
+      </div>
+
+      <div style="text-align: center;">
+        <img src="screenshots/cx-payment-plan.png" alt="Payment plan builder" style="max-height: 480px; width: auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));">
+        <div style="margin-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Plan Builder</div>
+      </div>
+
+      <div style="text-align: center;">
+        <div class="cx-lang-stack" style="max-height: 480px;">
+          <img src="screenshots/cx-plan-with-discount.png" alt="Plan with discount — English" style="max-height: 480px; width: auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));">
+        </div>
+        <div style="margin-top: 0.75rem; font-size: 0.6875rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Plan with Discount</div>
+      </div>
+    </div>
+
+    <!-- Key CX capabilities -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;" class="fade-in">
+      <div class="card">
+        <div class="card-body" style="padding: 1rem;">
+          <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">🎁</div>
+          <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">Settlement Offers</div>
+          <p style="font-size: 0.75rem;">Time-limited discount offers — % off for customers who pay in full or complete a plan by deadline. Auto-tracked, auto-applied on completion.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem;">
+          <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📈</div>
+          <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.25rem;">Affordability Assessment</div>
+          <p style="font-size: 0.75rem;">Customers complete an income/expense assessment. System calculates disposable income and suggests a sustainable plan at 80% of capacity — plans that succeed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout fade-in">
+      <p><strong>Why this matters:</strong> with higher-balance accounts, customers need flexible options they control. Choosing frequency, amount, and start date — combined with settlement offers that incentivise completion — means more customers commit and follow through. Self-service means lower op-cost and higher CSAT.</p>
+    </div>
+  </section>
+
+
+  <!-- 10. Compliance Firewall (from demo §5) -->
+  <section class="section" id="comply">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">6</div>
+      <div class="section-title-text">Compliance Firewall</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;">
+      Every outbound communication is evaluated against compliance rules before it reaches the customer. Powered by Comply — InDebted's AI compliance engine.
+    </p>
+
+    <!-- Firewall flow -->
+    <div class="flow-diagram fade-in" style="margin-bottom: 2rem;">
+      <div class="flow-row">
+        <div class="flow-node primary">
+          <div class="flow-node-label">Collect</div>
+          <div class="flow-node-title">Outbound Message</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node shield-glow" style="border: 1px solid rgba(118, 235, 226, 0.3); background: rgba(118, 235, 226, 0.08); min-width: 180px; padding: 1rem 1.5rem;">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: #039855; margin-bottom: 0.15rem;">AI Compliance Engine</div>
+          <div style="font-size: 1rem;">🛡️ Comply</div>
+          <div style="font-size: 0.625rem; color: var(--text-secondary); margin-top: 0.25rem;">LLM-Powered Evaluation</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="flow-node success">
+            <div class="flow-node-label">Pass</div>
+            <div>✓ Delivered</div>
+          </div>
+          <div class="flow-node" style="border: 1px solid var(--error); background: var(--error-light); color: var(--error);">
+            <div class="flow-node-label">Violation</div>
+            <div>✗ Blocked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout fade-in" style="margin-bottom: 2rem; border-left-color: var(--secondary);">
+      <p><strong>Every single communication — every email, every SMS, every letter — is evaluated against compliance rules before it reaches the customer.</strong> Not some. Not most. Every one.</p>
+    </div>
+
+    <!-- Evaluation pipeline -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <div class="card-icon teal">⚙️</div>
+        <h3 style="font-size: 0.95rem;">How Comply Evaluates</h3>
+      </div>
+      <div class="card-body">
+        <div style="position: relative; padding-left: 2rem; border-left: 2px solid var(--border); margin-left: 0.5rem;">
+          <div style="position: relative; margin-bottom: 1.25rem;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">1</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">POST /firewall</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Collect sends the planned message to Comply's API</div>
+          </div>
+          <div style="position: relative; margin-bottom: 1.25rem;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">2</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">Request Validated</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Structure, channel, consumer jurisdiction checked</div>
+          </div>
+          <div style="position: relative; margin-bottom: 1.25rem;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">3</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">Worker Enqueued</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Oban background job created (unique per message)</div>
+          </div>
+          <div style="position: relative; margin-bottom: 1.25rem;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">4</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">Ruleset Fetched</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Default rules + tenant-specific rules, filtered by US jurisdiction</div>
+          </div>
+          <div style="position: relative; margin-bottom: 1.25rem;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">5</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">LLM Evaluation</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">AWS Bedrock evaluates message against plain-language rules</div>
+          </div>
+          <div style="position: relative;">
+            <div style="position: absolute; left: -2.65rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; font-weight: 700;">6</div>
+            <div style="font-weight: 700; font-size: 0.8125rem; margin-bottom: 0.125rem;">Webhook Returned</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Violations (if any) sent back to Collect via webhook callback</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UAE Compliance Rules -->
+    <h3 style="font-size: 1rem; font-weight: 700; margin: 2rem 0 1rem;">UAE Compliance Rules in Action</h3>
+    <div class="fade-in" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 2rem;">
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">timing</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">Contact Window</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">9:00 AM – 8:00 PM GST, all days · Timezone: Asia/Dubai (UTC+4)</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">frequency</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">Monthly Quota</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">Maximum 1 communication per month per consumer</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">frequency</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">Weekly Quota</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">Maximum 1 communication per week per consumer</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">consent</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">Consent Tracking</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">Per-channel opt-out enforcement · CustomerEmailCommunicationsOptedOut, CustomerPhoneOptedOutForSMS</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">block</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">Holiday Blackout</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">No communications on: Eid al-Fitr, Eid al-Adha, National Day, Commemoration Day, Islamic New Year</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding: 1rem 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="pill pill-teal">timing</span>
+            <span style="font-weight: 700; font-size: 0.8125rem;">NOA Restrictions</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary);">Must occur on non-Friday, non-Saturday · Within compliant hours only</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plain-English rules deep-dive -->
+    <div class="card" style="margin-bottom: 0.75rem;">
+      <div class="card-header deep-dive-toggle">
+        <div class="card-icon teal">📝</div>
+        <h3 style="font-size: 0.875rem;">Rules Written in Plain English</h3>
+        <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+      </div>
+      <div class="deep-dive">
+        <div class="card-body">
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            Compliance specialists write rules in natural language, not code. The LLM evaluates each message against these plain-English rules at runtime.
+          </p>
+          <div style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; font-size: 0.75rem; margin-bottom: 0.375rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Example Rule</div>
+            <pre style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem 1rem; font-size: 0.75rem; overflow-x: auto; margin: 0; color: var(--text);">"Block any SMS sent outside 9:00 AM to 8:00 PM Gulf Standard Time"</pre>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; font-size: 0.75rem; margin-bottom: 0.375rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">LLM Evaluation Response</div>
+            <pre style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem 1rem; font-size: 0.75rem; overflow-x: auto; margin: 0; color: var(--text);">{
+  "violation": true,
+  "explanation": "SMS scheduled at 9:45 PM, outside permitted 9 AM – 8 PM window"
+}</pre>
+          </div>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary);">
+            <strong style="color: var(--text);">No engineering needed</strong> to add or modify compliance rules. Specialists author rules; the LLM enforces them.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-jurisdiction deep-dive -->
+    <div class="card" style="margin-bottom: 0.75rem;">
+      <div class="card-header deep-dive-toggle">
+        <div class="card-icon teal">🌎</div>
+        <h3 style="font-size: 0.875rem;">Multi-Jurisdiction Compliance</h3>
+        <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+      </div>
+      <div class="deep-dive">
+        <div class="card-body">
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            Comply operates across 6 regions, each with its own instance, database, and ruleset.
+          </p>
+          <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse; margin-bottom: 1rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <th style="text-align: left; padding: 0.5rem 0.75rem; color: var(--text-secondary); font-weight: 600;">Region</th>
+                <th style="text-align: left; padding: 0.5rem 0.75rem; color: var(--text-secondary); font-weight: 600;">Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 0.5rem 0.75rem; font-weight: 600;">AU</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">Sydney</td></tr>
+              <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 0.5rem 0.75rem; font-weight: 600;">US</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">Virginia</td></tr>
+              <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 0.5rem 0.75rem; font-weight: 600;">CA</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">Toronto</td></tr>
+              <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 0.5rem 0.75rem; font-weight: 600;">UK</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">London</td></tr>
+              <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 0.5rem 0.75rem; font-weight: 600;">AE</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">United Arab Emirates</td></tr>
+              <tr><td style="padding: 0.5rem 0.75rem; font-weight: 600;">BR</td><td style="padding: 0.5rem 0.75rem; color: var(--text-secondary);">São Paulo</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary);">
+            <strong style="color: var(--text);">Jurisdiction hierarchy:</strong> Global → Country → State/Emirate. Rules cascade — global defaults can be overridden per-tenant, per-jurisdiction.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rule categories deep-dive -->
+    <div class="card">
+      <div class="card-header deep-dive-toggle">
+        <div class="card-icon teal">📚</div>
+        <h3 style="font-size: 0.875rem;">9 Rule Categories</h3>
+        <span style="margin-left: auto; font-size: 0.75rem;" class="chevron">▼</span>
+      </div>
+      <div class="deep-dive">
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">timing</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Restrict contact hours</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">frequency</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Cap message volume</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">block</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Holiday &amp; blackout windows</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">consent</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Opt-out enforcement</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">language</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Tone &amp; wording checks</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">vulnerability</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Detect at-risk signals in inbound</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">sentiment</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Monitor emotional tone</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">complaint</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Flag complaint indicators</div></div>
+            <div><span class="pill pill-teal" style="margin-bottom: 0.25rem; display: inline-block;">dispute</span><div style="font-size: 0.6875rem; color: var(--text-secondary);">Detect dispute signals</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. Client Portal (from demo §7) -->
+  <section class="section" id="client-portal">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">7</div>
+      <div class="section-title-text">Client Dispute Management Portal</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;" class="fade-in">
+      Centralised case management for your operations team — disputes, hardship, escalations, and queries in one place. This is the portal client stakeholders use; the customer-facing Customer Portal is separate.
+    </p>
+
+    <!-- Portal screenshot -->
+    <div class="fade-in" style="margin-bottom: 2rem; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+      <img src="screenshots/client-portal-dashboard.png" alt="Client Portal Dashboard" style="width: 100%; display: block;">
+    </div>
+
+    <div class="callout fade-in" style="margin-bottom: 2rem;">
+      <p>The portal centralises what would otherwise be scattered across spreadsheets, emails, and disconnected systems. Agents handling cases see the <strong>full customer picture</strong> — who they are, what they owe, what's in dispute, what hardship claims are active — and action cases within SLA without switching tools.</p>
+    </div>
+
+    <div class="fade-in" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">🔍</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">Customer Search &amp; Profiles</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">Lookup by name, email, phone, or ID. View demographics, linked accounts, full case history at a glance.</div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">💳</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">Account Management</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">View accounts per customer with balances, payment status, creditor info, placement dates. Statuses: Active, Paused, Closed with reasons.</div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">📋</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">Case Management</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">Create and track Escalations, Disputes, Queries, Hardship cases with priority, SLA deadlines, team assignments. Open → Awaiting Response → Resolved.</div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">📝</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">Case Notes &amp; Attachments</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">Internal and external notes on every case, plus file attachments — a complete record of every interaction.</div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">🔒</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">Audit Log</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">Full activity trail of who did what and when. The compliance visibility debt recovery operations require.</div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">👥</div>
+        <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 0.375rem;">User &amp; Role Management</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">Manage portal users with role-based access. Assign teams to case types — right people see the right information.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. Learning Loop (from demo §8) -->
+  <section class="section" id="learning">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">8</div>
+      <div class="section-title-text">The Learning Loop</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;">
+      The system doesn't just execute — it learns. Every outcome feeds back into better decisions.
+    </p>
+
+    <div class="flow-diagram fade-in" style="margin-bottom: 2rem;">
+      <div class="flow-row" style="flex-wrap: wrap; justify-content: center;">
+        <div class="flow-node primary">
+          <div class="flow-node-label">Step 1</div>
+          <div class="flow-node-title">Collect Data</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node teal">
+          <div class="flow-node-label">Step 2</div>
+          <div class="flow-node-title">Analyse Outcomes</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node purple">
+          <div class="flow-node-label">Step 3</div>
+          <div class="flow-node-title">Update Models</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node amber">
+          <div class="flow-node-label">Step 4</div>
+          <div class="flow-node-title">Better Decisions</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node success">
+          <div class="flow-node-label">Step 5</div>
+          <div class="flow-node-title">Better Results</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.75rem;">
+        <span style="display: inline-block; padding: 0.375rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md);">
+          ↻ Results feed back into data collection — the cycle never stops
+        </span>
+      </div>
+    </div>
+
+    <div class="fade-in" style="background: var(--sidebar-bg); border-radius: var(--radius-xl); padding: 2rem; text-align: center;">
+      <p style="color: #fff; font-size: 1.125rem; font-weight: 700; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+        "We measure the system on output — collection rates, customer satisfaction, compliance scores —
+        <span style="color: var(--secondary);">not on who got called today."</span>
+      </p>
+    </div>
+
+    <div class="callout fade-in" style="margin-top: 1.5rem;">
+      <p>Multi-Armed Bandit algorithms automatically shift traffic toward better-performing channels, templates, and timing. <strong>The system improves without manual intervention</strong> — no analyst needed to review reports and adjust strategy. The data does the work.</p>
+    </div>
+  </section>
+
+  <!-- 14. Results & Roadmap (from demo §9) -->
+  <section class="section" id="results">
+    <div class="section-num-wrap fade-in">
+      <div class="section-number">9</div>
+      <div class="section-title-text">Results &amp; Roadmap</div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9375rem; max-width: 720px; margin-bottom: 2rem;">
+      What Collect delivered in the last 6 months — and what's coming next.
+    </p>
+
+    <div class="fade-in" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+      <div>
+        <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span class="pill pill-success">Delivered</span> Last 6 Months
+        </h3>
+        <div style="position: relative; padding-left: 1.5rem; border-left: 2px solid var(--success);">
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">May 2026</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">AI Voice live</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Decisioned voice agent with empathy and compliance guardrails, live at ENBD</div>
+          </div>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">May 2026</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Skip Agent live</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Autonomous skip tracing for offshore and hard-to-contact recoveries</div>
+          </div>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">March 2026</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Comply Compliance Firewall Launch</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">AI-powered compliance evaluation for every outbound communication</div>
+          </div>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">February 2026</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Payment Arrangement Flexibility</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">New payment arrangement engine with affordability assessment</div>
+          </div>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">December 2025</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Multi-Armed Bandit v2</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Enhanced experimentation engine with improved channel selection</div>
+          </div>
+          <div style="position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--success);"></div>
+            <div style="font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600;">November 2025</div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Settlement Offer Campaigns</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Time-limited settlement offers with automatic expiry</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span class="pill pill-primary">Upcoming</span> What's Next
+        </h3>
+        <div style="position: relative; padding-left: 1.5rem; border-left: 2px dashed var(--primary);">
+          <div style="margin-bottom: 1rem; position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--primary); border: 2px solid var(--primary-light);"></div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">WhatsApp Channel Integration</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Direct WhatsApp messaging where regionally available, gated on client compliance sign-off</div>
+          </div>
+          <div style="position: relative;">
+            <div style="position: absolute; left: -1.85rem; top: 0.2rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--primary); border: 2px solid var(--primary-light);"></div>
+            <div style="font-weight: 700; font-size: 0.8125rem;">Real-time Analytics for clients</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Live portfolio dashboard for client stakeholders</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. Human work (workshop) -->
+  <section class="section" id="human">
+    <div class="human-card">
+      <h3>Where humans still do the work</h3>
+      <p>To be clear: <strong>this isn't a fully unmanned operation.</strong> When the engine signals it can't do better digitally, work gets routed to our agents. Three modes:</p>
+
+      <div class="human-modes">
+        <div class="human-mode">
+          <div class="human-mode-num">Mode 01</div>
+          <h4>Cold-trail outbound</h4>
+          <p>Accounts where digital channels have stopped engaging — emails not opening, SMS undelivered. Agents call within compliant windows.</p>
+        </div>
+        <div class="human-mode">
+          <div class="human-mode-num">Mode 02</div>
+          <h4>Inbound complex intent</h4>
+          <p>Customer calls, raises a dispute, asks for hardship terms outside pre-approved thresholds. Live agent picks up with full account context.</p>
+        </div>
+        <div class="human-mode">
+          <div class="human-mode-num">Mode 03</div>
+          <h4>Triage on signals</h4>
+          <p>Vulnerable-customer signal, deceased indicator, fraud flag — engine pauses outbound and routes to a trained specialist queue.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing -->
+  <section class="section" style="padding-top: 0; padding-bottom: 2rem;">
+    <div class="close-frame">
+      <h3>The operating model is the foundation.<br>Once it's aligned, the rest follows.</h3>
+      <p>If the engine works, the rest is configuration. Up next: how Comply runs alongside Collect — the firewall, rules engine, and audit trail that keep every interaction defensible.</p>
+    </div>
+  </section>
+
+  <!-- Footer Nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="03-receive-deep-dive.html">
+      <div class="foot-nav-dir">← Previous · 03</div>
+      <div class="foot-nav-title">Receive deep dive</div>
+    </a>
+    <a class="foot-nav next" href="05-comply-deep-dive.html">
+      <div class="foot-nav-dir">Next · 05</div>
+      <div class="foot-nav-title">Comply deep dive →</div>
+    </a>
+  </div>
+
+  <script>
+    // Fade-in observer
+    const fadeElements = document.querySelectorAll('.fade-in');
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    fadeElements.forEach(el => fadeObserver.observe(el));
+
+    // Counter animations
+    function animateCounter(element) {
+      const target = parseFloat(element.dataset.target);
+      const decimals = parseInt(element.dataset.decimals || '0');
+      const suffix = element.dataset.suffix || '';
+      const duration = 1500;
+      const start = performance.now();
+      function fmt(n) { return decimals > 0 ? n.toFixed(decimals) : n.toLocaleString('en-US'); }
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        element.textContent = fmt(target * eased) + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+    const counterElements = document.querySelectorAll('.stat-value[data-target]');
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counterElements.forEach(el => counterObserver.observe(el));
+
+    // Decision grid stagger trigger
+    const decisionGrids = document.querySelectorAll('.decision-grid');
+    const decisionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          decisionObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    decisionGrids.forEach(el => decisionObserver.observe(el));
+
+    // Deep-dive toggles
+    document.querySelectorAll('.deep-dive-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        this.classList.toggle('open');
+        const panel = this.nextElementSibling;
+        if (panel && panel.classList.contains('deep-dive')) {
+          panel.classList.toggle('open');
+        }
+      });
+    });
+
+    // Sub-section nav: scroll-spy
+    const subnavLinks = document.querySelectorAll('.subsection-nav a');
+    const sections = document.querySelectorAll('section[id]');
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          subnavLinks.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`.subsection-nav a[href="#${entry.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { threshold: 0.2, rootMargin: '-110px 0px 0px 0px' });
+    sections.forEach(s => navObserver.observe(s));
+  </script>
+
+</body>
+</html>
