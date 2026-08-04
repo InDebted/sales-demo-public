@@ -1,0 +1,63 @@
+/* InDebted — Spacing, layout & radius tokens. Built on a 4px soft grid.
+   Prefer multiples of 8px; drop to 4px only for fine-tuning. */
+
+:root {
+  --space-base: 4px;
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-40: 160px;
+  --space-48: 192px;
+  --space-56: 224px;
+  --space-64: 256px;
+
+  /* Container widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+
+  /* Page padding per breakpoint (desktop default) */
+  --page-padding-h: 120px;
+  --page-padding-v: 40px;
+  --section-gap: 32px;
+  --card-padding-h: 40px;
+  --card-gap: 16px;
+
+  /* Corner radius — pill = full */
+  --radius-4:    4px;
+  --radius-8:    8px;
+  --radius-12:   12px;
+  --radius-16:   16px;
+  --radius-full: 80px;
+
+  /* Icon sizes */
+  --icon-16: 16px;
+  --icon-20: 20px;
+  --icon-24: 24px;
+  --icon-28: 28px;
+  --icon-32: 32px;
+  --icon-40: 40px;
+  --icon-48: 48px;
+}
+
+@media (max-width: 899px) {
+  :root { --page-padding-h: 80px; --card-padding-h: 32px; }
+}
+@media (max-width: 599px) {
+  :root { --page-padding-h: 32px; --page-padding-v: 32px; --card-padding-h: 24px; }
+}
+@media (max-width: 410px) {
+  :root { --page-padding-h: 24px; --page-padding-v: 24px; }
+}

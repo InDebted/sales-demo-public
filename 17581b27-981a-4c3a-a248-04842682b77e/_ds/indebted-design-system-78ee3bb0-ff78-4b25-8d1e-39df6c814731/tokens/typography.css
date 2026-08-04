@@ -1,0 +1,44 @@
+/* InDebted — Typography tokens.
+   Manrope across every surface. Display (headings/hero) + Text (body/UI).
+   Display 2xl→md carry -2% tracking; Display sm and below use 0%. */
+
+:root {
+  --font-family-primary: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Weights */
+  --font-weight-extralight: 200;
+  --font-weight-light:      300;
+  --font-weight-regular:    400;
+  --font-weight-medium:     500;
+  --font-weight-semibold:   600;
+  --font-weight-bold:       700;
+  --font-weight-extrabold:  800;
+
+  /* Display scale — font-size / line-height / letter-spacing */
+  --display-2xl-size: 72px; --display-2xl-line: 90px; --display-2xl-tracking: -0.02em;
+  --display-xl-size:  60px; --display-xl-line:  72px; --display-xl-tracking:  -0.02em;
+  --display-lg-size:  48px; --display-lg-line:  60px; --display-lg-tracking:  -0.02em;
+  --display-md-size:  36px; --display-md-line:  44px; --display-md-tracking:  -0.02em;
+  --display-sm-size:  30px; --display-sm-line:  38px; --display-sm-tracking:  0;
+  --display-xs-size:  24px; --display-xs-line:  32px; --display-xs-tracking:  0;
+
+  /* Text scale */
+  --text-xl-size: 20px; --text-xl-line: 30px;
+  --text-lg-size: 18px; --text-lg-line: 28px;
+  --text-md-size: 16px; --text-md-line: 24px;
+  --text-sm-size: 14px; --text-sm-line: 20px;
+  --text-xs-size: 12px; --text-xs-line: 18px;
+}
+
+/* Optional helper classes — components may also reference the tokens directly. */
+.id-display-2xl { font: var(--font-weight-extrabold) var(--display-2xl-size)/var(--display-2xl-line) var(--font-family-primary); letter-spacing: var(--display-2xl-tracking); }
+.id-display-xl  { font: var(--font-weight-extrabold) var(--display-xl-size)/var(--display-xl-line) var(--font-family-primary); letter-spacing: var(--display-xl-tracking); }
+.id-display-lg  { font: var(--font-weight-extrabold) var(--display-lg-size)/var(--display-lg-line) var(--font-family-primary); letter-spacing: var(--display-lg-tracking); }
+.id-display-md  { font: var(--font-weight-bold) var(--display-md-size)/var(--display-md-line) var(--font-family-primary); letter-spacing: var(--display-md-tracking); }
+.id-display-sm  { font: var(--font-weight-bold) var(--display-sm-size)/var(--display-sm-line) var(--font-family-primary); }
+.id-display-xs  { font: var(--font-weight-bold) var(--display-xs-size)/var(--display-xs-line) var(--font-family-primary); }
+.id-text-xl     { font: var(--font-weight-regular) var(--text-xl-size)/var(--text-xl-line) var(--font-family-primary); }
+.id-text-lg     { font: var(--font-weight-regular) var(--text-lg-size)/var(--text-lg-line) var(--font-family-primary); }
+.id-text-md     { font: var(--font-weight-regular) var(--text-md-size)/var(--text-md-line) var(--font-family-primary); }
+.id-text-sm     { font: var(--font-weight-regular) var(--text-sm-size)/var(--text-sm-line) var(--font-family-primary); }
+.id-text-xs     { font: var(--font-weight-regular) var(--text-xs-size)/var(--text-xs-line) var(--font-family-primary); }

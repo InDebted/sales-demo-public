@@ -1,0 +1,184 @@
+/* InDebted — Colour tokens.
+   Source: brand-essentials/tokens/colors.json (InDebted Product Bible 2025).
+   Three tiers: Brand, Secondary, Semantic — each palette runs 25 (lightest) → 900.
+   Brand anchors are the 900 step: Endless Galaxy, Warm Blue, Tiffany Blue. */
+
+:root {
+  /* ---- White ---- */
+  --white: #ffffff;
+
+  /* ---- Brand · Endless Galaxy (primary dark navy — body & headings) ---- */
+  --endless-galaxy-25:  #e3e6ee;
+  --endless-galaxy-50:  #c7cedd;
+  --endless-galaxy-100: #acb6cb;
+  --endless-galaxy-200: #919fba;
+  --endless-galaxy-300: #7888a9;
+  --endless-galaxy-400: #5f7299;
+  --endless-galaxy-500: #475c88;
+  --endless-galaxy-600: #304777;
+  --endless-galaxy-700: #1b3166;
+  --endless-galaxy-800: #071c55;
+  --endless-galaxy-900: #000244;
+
+  /* ---- Brand · Warm Blue (default buttons & primary CTAs) ---- */
+  --warm-blue-25:  #ecf0fe;
+  --warm-blue-50:  #d9e0fd;
+  --warm-blue-100: #c6d1fb;
+  --warm-blue-200: #b4c1f8;
+  --warm-blue-300: #a3b2f6;
+  --warm-blue-400: #91a2f3;
+  --warm-blue-500: #8192ef;
+  --warm-blue-600: #7182eb;
+  --warm-blue-700: #6271e7;
+  --warm-blue-800: #545fe3;
+  --warm-blue-900: #474cde;
+
+  /* ---- Brand · Tiffany Blue (logo highlight — emphasis, used sparingly) ---- */
+  --tiffany-blue-25:  #f4fdfc;
+  --tiffany-blue-50:  #e9fcfa;
+  --tiffany-blue-100: #defaf7;
+  --tiffany-blue-200: #d3f8f4;
+  --tiffany-blue-300: #c7f7f2;
+  --tiffany-blue-400: #bbf5ef;
+  --tiffany-blue-500: #aff3ed;
+  --tiffany-blue-600: #a2f1ea;
+  --tiffany-blue-700: #94efe7;
+  --tiffany-blue-800: #86ede5;
+  --tiffany-blue-900: #76ebe2;
+
+  /* ---- Secondary palettes (charts, illustration, surfaces, categorisation) ---- */
+  --summer-mist-100: #f1fcfa;
+  --summer-mist-500: #ddf7f4;
+  --summer-mist-900: #c9f2ee;
+
+  --melting-glacier-500: #effaf9;
+  --melting-glacier-900: #e5f7f6;
+
+  --purple-illusion-100: #ecedfc; /* common product background */
+  --purple-illusion-300: #e0e2fa;
+  --purple-illusion-500: #d4d6f7;
+  --purple-illusion-900: #bdbff2;
+
+  --space-battle-blue-100: #c0c2e9;
+  --space-battle-blue-500: #7472c7;
+  --space-battle-blue-900: #390fa0;
+
+  --heron-100: #d1d2e1;
+  --heron-500: #9899b9;
+  --heron-900: #626392;
+
+  --noble-knight-100: #c6c9dc;
+  --noble-knight-500: #8083ac;
+  --noble-knight-900: #41427d;
+
+  --ethereal-mist-100: #e9e9f1;
+  --ethereal-mist-500: #cccddf;
+  --ethereal-mist-900: #b0b1cc;
+
+  --blue-mana-100: #d7edfb;
+  --blue-mana-500: #a1d6f5;
+  --blue-mana-900: #66bdee;
+
+  /* ---- Utility · Gray (neutral / UI chrome) ---- */
+  --gray-25:  #fdfdfd;
+  --gray-50:  #fafafa;
+  --gray-100: #f6f6f6;
+  --gray-200: #e9eaeb;
+  --gray-300: #d5d7da;
+  --gray-400: #a4a7ae;
+  --gray-500: #717680;
+  --gray-600: #535862;
+  --gray-700: #414651;
+  --gray-800: #252b37;
+  --gray-900: #101828;
+
+  /* ---- Utility · Blue (informational) ---- */
+  --blue-25:  #f5faff;
+  --blue-50:  #eff8ff;
+  --blue-100: #d1e9ff;
+  --blue-200: #b2ddff;
+  --blue-300: #84caff;
+  --blue-400: #53b1fd;
+  --blue-500: #2e90fa;
+  --blue-600: #1570ef;
+  --blue-700: #175cd3;
+  --blue-800: #1849a9;
+  --blue-900: #194185;
+
+  /* ---- Semantic · Error ---- */
+  --error-25:  #fffbfa;
+  --error-50:  #fef3f2;
+  --error-100: #fee4e2;
+  --error-200: #fecdca;
+  --error-300: #fda29b;
+  --error-400: #f97066;
+  --error-500: #f04438;
+  --error-600: #d92d20;
+  --error-700: #b42318;
+  --error-800: #912018;
+  --error-900: #7a271a;
+
+  /* ---- Semantic · Warning ---- */
+  --warning-25:  #fffcf5;
+  --warning-50:  #fffaeb;
+  --warning-100: #fef0c7;
+  --warning-200: #fedf89;
+  --warning-300: #fec84b;
+  --warning-400: #fdb022;
+  --warning-500: #f79009;
+  --warning-600: #dc6803;
+  --warning-700: #b54708;
+  --warning-800: #93370d;
+  --warning-900: #7a2e0e;
+
+  /* ---- Semantic · Success ---- */
+  --success-25:  #f6fef9;
+  --success-50:  #ecfdf3;
+  --success-100: #d1fadf;
+  --success-200: #a6f4c5;
+  --success-300: #6ce9a6;
+  --success-400: #32d583;
+  --success-500: #12b76a;
+  --success-600: #039855;
+  --success-700: #027a48;
+  --success-800: #05603a;
+  --success-900: #054f31;
+
+  /* =====================================================================
+     SEMANTIC ALIASES — reference these in components, not raw palette steps
+     ===================================================================== */
+
+  /* Brand anchors (always the 900 step when representing the brand) */
+  --brand-navy:    var(--endless-galaxy-900); /* #000244 */
+  --brand-primary: var(--warm-blue-900);      /* #474cde — CTAs */
+  --brand-accent:  var(--tiffany-blue-900);   /* #76ebe2 — highlight */
+
+  /* Text */
+  --text-primary:   var(--endless-galaxy-900); /* default body & headings */
+  --text-secondary: var(--heron-900);          /* #626392 — supporting copy */
+  --text-tertiary:  var(--gray-500);           /* #717680 — captions, meta */
+  --text-disabled:  var(--gray-400);
+  --text-on-brand:  var(--white);
+  --text-link:      var(--warm-blue-900);
+
+  /* Surfaces */
+  --surface-page:    var(--white);
+  --surface-card:    var(--white);
+  --surface-muted:   var(--purple-illusion-100); /* #ecedfc soft product bg */
+  --surface-subtle:  var(--gray-50);
+  --surface-inverse: var(--endless-galaxy-900);
+  --surface-accent:  var(--summer-mist-500);
+
+  /* Borders */
+  --border-subtle:   var(--gray-200);
+  --border-default:  var(--gray-300);
+  --border-strong:   var(--gray-400);
+  --border-brand:    var(--warm-blue-900);
+  --border-focus:    var(--warm-blue-500);
+
+  /* Feedback */
+  --feedback-error:   var(--error-500);
+  --feedback-warning: var(--warning-500);
+  --feedback-success: var(--success-600);
+  --feedback-info:    var(--blue-500);
+}

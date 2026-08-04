@@ -1,0 +1,85 @@
+/* InDebted — App theme modes. The product ships 4 semantic themes:
+   Pastel/Bright × Light/Dark (see brand-essentials/docs/brand-rules.md).
+   Each is a single-selector scope overriding a small set of app-theme tokens.
+   Default (:root) = Bright Light. Apply with <html data-theme="pastel-dark">. */
+
+:root {
+  /* App theme — default: Bright Light */
+  --theme-page:            #ffffff;
+  --theme-surface:         #ffffff;
+  --theme-surface-subtle:  #f6f6f6;
+  --theme-text:            #1c1c1c;
+  --theme-text-muted:      #5b5d6b;
+  --theme-border:          #e9eaeb;
+  --theme-primary:         #1886fe; /* Bright: Primary/Brand aliases Secondary/Blue */
+  --theme-accent-blue:     #1886fe;
+  --theme-accent-indigo:   #5856d6;
+  --theme-accent-green:    #34c759;
+  --theme-accent-mint:     #00c7be;
+  --theme-logo-primary:    #7094f4;
+  --theme-logo-secondary:  #4f507f;
+}
+
+[data-theme="pastel-light"] {
+  --theme-page:            #ffffff;
+  --theme-surface:         #ffffff;
+  --theme-surface-subtle:  #f6f6f6;
+  --theme-text:            #1c1c1c;
+  --theme-text-muted:      #5b5d6b;
+  --theme-border:          #e9eaeb;
+  --theme-primary:         #1c1c1c;
+  --theme-accent-blue:     #b1e3ff;
+  --theme-accent-indigo:   #95a4fc;
+  --theme-accent-green:    #a1e3cb;
+  --theme-accent-mint:     #baedbd;
+  --theme-logo-primary:    #7094f4;
+  --theme-logo-secondary:  #4f507f;
+}
+
+[data-theme="pastel-dark"] {
+  --theme-page:            #0c0e1a;
+  --theme-surface:         #15172a;
+  --theme-surface-subtle:  #1d1f33;
+  --theme-text:            #c6c7f8;
+  --theme-text-muted:      #9a9cc4;
+  --theme-border:          #2a2c45;
+  --theme-primary:         #c6c7f8;
+  --theme-accent-blue:     #b1e3ff;
+  --theme-accent-indigo:   #95a4fc;
+  --theme-accent-green:    #a1e3cb;
+  --theme-accent-mint:     #baedbd;
+  --theme-logo-primary:    #7094f4;
+  --theme-logo-secondary:  #ededff;
+}
+
+[data-theme="bright-light"] {
+  --theme-page:            #ffffff;
+  --theme-surface:         #ffffff;
+  --theme-surface-subtle:  #f6f6f6;
+  --theme-text:            #1c1c1c;
+  --theme-text-muted:      #5b5d6b;
+  --theme-border:          #e9eaeb;
+  --theme-primary:         #1886fe;
+  --theme-accent-blue:     #1886fe;
+  --theme-accent-indigo:   #5856d6;
+  --theme-accent-green:    #34c759;
+  --theme-accent-mint:     #00c7be;
+  --theme-logo-primary:    #7094f4;
+  --theme-logo-secondary:  #4f507f;
+}
+
+[data-theme="bright-dark"] {
+  --theme-page:            #04060f;
+  --theme-surface:         #0d1020;
+  --theme-surface-subtle:  #161a2e;
+  --theme-text:            #f3f4ff;
+  --theme-text-muted:      #a9acc9;
+  --theme-border:          #232743;
+  --theme-primary:         #1886fe;
+  --theme-accent-blue:     #1886fe;
+  --theme-accent-indigo:   #5856d6;
+  --theme-accent-green:    #34c759;
+  --theme-accent-mint:     #00c7be;
+  --theme-logo-primary:    #7094f4;
+  --theme-logo-secondary:  #ededff;
+}

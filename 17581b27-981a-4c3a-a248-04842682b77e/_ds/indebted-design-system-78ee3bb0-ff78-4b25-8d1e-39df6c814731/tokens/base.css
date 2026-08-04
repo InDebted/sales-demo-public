@@ -1,0 +1,23 @@
+/* InDebted — light base layer. Sets the default type + page colours so any
+   document linking styles.css inherits the brand without extra wiring.
+   Intentionally minimal: no aggressive resets that would fight host pages. */
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--tiffany-blue-900);
+  color: var(--endless-galaxy-900);
+}
