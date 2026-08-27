@@ -1,0 +1,14 @@
+/* =====================================================================
+   InDebted Design System — global entry point.
+   Consumers link THIS file. It is an @import manifest only.
+   Source of truth: github.com/InDebted/brand-essentials
+   ===================================================================== */
+
+@import url("tokens/fonts.css");
+@import url("tokens/colors.css");
+@import url("tokens/typography.css");
+@import url("tokens/spacing.css");
+@import url("tokens/shadows.css");
+@import url("tokens/gradients.css");
+@import url("tokens/themes.css");
+@import url("tokens/base.css");
