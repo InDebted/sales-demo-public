@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oportun payment flow — InDebted consumer portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ---------- stage ---------- */
+  :root{
+    --navy:#000244;          /* endless-galaxy-900 */
+    --ink:#0d0d4d;           /* portal heading navy */
+    --card-navy:#050b3e;     /* offer-card headers / sticky bar */
+    --indigo:#4d52e3;        /* portal CTA blue (as recorded) */
+    --brand-indigo:#474cde;  /* warm-blue-900 (deck chrome) */
+    --heron:#626392;
+    --lavender:#e5e6f6;      /* portal page background */
+    --mint:#76ebe2;
+    --green:#16a34a;         /* saving pill */
+    --green-dark:#0e8345;    /* save-amount pill */
+    --cash:#00d632;          /* Cash App */
+    --gray-200:#e9eaeb;
+    --stripe-ink:#30313d;    /* Stripe element text */
+    --stripe-sub:#6d6e78;
+  }
+  html,body{margin:0;padding:0;background:transparent;}
+  body{font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;}
+  .stage{display:flex;align-items:center;gap:34px;height:100vh;box-sizing:border-box;max-width:880px;margin:0 auto;padding:0 12px;}
+
+  /* ---------- phone + silver frame ---------- */
+  /* silver.png is 1508x3278; transparent screen window at x152 y329, 1205x2621, corner r≈185 */
+  .phone{position:relative;flex:none;width:294px;height:640px;filter:drop-shadow(0 24px 44px rgba(0,2,68,0.30));}
+  .phone .frame{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none;}
+  .screen{position:absolute;left:29.6px;top:64.2px;width:235px;height:511.8px;border-radius:36px;overflow:hidden;background:#000;z-index:1;
+    /* keep content clipped on the GPU so the rounded corners hold during transforms */
+    -webkit-mask-image:-webkit-radial-gradient(white,black);}
+  /* everything inside is authored at iPhone-16-Pro logical points (402x874) and scaled down */
+  .vp{position:absolute;left:0;top:0;width:402px;height:874px;transform:scale(0.58458);transform-origin:0 0;background:#000;overflow:hidden;}
+
+  /* ---------- generic screen machinery ---------- */
+  .scr{position:absolute;inset:0;opacity:0;pointer-events:none;}
+  .scr.cur{opacity:1;pointer-events:auto;}
+  .push-wrap{position:absolute;inset:0;}
+  /* web pages pushed inside safari */
+  .page{position:absolute;inset:0;background:var(--lavender);transform:translateX(100%);transition:transform .52s cubic-bezier(.32,.72,.35,1);}
+  .page.cur{transform:translateX(0);}
+  .page.gone{transform:translateX(-26%);}
+  .scroll{position:absolute;inset:0;transition:transform 1.15s cubic-bezier(.45,.05,.18,1);will-change:transform;}
+
+  /* status bar (drawn in content; Dynamic Island is part of the frame PNG) */
+  .status{position:absolute;left:0;right:0;top:0;height:56px;z-index:60;display:flex;align-items:flex-start;justify-content:space-between;
+    padding:16px 30px 0 34px;box-sizing:border-box;pointer-events:none;
+    font:600 16px/1 -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#0a0a1a;transition:color .3s;}
+  .status.light{color:#fff;}
+  .status .t{letter-spacing:.02em;min-width:44px;}
+  .status .back-app{display:block;font:500 11px/1 -apple-system,sans-serif;margin-top:4px;opacity:0;transition:opacity .3s;}
+  .status.show-return .back-app{opacity:.92;}
+  .status .icons{display:flex;gap:7px;align-items:center;}
+  .status svg{display:block;}
+  .homebar{position:absolute;left:50%;bottom:8px;width:140px;height:5px;border-radius:3px;background:#0a0a1a;opacity:.85;z-index:61;transform:translateX(-50%);transition:background .3s;}
+  .homebar.light{background:#fff;}
+
+  /* tap ripple */
+  .tap{position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(120,124,145,0.38);border:1.5px solid rgba(255,255,255,0.65);
+    transform:translate(-50%,-50%) scale(.4);opacity:0;z-index:70;pointer-events:none;}
+
+  /* =========================================================
+     Screen 1 — Messages
+     ========================================================= */
+  .msg{background:#fff;}
+  .msg .nav{position:absolute;top:0;left:0;right:0;height:128px;background:rgba(248,248,250,0.94);border-bottom:.5px solid #d6d6da;z-index:10;}
+  .msg .chev{position:absolute;left:12px;top:64px;display:flex;align-items:center;gap:2px;}
+  .msg .chev svg{display:block;}
+  .msg .unread{background:#e9e9eb;color:#0a0a0a;font:600 13px/1 -apple-system,sans-serif;border-radius:11px;padding:4px 8px;}
+  .msg .who{position:absolute;left:50%;top:58px;transform:translateX(-50%);text-align:center;}
+  .msg .ava{width:50px;height:50px;border-radius:50%;margin:0 auto;background:linear-gradient(180deg,#a5abb8,#858d9d);
+    display:grid;place-items:center;color:#fff;font:600 21px/1 -apple-system,sans-serif;letter-spacing:.01em;}
+  .msg .who .nm{margin-top:3px;font:400 12px/1 -apple-system,sans-serif;color:#0a0a0a;}
+  .msg .who .nm span{color:#b0b0b6;font-size:11px;}
+  .msg .thread{position:absolute;top:128px;left:0;right:0;bottom:86px;padding:14px 16px 0;box-sizing:border-box;}
+  .msg .stamp{text-align:center;font:500 12px/1 -apple-system,sans-serif;color:#8a8a90;margin-bottom:12px;}
+  .msg .stamp b{font-weight:600;}
+  .bubble{max-width:300px;background:#e9e9eb;color:#0b0b0d;border-radius:20px;padding:10px 14px;position:relative;
+    font:400 16.5px/1.32 -apple-system,'SF Pro Text',sans-serif;letter-spacing:-0.01em;
+    opacity:0;transform:translateY(14px) scale(.86);transform-origin:0 100%;}
+  .bubble.pop{transition:opacity .34s ease,transform .42s cubic-bezier(.2,1.1,.4,1);opacity:1;transform:none;}
+  .bubble .tail{position:absolute;left:-5px;bottom:0;width:14px;height:16px;}
+  .bubble a{color:#0b62fe;text-decoration:underline;}
+  .msg .field{position:absolute;left:0;right:0;bottom:0;height:86px;background:#fff;display:flex;align-items:flex-start;gap:10px;padding:8px 14px 0;box-sizing:border-box;}
+  .msg .plus{width:36px;height:36px;border-radius:50%;background:#e9e9eb;display:grid;place-items:center;flex:none;}
+  .msg .input{flex:1;height:36px;border:1.2px solid #d3d3d8;border-radius:19px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 6px 0 14px;box-sizing:border-box;color:#9d9da3;font:400 15px/1 -apple-system,sans-serif;}
+
+  /* =========================================================
+     Screen 2 — Safari shell + portal pages
+     ========================================================= */
+  .safari{background:var(--lavender);transform:translateY(6%);transition:transform .5s cubic-bezier(.3,.8,.3,1),opacity .4s;}
+  .safari.cur{transform:translateY(0);}
+  .webstack{position:absolute;inset:0;}
+  .sbar{position:absolute;left:0;right:0;bottom:0;height:78px;z-index:30;background:rgba(250,250,252,0.88);backdrop-filter:blur(6px);
+    border-top:.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 14px 14px;box-sizing:border-box;}
+  .sbar .urlpill{flex:1;height:44px;background:#fff;border-radius:13px;box-shadow:0 1px 6px rgba(15,20,60,0.10);
+    display:flex;align-items:center;justify-content:center;font:500 16px/1 -apple-system,sans-serif;color:#17171c;letter-spacing:-.01em;}
+  .sbar svg{display:block;flex:none;}
+
+  /* skeleton */
+  .skel{position:absolute;inset:0;background:#f2f3fa;padding:120px 24px 0;box-sizing:border-box;}
+  .skel .b{border-radius:10px;background:linear-gradient(100deg,#e4e5f0 30%,#eef0f8 48%,#e4e5f0 62%);background-size:220% 100%;
+    animation:shimmer 1.1s linear infinite;}
+  @keyframes shimmer{from{background-position:130% 0}to{background-position:-90% 0}}
+
+  /* ---- portal shared ---- */
+  .pg{font-family:'Manrope',sans-serif;}
+  .hero{background:linear-gradient(102deg,#3d2cae 0%,#241a7e 52%,#141056 100%);color:#fff;padding:78px 22px 34px;box-sizing:border-box;position:relative;}
+  .hero .hi{font-size:20px;font-weight:600;line-height:1.3;}
+  .hero .sub{font-size:20px;font-weight:400;line-height:1.35;opacity:.94;max-width:300px;}
+  .hero .mark{position:absolute;right:20px;top:78px;width:46px;height:46px;}
+  .hero .obl{margin-top:34px;text-align:center;font-size:17px;font-weight:500;color:rgba(255,255,255,0.6);}
+  .hero .amt{margin-top:6px;text-align:center;font-size:44px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+  .hero .div{margin:20px auto 0;width:62%;height:1px;background:rgba(255,255,255,0.28);}
+  .hero .obo{margin-top:20px;text-align:center;font-size:19px;font-weight:500;}
+  .fadein{opacity:0;transition:opacity .5s ease;}
+  .fadein.on{opacity:1;}
+
+  .lto{padding:30px 0 6px;text-align:center;}
+  .lto .h{font-size:23px;font-weight:800;color:var(--ink);}
+  .lto .s{margin-top:6px;font-size:16px;font-weight:500;color:var(--heron);}
+  .lto .t{margin-top:8px;font-size:14px;font-weight:600;color:var(--indigo);text-decoration:underline;}
+
+  .offer{margin:22px 18px 0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 10px 26px rgba(13,13,77,0.08);}
+  .offer .top{background:var(--card-navy);color:#fff;padding:18px 20px 16px;}
+  .offer .top .k{font-size:15px;font-weight:500;opacity:.95;}
+  .offer .top .big{font-size:34px;font-weight:800;letter-spacing:-.01em;margin-top:2px;}
+  .offer .body{padding:16px 20px 18px;}
+  .offer .lbl{font-size:15px;font-weight:500;color:var(--heron);}
+  .offer .row{display:flex;align-items:center;gap:12px;margin-top:6px;}
+  .offer .amt{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .savepill{background:var(--green-dark);color:#fff;font-size:13.5px;font-weight:600;border-radius:999px;padding:8px 14px;white-space:nowrap;}
+  .cta{margin-top:14px;background:var(--indigo);border-radius:10px;height:48px;display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;}
+
+  .popts{margin-top:34px;text-align:center;}
+  .popts .h{font-size:23px;font-weight:800;color:var(--ink);}
+  .popts .s{margin-top:5px;font-size:16px;color:var(--heron);}
+  .prow{margin:14px 18px 0;background:#fff;border-radius:12px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;text-align:left;box-shadow:0 6px 18px rgba(13,13,77,0.05);}
+  .prow .k{font-size:13.5px;color:var(--heron);}
+  .prow .v{font-size:19px;font-weight:800;color:var(--ink);margin-top:2px;}
+  .prow svg{flex:none;}
+  .pfoot{margin:30px 0 120px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--heron);font-size:12px;}
+
+  /* ---- plan builder ---- */
+  .stickybar{position:absolute;top:0;left:0;right:0;z-index:20;background:var(--card-navy);color:#fff;
+    border-radius:0 0 18px 18px;padding:62px 18px 14px;box-sizing:border-box;display:flex;align-items:flex-end;justify-content:space-between;}
+  .stickybar .off{display:inline-block;background:rgba(255,255,255,0.14);border-radius:7px;padding:4px 8px;font-size:12px;font-weight:600;}
+  .stickybar .strike{margin-top:6px;font-size:15px;color:rgba(255,255,255,0.55);text-decoration:line-through;font-variant-numeric:tabular-nums;}
+  .stickybar .now{font-size:24px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums;}
+  .stickybar .r{text-align:right;}
+  .stickybar .ot{font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:8px;}
+  .paynow{background:var(--indigo);border-radius:10px;padding:11px 20px;font-size:15px;font-weight:600;color:#fff;display:inline-block;}
+
+  .planbody{padding:196px 16px 40px;}
+  .h1{font-size:30px;font-weight:800;color:var(--ink);letter-spacing:-.01em;}
+  .greenpill{display:inline-flex;align-items:center;margin-top:12px;background:var(--green);color:#fff;border-radius:999px;
+    padding:9px 16px;font-size:15.5px;font-weight:600;transition:transform .3s;}
+  .greenpill.pop{animation:pillpop .55s cubic-bezier(.3,1.4,.4,1);}
+  @keyframes pillpop{0%{transform:scale(.92)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+  .plancopy{margin-top:12px;font-size:19px;line-height:1.4;color:var(--ink);font-weight:500;max-width:352px;}
+  .plancopy b{font-weight:700;}
+
+  .plancard{margin-top:16px;background:#fff;border-radius:16px;padding:16px;box-shadow:0 10px 26px rgba(13,13,77,0.07);}
+  .seg{background:#f1f1f4;border-radius:12px;padding:3px;display:flex;}
+  .seg span{flex:1;text-align:center;font-size:15px;font-weight:600;color:#3c3c50;padding:10px 0;border-radius:10px;}
+  .seg .on{background:var(--indigo);color:#fff;}
+  .dpills{display:flex;justify-content:center;gap:10px;margin-top:16px;}
+  .dpill{border:1.6px solid #d5d7da;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;color:#3c3c50;background:#fff;
+    transition:border-color .25s,background .25s,color .25s;}
+  .dpill.on{border-color:var(--green);background:#effcf4;color:var(--ink);}
+  .youll{margin-top:14px;text-align:center;font-size:14px;font-weight:500;color:var(--heron);}
+  .bigamt{text-align:center;font-size:42px;font-weight:800;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums;margin-top:2px;}
+  .forn{text-align:center;font-size:15px;color:var(--heron);margin-top:2px;}
+  .forn b{color:var(--indigo);font-weight:700;font-variant-numeric:tabular-nums;}
+
+  .slider{position:relative;margin:26px 6px 8px;height:44px;}
+  .slider .scale{position:absolute;top:-14px;left:0;right:0;font-size:12px;color:#9a9aa6;}
+  .slider .scale i{position:absolute;font-style:normal;transform:translateX(-50%);}
+  .track,.seg50,.segfill{position:absolute;top:26px;height:6px;border-radius:3px;}
+  .track{left:0;right:0;background:#d7d8dd;}
+  .seg50{background:#166534;}
+  .segfill{background:#22c55e;}
+  .thumb{position:absolute;top:29px;width:24px;height:24px;border-radius:50%;background:#101024;transform:translate(-50%,-50%);z-index:3;}
+  .thumb::before{content:'';position:absolute;left:50%;top:50%;width:58px;height:58px;border-radius:50%;background:rgba(102,106,222,0.20);transform:translate(-50%,-50%);}
+  .nbub{position:absolute;top:-8px;transform:translateX(-50%);background:#57575d;color:#fff;border-radius:7px;padding:5px 9px;
+    font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;opacity:0;transition:opacity .25s;z-index:4;}
+  .nbub::after{content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);border:5px solid transparent;border-top-color:#57575d;border-bottom:none;}
+  .nbub.on{opacity:1;}
+
+  .unlock{margin-top:14px;background:#d9f5e4;border-radius:12px;padding:15px 16px;overflow:hidden;}
+  .unlock .h{font-size:17px;font-weight:800;color:var(--ink);}
+  .unlock .b{margin-top:6px;font-size:14.5px;line-height:1.45;color:var(--ink);}
+  .unlock .b b{color:#0f7a3d;}
+  .unlock .lnk{margin-top:8px;font-size:14.5px;font-weight:600;color:var(--indigo);text-decoration:underline;display:inline-block;}
+  .unlock .done{display:none;align-items:center;gap:10px;font-size:16px;font-weight:800;color:#0f7a3d;}
+  .unlock.won .done{display:flex;}
+  .unlock.won .h,.unlock.won .b,.unlock.won .lnk{display:none;}
+
+  .datein{margin-top:16px;background:#fff;border:1.4px solid #d5d7da;border-radius:10px;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;
+    font-size:16px;color:#2c2c3c;font-weight:500;}
+  .enddate{margin-top:10px;font-size:13.5px;color:var(--ink);font-weight:600;}
+  .enddate b{color:var(--indigo);font-weight:600;font-variant-numeric:tabular-nums;}
+  .contin{margin-top:16px;background:var(--indigo);border-radius:10px;height:48px;display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;}
+  .vpb{margin-top:16px;text-align:center;font-size:14.5px;font-weight:600;color:var(--ink);}
+
+  /* ---- payment details ---- */
+  .paybody{padding:74px 16px 40px;}
+  .crumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--heron);}
+  .crumb .home{color:var(--indigo);text-decoration:underline;font-weight:500;}
+  .crumb .dots{background:#ececf2;border-radius:6px;padding:3px 7px;font-weight:700;letter-spacing:.06em;color:#55556a;font-size:12px;}
+  .crumb .here{color:var(--ink);font-weight:500;}
+  .accord{margin-top:14px;background:#fff;border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 18px rgba(13,13,77,0.05);}
+  .pct{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#41d17f,#0e8345);display:grid;place-items:center;color:#fff;font-size:14px;font-weight:800;flex:none;}
+  .accord .t{flex:1;font-size:17px;font-weight:600;color:var(--ink);}
+
+  .formcard{margin-top:12px;background:#fff;border-radius:14px;padding:16px;box-shadow:0 10px 26px rgba(13,13,77,0.07);
+    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;}
+  .flabel{font-size:14.5px;font-weight:500;color:var(--stripe-ink);margin:0 0 6px;}
+  .fin{height:46px;background:#f6f6f8;border:1px solid #e4e4e9;border-radius:8px;display:flex;align-items:center;padding:0 13px;
+    font-size:16px;color:#1a1a24;box-sizing:border-box;margin-bottom:14px;position:relative;}
+  .fin .ph{color:#93939e;}
+  .fin.focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(77,82,227,0.12);background:#fff;}
+  .caret{display:inline-block;width:1.5px;height:20px;background:#1a1a24;margin-left:1px;vertical-align:-4px;opacity:0;}
+  .fin.focus .caret{animation:blink 1s steps(1) infinite;}
+  @keyframes blink{0%,60%{opacity:1}61%,100%{opacity:0}}
+
+  .tabs{display:flex;gap:8px;margin:2px 0 0;}
+  .tab{flex:1;border:1px solid #e4e4e9;border-radius:9px;background:#fff;padding:9px 10px 8px;position:relative;transition:border-color .3s,box-shadow .3s;}
+  .tab .ic{height:22px;display:flex;align-items:center;}
+  .tab .lb{margin-top:5px;font-size:12.5px;font-weight:600;color:var(--stripe-ink);white-space:nowrap;}
+  .tab.more{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#55555f;}
+  .tab.sel{border-color:var(--indigo);border-width:1.5px;padding:8.5px 9.5px 7.5px;box-shadow:0 0 0 3px rgba(77,82,227,0.10);}
+  .tab.sel .lb{color:var(--indigo);}
+  .tab.pulse{animation:tabpulse .8s ease;}
+  @keyframes tabpulse{0%{box-shadow:0 0 0 0 rgba(0,214,50,0.0)}35%{box-shadow:0 0 0 6px rgba(0,214,50,0.22)}100%{box-shadow:0 0 0 3px rgba(77,82,227,0.10)}}
+  .cashsq{width:22px;height:22px;border-radius:6px;background:var(--cash);display:grid;place-items:center;}
+  .selnote{margin-top:12px;display:flex;gap:10px;align-items:flex-start;}
+  .selnote .tx{font-size:14px;color:var(--stripe-ink);line-height:1.4;}
+  .selnote .tx .sub{color:var(--stripe-sub);font-size:13px;margin-top:3px;}
+  .mandate{margin-top:12px;font-size:12.5px;line-height:1.45;color:var(--stripe-sub);}
+  .confirm{margin-top:14px;background:var(--indigo);border-radius:10px;height:48px;display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;font-family:'Manrope',sans-serif;}
+  .legal{margin-top:12px;text-align:center;font-size:12.5px;line-height:1.45;color:#8b8b96;}
+  .legal u{text-underline-offset:2px;}
+
+  /* iOS keyboard */
+  .kbd{position:absolute;left:0;right:0;bottom:0;height:270px;background:#d1d4da;z-index:35;transform:translateY(105%);
+    transition:transform .38s cubic-bezier(.3,.8,.35,1);padding:10px 4px 0;box-sizing:border-box;
+    font-family:-apple-system,sans-serif;}
+  .kbd.up{transform:translateY(0);}
+  .krow{display:flex;justify-content:center;gap:5.5px;margin-bottom:9px;}
+  .key{flex:0 0 34px;height:42px;background:#fff;border-radius:6px;box-shadow:0 1.5px 0 #8b8f98;display:grid;place-items:center;
+    font-size:19px;color:#0a0a0a;}
+  .key.wide{flex:0 0 52px;background:#b3b8c2;font-size:13px;}
+  .key.space{flex:0 0 186px;}
+  .key.ret{flex:0 0 90px;background:#b3b8c2;font-size:15px;}
+
+  /* =========================================================
+     Cash App handoff
+     ========================================================= */
+  .cashapp{background:#0e0e0e;transform:translateY(100%);transition:transform .5s cubic-bezier(.3,.8,.3,1);z-index:50;}
+  .cashapp.cur{transform:translateY(0);}
+  .cashapp .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 34px;box-sizing:border-box;text-align:center;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
+  .cashapp .sq{width:60px;height:60px;border-radius:16px;background:var(--cash);display:grid;place-items:center;transform:rotate(-4deg);
+    box-shadow:0 10px 30px rgba(0,214,50,0.35);}
+  .cashapp .m{margin-top:18px;font-size:20px;font-weight:700;color:#fff;}
+  .cashapp .ob{margin-top:4px;font-size:13.5px;color:rgba(255,255,255,0.55);}
+  .cashapp .amt{margin-top:14px;font-size:42px;font-weight:800;color:#fff;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+  .cashapp .then{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.5);}
+  .cashapp .bal{margin-top:24px;width:100%;display:flex;align-items:center;justify-content:space-between;
+    border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:13px 16px;box-sizing:border-box;}
+  .cashapp .bal .k{font-size:13.5px;color:rgba(255,255,255,0.7);}
+  .cashapp .bal .v{font-size:13.5px;font-weight:700;color:#fff;}
+  .approve{margin-top:20px;width:100%;height:52px;border-radius:999px;background:var(--cash);color:#04120a;font-size:16.5px;font-weight:800;
+    display:grid;place-items:center;position:relative;overflow:hidden;}
+  .approve .ok{position:absolute;inset:0;display:grid;place-items:center;background:var(--cash);opacity:0;transition:opacity .25s;}
+  .approve.done .ok{opacity:1;}
+  .cashapp .fid{margin-top:14px;font-size:13px;color:rgba(255,255,255,0.45);}
+
+  /* ---- success ---- */
+  .donewrap{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px 60px;box-sizing:border-box;text-align:center;}
+  .ring{width:78px;height:78px;border-radius:50%;background:rgba(22,163,74,0.10);display:grid;place-items:center;}
+  .ring svg path{stroke-dasharray:36;stroke-dashoffset:36;transition:stroke-dashoffset .55s ease .15s;}
+  .donewrap.on .ring svg path{stroke-dashoffset:0;}
+  .donewrap .h{margin-top:18px;font-size:25px;font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;}
+  .donewrap .s{margin-top:6px;font-size:16px;color:var(--heron);font-family:'Manrope',sans-serif;}
+  .receipt{margin-top:20px;width:100%;background:#f6f7fd;border-radius:14px;padding:16px 18px;box-sizing:border-box;text-align:left;font-family:'Manrope',sans-serif;}
+  .receipt .r{display:flex;justify-content:space-between;font-size:14.5px;color:var(--heron);padding:5px 0;}
+  .receipt .r b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;}
+  .donewrap .note{margin-top:16px;font-size:13.5px;color:var(--heron);font-family:'Manrope',sans-serif;}
+  .donewrap .brand{margin-top:20px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--heron);font-family:'Manrope',sans-serif;}
+
+  /* =========================================================
+     Right column — journey chips (deck styling)
+     ========================================================= */
+  .side{display:flex;flex-direction:column;gap:12px;flex:1;min-width:0;}
+  .side .kick{font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand-indigo);margin-bottom:2px;}
+  .chip{position:relative;display:flex;align-items:center;gap:12px;padding:13px 18px;border:1px solid var(--gray-200);border-radius:12px;background:#fff;
+    transition:border-color .35s,background .35s,transform .35s;}
+  .chip .n{font-size:15px;font-weight:800;color:var(--brand-indigo);letter-spacing:.06em;}
+  .chip .l{font-size:18px;font-weight:700;color:var(--navy);}
+  .chip.on{border-color:var(--brand-indigo);background:rgba(71,76,222,0.06);box-shadow:inset 0 0 0 1px var(--brand-indigo);transform:translateX(4px);}
+
+  /* reduced motion: freeze on the settlement screen */
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="screen">
+      <div class="vp" id="vp"></div>
+    </div>
+    <img class="frame" src="silver.png" alt="">
+  </div>
+  <div class="side">
+    <div class="kick">An example digital journey</div>
+    <div class="chip" data-step="1"><span class="n">01</span><span class="l">The message lands</span></div>
+    <div class="chip" data-step="2"><span class="n">02</span><span class="l">One tap, straight in</span></div>
+    <div class="chip" data-step="3"><span class="n">03</span><span class="l">A plan that fits them</span></div>
+    <div class="chip" data-step="4"><span class="n">04</span><span class="l">Seamless payment options</span></div>
+    <div class="chip" data-step="5"><span class="n">05</span><span class="l">Approved in an app they trust</span></div>
+    <div class="chip" data-step="6"><span class="n">06</span><span class="l">Resolved, confirmed in writing</span></div>
+  </div>
+</div>
+
+<!-- ============ templates ============ -->
+<script type="text/x-template" id="tpl">
+
+  <!-- ····· status bar + home indicator (shared overlays) ····· -->
+  <div class="status" id="status">
+    <div><span class="t">9:41</span><span class="back-app" id="backapp">&#9664; Messages</span></div>
+    <div class="icons">
+      <svg width="19" height="12" viewBox="0 0 19 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 9.6a2 2 0 0 1 2 1.9l-2 .5-2-.5a2 2 0 0 1 2-1.9Z"/><path d="M8.5 5.4c1.9 0 3.6.7 4.9 1.9l-1.4 1.5a5 5 0 0 0-7 0L3.6 7.3a7.2 7.2 0 0 1 4.9-1.9Z"/><path d="M8.5 1.1c3 0 5.8 1.2 7.9 3.1L15 5.7a9.3 9.3 0 0 0-13 0L.6 4.2A11.4 11.4 0 0 1 8.5 1.1Z"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="18" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4a2.2 2.2 0 0 0 0-4Z" fill="currentColor" fill-opacity=".45"/></svg>
+    </div>
+  </div>
+  <div class="homebar" id="homebar"></div>
+  <div class="tap" id="tap"></div>
+
+  <!-- ····· 1 · Messages ····· -->
+  <div class="scr msg cur" id="scr-msg">
+    <div class="nav">
+      <div class="chev">
+        <svg width="13" height="22" viewBox="0 0 13 22" fill="none"><path d="M11 1 2 11l9 10" stroke="#3478f6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="unread">14</span>
+      </div>
+      <div class="who">
+        <div class="ava">iD</div>
+        <div class="nm">InDebted <span>&rsaquo;</span></div>
+      </div>
+    </div>
+    <div class="thread">
+      <div class="stamp"><b>Today</b> 9:41 am</div>
+      <div class="bubble" id="bubble">
+        <svg class="tail" viewBox="0 0 14 16"><path d="M14 16C6 16 1.5 11 0 5.5 3.5 12 9 12.5 14 10Z" fill="#e9e9eb"/></svg>
+        Hi JJ &mdash; it&rsquo;s InDebted, on behalf of Oportun. When you&rsquo;re ready, see your options or set up a plan at your pace.<br><br>
+        Pay online at <a id="smslink">pay.au.indebted.co/<wbr>0-EW4O-XFBX</a><br>
+        Secure Code: 0-EW4O-XFBX
+      </div>
+    </div>
+    <div class="field">
+      <div class="plus"><svg width="15" height="15" viewBox="0 0 15 15"><path d="M7.5 1v13M1 7.5h13" stroke="#7c7c84" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <div class="input"><span>Text Message &middot; SMS</span>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3.5a2.6 2.6 0 0 1 2.6 2.6v4.6a2.6 2.6 0 1 1-5.2 0V6.1A2.6 2.6 0 0 1 11 3.5Z" stroke="#8e8e96" stroke-width="1.5"/><path d="M5.8 10.6a5.2 5.2 0 0 0 10.4 0M11 15.8v2.7" stroke="#8e8e96" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ····· 2 · Safari + portal ····· -->
+  <div class="scr safari" id="scr-safari">
+    <div class="webstack">
+
+      <!-- skeleton first paint -->
+      <div class="page cur" id="pg-load">
+        <div class="skel">
+          <div class="b" style="width:52%;height:22px;"></div>
+          <div class="b" style="width:78%;height:22px;margin-top:12px;"></div>
+          <div class="b" style="width:100%;height:120px;margin-top:26px;border-radius:14px;"></div>
+          <div class="b" style="width:100%;height:200px;margin-top:18px;border-radius:14px;"></div>
+          <div class="b" style="width:100%;height:200px;margin-top:18px;border-radius:14px;"></div>
+        </div>
+      </div>
+
+      <!-- home / settlement offers -->
+      <div class="page" id="pg-home">
+        <div class="scroll" id="home-scroll">
+          <div class="pg">
+            <div class="hero">
+              <svg class="mark" viewBox="0 0 230 230" aria-hidden="true"><rect width="230" height="230" rx="54" fill="#76EBE2"/><path d="M33.8 86.4c0-5 4-9 9-9h48.1c5 0 9 4 9 9s-4 9-9 9H42.8c-5 0-9-4-9-9Z" fill="#000244"/><path d="M45.8 56.4c0-5 4-9 9-9h72.2c5 0 9 4 9 9s-4 9-9 9H54.9c-5 0-9.1-4-9.1-9Z" fill="#000244"/><path fill-rule="evenodd" clip-rule="evenodd" d="M42.8 77.4c-5 0-9 4-9 9s4 9 9 9h61.6c5 0 9-4 9-9s-4-9-9-9H42.8Zm18 30.1c-5 0-9 4-9 9s4 9 9 9h55.6c5 0 9-4 9-9s-4-9-9-9H60.8Z" fill="#000244"/><path d="M69.9 146.6c0-5 4-9 9-9h55.6c5 0 9 4 9 9s-4 9-9 9H78.9c-5 0-9-4-9-9Z" fill="#000244"/><rect x="87.9" y="167.6" width="54.1" height="18" rx="9" fill="#000244"/><path fill-rule="evenodd" clip-rule="evenodd" d="M128.6 65.4h-22.6V47.4h22.6c37.3 0 67.5 31 67.5 69.1s-30.2 69.2-67.5 69.2h-22.6v-18h22.6c27.6 0 49.9-22.9 49.9-51.2s-22.3-51.1-49.9-51.1Z" fill="#000244"/></svg>
+              <div class="hi fadein" id="hi1">Hello, JJ</div>
+              <div class="sub fadein" id="hi2">Let&rsquo;s find a solution that works for you.</div>
+              <div class="obl fadein" id="hi3">Outstanding balance</div>
+              <div class="amt fadein" id="heroamt">$0.00</div>
+              <div class="div fadein" id="hi4"></div>
+              <div class="obo fadein" id="hi5">On behalf of Oportun</div>
+            </div>
+            <div class="lto">
+              <div class="h">Limited time offer</div>
+              <div class="s">Pay your debt for less!</div>
+              <div class="t">Subject to T&amp;Cs</div>
+            </div>
+            <div class="offer">
+              <div class="top"><div class="k">Pay in full with discount</div><div class="big">60% off</div></div>
+              <div class="body">
+                <div class="lbl">Balance to pay</div>
+                <div class="row"><span class="amt">$596.00</span><span class="savepill">Save $894.00</span></div>
+                <div class="cta">Pay with 60% discount</div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="top"><div class="k">Settle in a payment plan today!</div><div class="big">Up to 50% off</div></div>
+              <div class="body">
+                <div class="lbl">Balance to pay from</div>
+                <div class="row"><span class="amt">$745.00</span><span class="savepill">Save up to $745.00</span></div>
+                <div class="cta" id="plan-cta">Pay with up to 50% discount</div>
+              </div>
+            </div>
+            <div class="popts">
+              <div class="h">Payment options</div>
+              <div class="s">Let&rsquo;s get you back on track</div>
+            </div>
+            <div class="prow"><span><span class="k">Clear the amount today</span><br><span class="v">Make a payment in full</span></span><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="m1.5 1.5 7 7.5-7 7.5" stroke="#0d0d4d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="prow"><span><span class="k">Pay in smaller instalments over time</span><br><span class="v">Create a payment plan</span></span><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="m1.5 1.5 7 7.5-7 7.5" stroke="#0d0d4d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="prow"><span><span class="k">Pay a portion of the amount due</span><br><span class="v">Partial payment</span></span><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="m1.5 1.5 7 7.5-7 7.5" stroke="#0d0d4d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="pfoot">
+              <svg width="16" height="16" viewBox="0 0 230 230"><rect width="230" height="230" rx="54" fill="#76EBE2"/><path fill-rule="evenodd" clip-rule="evenodd" d="M128.6 65.4h-22.6V47.4h22.6c37.3 0 67.5 31 67.5 69.1s-30.2 69.2-67.5 69.2h-22.6v-18h22.6c27.6 0 49.9-22.9 49.9-51.2s-22.3-51.1-49.9-51.1Z" fill="#000244"/></svg>
+              InDebted &middot; &copy; 2026
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- plan builder -->
+      <div class="page" id="pg-plan">
+        <div class="scroll" id="plan-scroll">
+          <div class="pg planbody">
+            <div class="h1">Let&rsquo;s get started</div>
+            <div class="greenpill" id="savingpill">You&rsquo;re saving $372.50 (25% OFF)</div>
+            <div class="plancopy" id="plancopy">Set up a payment plan to clear your <b id="cleartotal">$1,117.50</b> Oportun balance</div>
+            <div class="plancard">
+              <div class="seg"><span class="on">Weekly</span><span>Fortnightly</span><span>Monthly</span></div>
+              <div class="dpills">
+                <span class="dpill" id="pill50">50% Off</span>
+                <span class="dpill on" id="pill25">25% Off</span>
+              </div>
+              <div class="youll">You&rsquo;ll pay</div>
+              <div class="bigamt" id="planamt">$46.56</div>
+              <div class="forn">for <b id="plann">24</b> payments</div>
+              <div class="slider">
+                <div class="scale"><i style="left:0%">2</i><i style="left:29.6%">18</i><i style="left:63%">36</i><i style="left:100%">56</i></div>
+                <div class="track"></div>
+                <div class="seg50" id="seg50" style="left:0;width:29.6%"></div>
+                <div class="segfill" id="segfill" style="left:29.6%;width:11.1%"></div>
+                <div class="nbub" id="nbub" style="left:40.7%">24</div>
+                <div class="thumb" id="thumb" style="left:40.7%"></div>
+              </div>
+              <div class="unlock" id="unlock">
+                <div class="done"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f7a3d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>50% discount unlocked</div>
+                <div class="h">Unlock 50% discount</div>
+                <div class="b" id="unlockcopy">Pay <b>$5.18 less per week</b> (18 payments instead of 24) to save an extra <b>$372.50</b> total.</div>
+                <div class="lnk" id="switch18">Switch to 18 payments</div>
+              </div>
+              <div class="datein"><span>Today, 2 August 2026</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1.5" y="3" width="17" height="15.5" rx="3" stroke="#55556a" stroke-width="1.6"/><path d="M1.5 8h17M6 1.5v3M14 1.5v3" stroke="#55556a" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </div>
+              <div class="enddate">End date: <b id="enddate">10 January 2027</b></div>
+              <div class="contin" id="continue">Continue</div>
+            </div>
+            <div class="vpb">View plan breakdown <span style="font-size:12px;">&#9662;</span></div>
+          </div>
+        </div>
+        <div class="stickybar">
+          <div>
+            <span class="off">60% Off</span>
+            <div class="strike">$1,490.00</div>
+            <div class="now">$596.00</div>
+          </div>
+          <div class="r">
+            <div class="ot">One-time payment</div>
+            <span class="paynow">Pay now</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- payment details -->
+      <div class="page" id="pg-pay">
+        <div class="scroll" id="pay-scroll">
+          <div class="pg paybody">
+            <div class="crumb"><span class="home">Home</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="m1 1 5 5-5 5" stroke="#9a9ab0" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="dots">&bull;&bull;&bull;</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="m1 1 5 5-5 5" stroke="#9a9ab0" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="here">Payment method</span></div>
+            <div class="h1" style="margin-top:10px;font-size:28px;">Enter payment details</div>
+            <div class="greenpill">You&rsquo;re saving $745.00</div>
+            <div class="accord"><span class="pct">%</span><span class="t">Plan summary with discount</span>
+              <svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="m1 1 6 6 6-6" stroke="#0d0d4d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="formcard">
+              <div class="flabel">Full name</div>
+              <div class="fin" id="f-name"><span class="ph">Full name</span><span class="caret"></span></div>
+              <div class="flabel">Email</div>
+              <div class="fin" id="f-email"><span class="ph">Email</span><span class="caret"></span></div>
+              <div class="tabs">
+                <div class="tab sel" id="tab-cash">
+                  <div class="ic"><span class="cashsq"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M13.2 5.5c1.6.3 2.9 1 3.9 2l1.6-1.7c-1.1-1.1-2.5-2-4.4-2.4l.4-2.1h-2.6l-.4 1.9c-2.9.2-5 1.8-5 4.3 0 2.3 1.8 3.3 4.1 4.1 2.1.7 3.2 1.2 3.2 2.3 0 1-.9 1.7-2.6 1.7-1.9 0-3.6-.8-4.8-2l-1.7 1.8c1.2 1.3 3 2.2 5.1 2.5l-.4 2.1h2.6l.4-2c3.1-.3 5.1-2 5.1-4.4 0-2.4-2-3.3-4.4-4.1-2-.7-3-1.2-3-2.2 0-1 1-1.6 2.4-1.6.2 0 .3 0 .5.1Z" fill="#fff"/></svg></span></div>
+                  <div class="lb">Cash App Pay</div>
+                </div>
+                <div class="tab" id="tab-apple">
+                  <div class="ic"><svg width="38" height="17" viewBox="0 0 38 17"><path d="M7.1 2.9c.5-.6.8-1.4.7-2.2-.7 0-1.5.5-2 1-.4.5-.8 1.4-.7 2.1.8.1 1.5-.3 2-.9Zm.7 1.1c-1.1-.1-2 .6-2.6.6-.5 0-1.3-.6-2.2-.6-1.1 0-2.2.7-2.8 1.7C-.9 7.8 0 10.9 1.1 12.6c.6.8 1.2 1.8 2.1 1.7.8 0 1.2-.5 2.2-.5s1.3.5 2.2.5c.9 0 1.5-.8 2-1.7.6-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7 0-1.7 1.4-2.5 1.4-2.5-.7-1.1-1.9-1.3-2.3-1.4Z" fill="#000"/><text x="12.5" y="13.5" font-family="-apple-system,'Helvetica Neue'" font-size="12.6" font-weight="600" fill="#000">Pay</text></svg></div>
+                  <div class="lb">Apple Pay</div>
+                </div>
+                <div class="tab more">
+                  <svg width="19" height="17" viewBox="0 0 19 17" fill="none"><path d="M1.5 6.5 9.5 1l8 5.5M3 6.5v7M7.2 6.5v7M11.8 6.5v7M16 6.5v7M1.5 15.7h16" stroke="#55555f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="m1 1 4 4 4-4" stroke="#55555f" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+              <div class="selnote fadein" id="cashnote">
+                <span class="cashsq" style="flex:none;margin-top:1px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M13.2 5.5c1.6.3 2.9 1 3.9 2l1.6-1.7c-1.1-1.1-2.5-2-4.4-2.4l.4-2.1h-2.6l-.4 1.9c-2.9.2-5 1.8-5 4.3 0 2.3 1.8 3.3 4.1 4.1 2.1.7 3.2 1.2 3.2 2.3 0 1-.9 1.7-2.6 1.7-1.9 0-3.6-.8-4.8-2l-1.7 1.8c1.2 1.3 3 2.2 5.1 2.5l-.4 2.1h2.6l.4-2c3.1-.3 5.1-2 5.1-4.4 0-2.4-2-3.3-4.4-4.1-2-.7-3-1.2-3-2.2 0-1 1-1.6 2.4-1.6.2 0 .3 0 .5.1Z" fill="#fff"/></svg></span>
+                <span class="tx">Cash App Pay selected.<div class="sub">After submission, you will be redirected to Cash&nbsp;App to complete your payment.</div></span>
+              </div>
+              <div class="mandate fadein" id="mandate">By continuing, you allow InDebted Australia Pty Ltd to charge your Cash&nbsp;App account for this payment and future payments in accordance with their terms.</div>
+              <div class="confirm" id="confirm">Confirm</div>
+              <div class="legal">By clicking Confirm, you agree to receive records and communications electronically, and you agree to our <u>Terms &amp; Conditions</u></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- success -->
+      <div class="page" id="pg-done">
+        <div class="donewrap" id="donewrap">
+          <div class="ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="h">You&rsquo;re all set, JJ</div>
+          <div class="s">Your payment plan is active.</div>
+          <div class="receipt">
+            <div class="r"><span>Paid today</span><b>$41.38</b></div>
+            <div class="r"><span>Then</span><b>$41.38 weekly &middot; 17 payments</b></div>
+            <div class="r"><span>Plan ends</span><b>29 November 2026</b></div>
+          </div>
+          <div class="note">Confirmation on its way by SMS and email.</div>
+          <div class="brand">
+            <svg width="15" height="15" viewBox="0 0 230 230"><rect width="230" height="230" rx="54" fill="#76EBE2"/><path fill-rule="evenodd" clip-rule="evenodd" d="M128.6 65.4h-22.6V47.4h22.6c37.3 0 67.5 31 67.5 69.1s-30.2 69.2-67.5 69.2h-22.6v-18h22.6c27.6 0 49.9-22.9 49.9-51.2s-22.3-51.1-49.9-51.1Z" fill="#000244"/></svg>
+            InDebted &middot; on behalf of Oportun
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="kbd" id="kbd">
+      <div class="krow"><span class="key">Q</span><span class="key">W</span><span class="key">E</span><span class="key">R</span><span class="key">T</span><span class="key">Y</span><span class="key">U</span><span class="key">I</span><span class="key">O</span><span class="key">P</span></div>
+      <div class="krow"><span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">F</span><span class="key">G</span><span class="key">H</span><span class="key">J</span><span class="key">K</span><span class="key">L</span></div>
+      <div class="krow"><span class="key wide">&#8679;</span><span class="key">Z</span><span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span><span class="key">N</span><span class="key">M</span><span class="key wide">&#9003;</span></div>
+      <div class="krow"><span class="key wide" style="font-size:14px;">123</span><span class="key space"></span><span class="key ret">return</span></div>
+    </div>
+    <div class="sbar">
+      <svg width="12" height="20" viewBox="0 0 12 20" fill="none"><path d="M10.5 1.5 2 10l8.5 8.5" stroke="#17171c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="urlpill" id="urlpill">pay.au.indebted.co</div>
+      <svg width="21" height="21" viewBox="0 0 21 21" fill="none"><rect x="6.5" y="1.5" width="13" height="13" rx="3" stroke="#17171c" stroke-width="1.7"/><rect x="1.5" y="6.5" width="13" height="13" rx="3" fill="#fafafc" stroke="#17171c" stroke-width="1.7"/></svg>
+      <svg width="21" height="6" viewBox="0 0 21 6" fill="#17171c"><circle cx="3" cy="3" r="2.1"/><circle cx="10.5" cy="3" r="2.1"/><circle cx="18" cy="3" r="2.1"/></svg>
+    </div>
+  </div>
+
+  <!-- ····· Cash App handoff ····· -->
+  <div class="scr cashapp" id="scr-cash">
+    <div class="inner">
+      <div class="sq"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M13.2 5.5c1.6.3 2.9 1 3.9 2l1.6-1.7c-1.1-1.1-2.5-2-4.4-2.4l.4-2.1h-2.6l-.4 1.9c-2.9.2-5 1.8-5 4.3 0 2.3 1.8 3.3 4.1 4.1 2.1.7 3.2 1.2 3.2 2.3 0 1-.9 1.7-2.6 1.7-1.9 0-3.6-.8-4.8-2l-1.7 1.8c1.2 1.3 3 2.2 5.1 2.5l-.4 2.1h2.6l.4-2c3.1-.3 5.1-2 5.1-4.4 0-2.4-2-3.3-4.4-4.1-2-.7-3-1.2-3-2.2 0-1 1-1.6 2.4-1.6.2 0 .3 0 .5.1Z" fill="#fff"/></svg></div>
+      <div class="m">InDebted</div>
+      <div class="ob">On behalf of Oportun</div>
+      <div class="amt">$41.38</div>
+      <div class="then">then $41.38 weekly &middot; 17 more payments</div>
+      <div class="bal"><span class="k">Cash balance</span><span class="v">$412.10</span></div>
+      <div class="approve" id="approve"><span>Approve</span>
+        <span class="ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#04120a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+      <div class="fid">Confirm with Side Button</div>
+    </div>
+  </div>
+
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var vp = document.getElementById('vp');
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var timers = [];
+  var running = false;
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* debug: ?t=12000 fast-forwards the first run to 12s into the loop; &hold=1 freezes there */
+  var skip = (function(){ var m = /[?&]t=(\d+)/.exec(location.search); return m ? +m[1] : 0; })();
+  var hold = /[?&]hold=1/.test(location.search);
+
+  function at(t, fn){
+    if (hold && skip && t - skip > 900) return;
+    timers.push(setTimeout(fn, Math.max(0, t - skip)));
+  }
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+  function $(id){ return vp.querySelector('#'+id) || document.getElementById(id); }
+
+  function chip(n){
+    chips.forEach(function(c,i){ c.classList.toggle('on', i === n-1); });
+  }
+
+  /* small rAF tween helper */
+  function tween(dur, step, ease, done){
+    if (hold && skip){ step(1); if (done) done(); return; }
+    var t0 = null;
+    function e(x){ return ease ? (x<.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2) : x; }
+    function frame(ts){
+      if(!running) return;
+      if(t0===null) t0 = ts;
+      var p = Math.min(1,(ts-t0)/dur);
+      step(e(p));
+      if(p<1) requestAnimationFrame(frame); else if(done) done();
+    }
+    requestAnimationFrame(frame);
+  }
+  function fmtMoney(v){ return '$' + v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  /* tap ripple centred on an element (coords converted back into viewport space) */
+  function tapOn(el, dx, dy){
+    if (typeof el === 'string') el = $(el);
+    if (!el) return;
+    var vr = vp.getBoundingClientRect();
+    var scale = vr.width / 402;
+    var r = el.getBoundingClientRect();
+    var x = (r.left + r.width/2 - vr.left) / scale + (dx || 0);
+    var y = (r.top + r.height/2 - vr.top) / scale + (dy || 0);
+    var tp = $('tap');
+    tp.style.left = x+'px'; tp.style.top = y+'px';
+    tp.animate([
+      {opacity:0, transform:'translate(-50%,-50%) scale(.35)'},
+      {opacity:1, transform:'translate(-50%,-50%) scale(.9)', offset:.35},
+      {opacity:0, transform:'translate(-50%,-50%) scale(1.25)'}
+    ], {duration:620, easing:'ease-out'});
+  }
+
+  /* scroll a page's .scroll container so that `el` sits `want` px from the viewport top */
+  function scrollTo(scrollId, el, want){
+    if (typeof el === 'string') el = $(el);
+    var sc = $(scrollId);
+    if (!el || !sc) return;
+    var vr = vp.getBoundingClientRect();
+    var scale = vr.width / 402;
+    var t = getComputedStyle(sc).transform, cur = 0;
+    if (t && t !== 'none') cur = (window.DOMMatrixReadOnly ? new DOMMatrixReadOnly(t) : new WebKitCSSMatrix(t)).m42;
+    var top = (el.getBoundingClientRect().top - vr.top) / scale;
+    var target = Math.min(0, cur - (top - want));
+    var ch = sc.firstElementChild ? sc.firstElementChild.getBoundingClientRect().height / scale : 874;
+    if (ch > 874) target = Math.max(target, -(ch - 874));
+    sc.style.transform = 'translateY(' + target + 'px)';
+  }
+
+  /* type text into a stripe field */
+  function typeInto(id, text, dur){
+    var f = $(id);
+    f.classList.add('focus');
+    f.querySelector('.ph').style.display = 'none';
+    var span = document.createElement('span');
+    f.insertBefore(span, f.querySelector('.caret'));
+    var n = text.length;
+    tween(dur, function(p){ span.textContent = text.slice(0, Math.round(n*p)); });
+  }
+
+  /* ---------- slider maths ---------- */
+  /* value 2..56 → percent; discount zones: <=18 → 50% (total $745), >18 → 25% (total $1,117.50) */
+  function pct(v){ return (v-2)/54*100; }
+  var BASE = new Date(2026, 7, 2); /* 2 Aug 2026 */
+  function endDate(n){
+    var d = new Date(BASE.getTime() + (n-1)*7*86400000);
+    var m = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return d.getDate() + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function setSlider(v){
+    var p = pct(v);
+    $('thumb').style.left = p+'%';
+    $('nbub').style.left = p+'%';
+    $('nbub').textContent = Math.round(v);
+    var p18 = pct(18);
+    if (p > p18){ $('seg50').style.width = p18+'%'; $('segfill').style.left = p18+'%'; $('segfill').style.width = (p-p18)+'%'; }
+    else { $('seg50').style.width = p+'%'; $('segfill').style.width = '0%'; }
+    var n = Math.round(v);
+    var total = n <= 18 ? 745.00 : 1117.50;
+    var amt = Math.floor(total/n*100)/100;
+    $('planamt').textContent = fmtMoney(amt);
+    $('plann').textContent = n;
+    $('enddate').textContent = endDate(n);
+  }
+
+  /* ---------- scene graph ---------- */
+  function render(){
+    vp.innerHTML = document.getElementById('tpl').innerHTML;
+    chips.forEach(function(c){ c.classList.remove('on'); });
+  }
+
+  function show(id){ var el = $(id); if(el) el.classList.add('cur'); }
+  function hide(id){ var el = $(id); if(el) el.classList.remove('cur'); }
+  function pageTo(from, to){
+    var f = $(from), t = $(to);
+    if(f){ f.classList.remove('cur'); f.classList.add('gone'); }
+    if(t){ t.classList.remove('gone'); t.classList.add('cur'); }
+  }
+  function setStatus(light, showReturn){
+    var s = $('status');
+    s.classList.toggle('light', !!light);
+    s.classList.toggle('show-return', !!showReturn);
+    $('homebar').classList.toggle('light', !!light);
+  }
+
+  /* ---------- the timeline ---------- */
+  function play(){
+    running = true;
+    render();
+    setStatus(false, false);
+    chip(1);
+
+    /* S1 · Messages */
+    at(600, function(){ $('bubble').classList.add('pop'); });
+    at(3300, function(){ tapOn('smslink'); });
+    at(4000, function(){
+      /* open Safari */
+      chip(2);
+      hide('scr-msg'); show('scr-safari');
+      setStatus(false, true);
+    });
+
+    /* S2 · load → hero → scroll to offers */
+    at(5100, function(){ $('urlpill').textContent = 'my.indebted.co'; });
+    at(5400, function(){
+      pageTo('pg-load','pg-home');
+      setStatus(true, true);
+    });
+    at(5850, function(){
+      ['hi1','hi2','hi3','hi4','hi5','heroamt'].forEach(function(id){ $(id).classList.add('on'); });
+      tween(900, function(p){ $('heroamt').textContent = fmtMoney(1490*p); }, true);
+    });
+    at(7600, function(){ scrollTo('home-scroll', vp.querySelector('.lto .h'), 96); });
+    at(9100, function(){ setStatus(false, true); });
+    at(10600, function(){ scrollTo('home-scroll', 'plan-cta', 560); });
+    at(12100, function(){ tapOn('plan-cta'); });
+
+    /* S3 · plan builder */
+    at(12800, function(){
+      chip(3);
+      pageTo('pg-home','pg-plan');
+      setStatus(true, true);
+      setSlider(24);
+    });
+    at(14000, function(){ $('nbub').classList.add('on'); });
+    at(14300, function(){ tween(1500, function(p){ setSlider(24 + (35-24)*p); }, true); });
+    at(16000, function(){
+      $('unlockcopy').innerHTML = 'Pay just <b>$9.46 more per week</b> (18 payments instead of 35) to save an extra <b>$372.50</b> total.';
+    });
+    at(17400, function(){ tapOn('switch18'); });
+    at(17900, function(){
+      tween(900, function(p){ setSlider(35 + (18-35)*p); }, true, function(){
+        /* 50% unlocked */
+        $('pill25').classList.remove('on');
+        $('pill50').classList.add('on');
+        $('unlock').classList.add('won');
+        var sp = $('savingpill');
+        sp.textContent = 'You’re saving $745.00 (50% OFF)';
+        sp.classList.add('pop');
+        $('cleartotal').textContent = '$745.00';
+      });
+    });
+    at(19400, function(){ scrollTo('plan-scroll', 'continue', 640); $('nbub').classList.remove('on'); });
+    at(20700, function(){ tapOn('continue'); });
+
+    /* S4 · payment details */
+    at(21400, function(){
+      chip(4);
+      pageTo('pg-plan','pg-pay');
+      setStatus(false, true);
+      $('cashnote').classList.add('on');
+    });
+    at(22300, function(){ $('kbd').classList.add('up'); });
+    at(22600, function(){ typeInto('f-name', 'JJ McKinnon', 1100); });
+    at(24200, function(){ $('f-name').classList.remove('focus'); typeInto('f-email', 'josh.mckinnon@indebted.co', 1600); });
+    at(26100, function(){ $('f-email').classList.remove('focus'); $('kbd').classList.remove('up'); });
+    at(26600, function(){
+      $('tab-cash').classList.add('pulse');
+      $('cashnote').classList.add('on');
+      $('mandate').classList.add('on');
+    });
+    at(27400, function(){ scrollTo('pay-scroll', 'confirm', 620); });
+    at(28300, function(){ tapOn('confirm'); });
+
+    /* S5 · Cash App */
+    at(29000, function(){
+      chip(5);
+      show('scr-cash');
+      setStatus(true, false);
+    });
+    at(31400, function(){ tapOn('approve'); });
+    at(31900, function(){ $('approve').classList.add('done'); });
+    at(32700, function(){
+      hide('scr-cash');
+      pageTo('pg-pay','pg-done');
+      setStatus(false, true);
+      $('urlpill').textContent = 'my.indebted.co';
+    });
+
+    /* S6 · success */
+    at(33200, function(){
+      chip(6);
+      $('donewrap').classList.add('on');
+    });
+
+    /* loop */
+    at(38500, function(){ vp.style.transition = 'opacity .5s'; vp.style.opacity = '0'; });
+    at(39100, function(){
+      vp.style.opacity = '1';
+      skip = 0;
+      stop(); play();
+    });
+  }
+
+  function stop(){
+    running = false;
+    clearTimers();
+  }
+
+  /* reduced motion: static settlement screen */
+  function staticFrame(){
+    render();
+    hide('scr-msg'); show('scr-safari');
+    pageTo('pg-load','pg-home');
+    ['hi1','hi2','hi3','hi4','hi5','heroamt'].forEach(function(id){ $(id).classList.add('on'); });
+    $('heroamt').textContent = fmtMoney(1490);
+    $('urlpill').textContent = 'my.indebted.co';
+    $('home-scroll').style.transition = 'none';
+    $('home-scroll').style.transform = 'translateY(-436px)';
+    setStatus(false, true);
+    chip(2);
+  }
+
+  /* ---------- deck integration: restart when the slide becomes active ---------- */
+  function boot(){
+    if (reduced){ staticFrame(); return; }
+    var host = null;
+    try { host = window.frameElement && window.frameElement.closest('section'); } catch(e){ host = null; }
+    if (!host){ play(); return; }
+    var isActive = function(){ return host.hasAttribute('data-deck-active'); };
+    new MutationObserver(function(){
+      if (isActive() && !running){ stop(); play(); }
+      else if (!isActive() && running){ stop(); }
+    }).observe(host, {attributes:true, attributeFilter:['data-deck-active']});
+    if (isActive()) play(); else render();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
