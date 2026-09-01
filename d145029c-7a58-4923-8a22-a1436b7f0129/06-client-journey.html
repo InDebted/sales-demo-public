@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>06 · Typical Client Journey — InDebted Product Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #474CDE;
+      --primary-light: rgba(71, 76, 222, 0.08);
+      --secondary: #76EBE2;
+      --secondary-light: rgba(118, 235, 226, 0.1);
+      --accent-orange: #f79009;
+      --bg: #ecedfc;
+      --surface: #ffffff;
+      --text: #000244;
+      --text-secondary: #717680;
+      --text-dim: #a4a7ae;
+      --border: #d5d7da;
+      --divider: #f6f6f6;
+      --dark: #000244;
+      --error: #f04438;
+      --error-light: rgba(240,68,56, 0.08);
+      --success: #039855;
+      --success-light: rgba(18,183,106, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; line-height: 1.6;
+    }
+
+    /* ===== Workshop Nav ===== */
+    .workshop-nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100; padding: 0.75rem 1.5rem;
+    }
+    .workshop-nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+    .nav-home {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      color: var(--text-secondary); text-decoration: none; font-weight: 600;
+      padding: 0.375rem 0.625rem; border-radius: 6px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-home:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-crumbs { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .nav-crumbs strong { color: var(--text); font-weight: 600; }
+    .nav-right { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      padding: 0.5rem 0.875rem; border-radius: 8px;
+      border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .nav-btn.primary:hover { background: #545fe3; color: #fff; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(135deg, #000244 0%, #071c55 50%, #1b3166 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute;
+      top: -30%; right: -15%; width: 70%; height: 180%;
+      background: radial-gradient(ellipse, rgba(71,76,222,0.25) 0%, transparent 60%);
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+    .section-tag {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary);
+      margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--secondary); }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 1.25rem; max-width: 900px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b4c1f8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem; color: rgba(255,255,255,0.7);
+      max-width: 680px; line-height: 1.7;
+    }
+
+    /* ===== Section ===== */
+    .section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-head { margin-bottom: 2rem; }
+    .eyebrow {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+    }
+    .section-head h2 {
+      font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    .section-head p {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; line-height: 1.6;
+    }
+
+    /* ===== Journey Timeline ===== */
+    .journey {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+    }
+
+    .journey-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+    }
+
+    .journey-flow::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      left: 6%;
+      right: 6%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+      z-index: 0;
+    }
+
+    .journey-phase {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0 0.75rem;
+    }
+
+    .journey-phase-dot {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary);
+      box-shadow: 0 4px 12px rgba(71,76,222,0.15);
+    }
+
+    .journey-phase-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+
+    .journey-phase-name {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .journey-phase-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* ===== Phase Deep Dives ===== */
+    .phase-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .phase-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+    }
+
+    .phase-card-head {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.5rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(71,76,222,0.02) 100%);
+    }
+
+    .phase-card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .phase-card-title h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .phase-card-title p {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .phase-card-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .phase-card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .phase-card-col {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .phase-card-col:first-child {
+      border-right: 1px solid var(--divider);
+    }
+
+    .phase-card-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .phase-deliverables {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .phase-deliverables li {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      font-size: 0.8125rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .phase-deliverables li::before {
+      content: '✓';
+      color: var(--success);
+      font-weight: 700;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      margin-top: 0.15rem;
+    }
+
+    .phase-deliverables li strong {
+      font-weight: 700;
+    }
+
+    .phase-from-client {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .phase-from-client li {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .phase-from-client li::before {
+      content: '→';
+      color: var(--primary);
+      font-weight: 700;
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      margin-top: 0.2rem;
+    }
+
+    /* ===== Square Peg / Round Hole Visual ===== */
+    .peghole {
+      background: linear-gradient(180deg, #000244 0%, #071c55 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .peghole::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 60%; height: 200%;
+      background: radial-gradient(ellipse, rgba(118,235,226,0.06) 0%, transparent 60%);
+    }
+
+    .peghole-inner {
+      position: relative; z-index: 1;
+    }
+
+    .peghole-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem;
+    }
+
+    .peghole-title {
+      font-size: 1.875rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      max-width: 700px;
+    }
+
+    .peghole-title em {
+      font-style: normal;
+      color: var(--secondary);
+    }
+
+    .peghole-sub {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.7);
+      line-height: 1.6; max-width: 700px; margin-bottom: 2.5rem;
+    }
+
+    .peghole-states {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .peghole-state {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 2rem;
+    }
+
+    .peghole-state-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .peghole-state.before .peghole-state-label { color: var(--accent-orange); }
+    .peghole-state.after .peghole-state-label { color: var(--secondary); }
+
+    /* Morph animation centerpiece */
+    .peghole-anim {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 1rem 0 2.5rem;
+    }
+
+    .morph-stage {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .morph-hole {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(118,235,226,0.45);
+      box-sizing: border-box;
+    }
+
+    .morph-glow {
+      position: absolute;
+      inset: -22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center,
+        rgba(118,235,226,0) 55%,
+        rgba(118,235,226,0.22) 75%,
+        rgba(118,235,226,0) 100%);
+      opacity: 0;
+      animation: peghole-glow 7s ease-in-out infinite alternate;
+    }
+
+    .morph-peg {
+      position: relative;
+      width: 168px;
+      height: 168px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-orange);
+      border-radius: 4px;
+      transform: rotate(-8deg);
+      color: #fff;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 12px 32px rgba(247,144,9,0.3);
+      animation: peghole-morph 7s cubic-bezier(.6,.05,.25,1) infinite alternate;
+      will-change: transform, border-radius, background-color, width, height;
+    }
+
+    @keyframes peghole-morph {
+      0%        { width: 168px; height: 168px; border-radius: 4px;  background: var(--accent-orange); color: #fff;        transform: rotate(-8deg); }
+      20%       { width: 168px; height: 168px; border-radius: 4px;  background: var(--accent-orange); color: #fff;        transform: rotate(-8deg); }
+      55%       { width: 190px; height: 190px; border-radius: 16px; background: var(--accent-orange); color: #fff;        transform: rotate(-2deg); }
+      65%       { width: 210px; height: 210px; border-radius: 36px; background: var(--secondary);     color: var(--dark); transform: rotate(0deg); }
+      80%, 100% { width: 240px; height: 240px; border-radius: 50%;  background: var(--secondary);     color: var(--dark); transform: rotate(0deg); }
+    }
+
+    @keyframes peghole-glow {
+      0%, 60%   { opacity: 0; }
+      80%, 100% { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .morph-peg, .morph-glow { animation: none; }
+      .morph-peg {
+        width: 240px; height: 240px;
+        border-radius: 50%;
+        background: var(--secondary);
+        color: var(--dark);
+        transform: rotate(0);
+      }
+      .morph-glow { opacity: 1; }
+    }
+
+    .peghole-state-narrative {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.55;
+    }
+
+    /* ===== Logo Wall ===== */
+    .logo-wall {
+      margin-bottom: 3rem;
+    }
+
+    .logo-wall-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo-wall-head h2 {
+      font-size: 1.875rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-wall-head h2 em { font-style: normal; color: var(--primary); }
+
+    .logo-wall-head p {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      line-height: 1.55;
+    }
+
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.875rem;
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+    }
+
+    .logo-tile {
+      aspect-ratio: 1.6 / 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 1.75rem;
+    }
+
+    .logo-tile img {
+      width: 70%;
+      height: 55%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .logo-tile:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .logo-tile.case-study {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(71,76,222,0.25);
+    }
+
+    .logo-tile.case-study img {
+      filter: brightness(0) invert(1);
+    }
+
+    .logo-tile.case-study::before {
+      content: 'NEW';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 0.15rem 0.4rem;
+      background: var(--secondary);
+      color: var(--dark);
+      border-radius: 3px;
+    }
+
+    .logo-tile-region {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 0.625rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .logo-tile.case-study .logo-tile-region {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .logo-wall-foot {
+      margin-top: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--success-light);
+      border-left: 3px solid var(--success);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .logo-wall-foot p {
+      font-size: 0.9375rem;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .logo-wall-foot p strong {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    /* ===== KPI / What good looks like ===== */
+    .good-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .good-card {
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,2,68,0.04);
+    }
+
+    .good-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .good-card h4 {
+      font-size: 0.9375rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .good-card p {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+
+    .good-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--divider);
+    }
+
+    .good-card li {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.4rem;
+      align-items: flex-start;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .good-card li::before {
+      content: '·';
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* ===== Closing frame ===== */
+    .close-frame {
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .close-frame h3 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.3; margin-bottom: 0.75rem;
+    }
+    .close-frame p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.85);
+      max-width: 640px; margin: 0 auto; line-height: 1.55;
+    }
+
+    /* ===== Footer Nav ===== */
+    .section-footer {
+      max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .foot-nav {
+      padding: 1.5rem 1.75rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+    }
+    .foot-nav:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .foot-nav.next {
+      text-align: right;
+      background: linear-gradient(135deg, var(--primary) 0%, #545fe3 100%);
+      color: #fff; border-color: var(--primary);
+    }
+    .foot-nav-dir {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem;
+    }
+    .foot-nav.next .foot-nav-dir { color: rgba(255,255,255,0.7); }
+    .foot-nav-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    @media (max-width: 880px) {
+      .hero h1 { font-size: 2rem; }
+      .journey-flow { grid-template-columns: 1fr; gap: 2rem; }
+      .journey-flow::before { display: none; }
+      .phase-card-head { grid-template-columns: 1fr; gap: 0.75rem; }
+      .phase-card-body { grid-template-columns: 1fr; }
+      .phase-card-col:first-child { border-right: none; border-bottom: 1px solid var(--divider); }
+      .peghole-states { grid-template-columns: 1fr; }
+      .logo-grid { grid-template-columns: repeat(3, 1fr); }
+      .good-grid { grid-template-columns: 1fr; }
+      .section-footer { grid-template-columns: 1fr; }
+      .foot-nav.next { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Workshop Nav -->
+  <nav class="workshop-nav">
+    <div class="workshop-nav-inner">
+      <div class="nav-left">
+        <a class="nav-home" href="index.html"><span>←</span> Workshop</a>
+        <div class="nav-crumbs">06 / 08 · <strong>Typical client journey</strong></div>
+      </div>
+      <div class="nav-right">
+        <a class="nav-btn" href="05-comply-deep-dive.html">← Prev</a>
+        <a class="nav-btn primary" href="07-operating-model.html">Next →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="section-tag">Section 06</div>
+      <h1>What an InDebted client journey <em>actually looks like</em>.</h1>
+      <p class="hero-sub">Scoping → loading → live operations → reporting. Concrete deliverables at each phase, drawn from how every client live on the platform got there. Then a look at where you'd land — alongside the lenders already running on Collect.</p>
+    </div>
+  </section>
+
+  <!-- Journey overview -->
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">End-to-end · A → Z</div>
+      <h2>Four phases, every client takes them</h2>
+      <p>It's the playbook every InDebted client moves through — same shape, different scope.</p>
+    </div>
+
+    <div class="journey">
+      <div class="journey-flow">
+        <div class="journey-phase">
+          <div class="journey-phase-dot">A</div>
+          <div class="journey-phase-time">Weeks 1 – 4</div>
+          <div class="journey-phase-name">Scoping</div>
+          <div class="journey-phase-desc">Portfolio definition, data fields, compliance, channel mix, KPIs</div>
+        </div>
+        <div class="journey-phase">
+          <div class="journey-phase-dot">B</div>
+          <div class="journey-phase-time">Weeks 4 – 8</div>
+          <div class="journey-phase-name">Loading</div>
+          <div class="journey-phase-desc">Integration build, file/API exchange, test placements, UAT</div>
+        </div>
+        <div class="journey-phase">
+          <div class="journey-phase-dot">C</div>
+          <div class="journey-phase-time">Week 8+</div>
+          <div class="journey-phase-name">Operations</div>
+          <div class="journey-phase-desc">Live placements, decisioned engagement, payments, escalations</div>
+        </div>
+        <div class="journey-phase">
+          <div class="journey-phase-dot">Z</div>
+          <div class="journey-phase-time">Continuous</div>
+          <div class="journey-phase-name">Reporting</div>
+          <div class="journey-phase-desc">Daily KPIs, weekly reviews, monthly business review, regulator-ready audit</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Phase deep-dives -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="phase-cards">
+
+      <div class="phase-card">
+        <div class="phase-card-head">
+          <div class="phase-card-num">A</div>
+          <div class="phase-card-title">
+            <h3>Scoping</h3>
+            <p>Defining what we're collecting, on whose behalf, under what rules</p>
+          </div>
+          <div class="phase-card-time">~ 4 weeks</div>
+        </div>
+        <div class="phase-card-body">
+          <div class="phase-card-col">
+            <div class="phase-card-label">What we deliver</div>
+            <ul class="phase-deliverables">
+              <li><strong>Portfolio definition document</strong> — segmentation, balance bands, DPD ranges</li>
+              <li><strong>Data dictionary</strong> — every field, source, validation rule</li>
+              <li><strong>Compliance ruleset</strong> — Financial Conduct Authority (FCA), your internal policy</li>
+              <li><strong>Channel-mix proposal</strong> — what's allowed, when, with what consent</li>
+              <li><strong>KPI scorecard</strong> — agreed definitions before placement starts</li>
+            </ul>
+          </div>
+          <div class="phase-card-col">
+            <div class="phase-card-label">Our ask of our client</div>
+            <ul class="phase-from-client">
+              <li>Portfolio owner per segment (single accountable name)</li>
+              <li>Compliance review of our ruleset, with sign-off</li>
+              <li>Sample placement file, real anonymised data</li>
+              <li>Customer consent posture — what's already collected, what's not</li>
+              <li>Approval thresholds — who can settle below what %, plan length, etc.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-head">
+          <div class="phase-card-num">B</div>
+          <div class="phase-card-title">
+            <h3>Loading</h3>
+            <p>Building the connection between your systems and Collect</p>
+          </div>
+          <div class="phase-card-time">~ 4 weeks</div>
+        </div>
+        <div class="phase-card-body">
+          <div class="phase-card-col">
+            <div class="phase-card-label">What we deliver</div>
+            <ul class="phase-deliverables">
+              <li><strong>SFTP / API integration</strong> — daily placements, transactions, direct payments</li>
+              <li><strong>Test placement environment</strong> — full lifecycle dry runs</li>
+              <li><strong>Customer Portal</strong> — InDebted-branded, EN, mobile-first self-serve</li>
+              <li><strong>Comply firewall configuration</strong> — UK ruleset live, audit trail wired</li>
+              <li><strong>Stripe + payments setup</strong> — local processing, settlement configuration</li>
+            </ul>
+          </div>
+          <div class="phase-card-col">
+            <div class="phase-card-label">Our ask of our client</div>
+            <ul class="phase-from-client">
+              <li>Test SFTP access, or API access for custom integrations</li>
+              <li>Brand assets — logo, colour palette, tone of voice guide</li>
+              <li>Stripe account portal — KYC business and personnel data confirmed</li>
+              <li>UAT participants — minimum 2 of your ops team + 1 compliance</li>
+              <li>Sign-off on "go live" criteria — what does success look like</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-head">
+          <div class="phase-card-num">C</div>
+          <div class="phase-card-title">
+            <h3>Operations</h3>
+            <p>The system live, accounts decisioned, customers engaged</p>
+          </div>
+          <div class="phase-card-time">Week 8 onwards</div>
+        </div>
+        <div class="phase-card-body">
+          <div class="phase-card-col">
+            <div class="phase-card-label">What we deliver</div>
+            <ul class="phase-deliverables">
+              <li><strong>Daily placements</strong> — Collect ingests, validates, decisions</li>
+              <li><strong>Multi-channel engagement</strong> — email, SMS, letter, portal</li>
+              <li><strong>Self-serve resolution</strong> — settle, plan, dispute in-app</li>
+              <li><strong>Daily reconciliation</strong> — payment events flowing back to your systems</li>
+              <li><strong>Specialist escalation queue</strong> — for complex intent or vulnerable customers</li>
+            </ul>
+          </div>
+          <div class="phase-card-col">
+            <div class="phase-card-label">Our ask of our client</div>
+            <ul class="phase-from-client">
+              <li>Disputes queue — single inbox or system to receive escalations</li>
+              <li>Operational owner — single point of contact for live issues</li>
+              <li>Defined hardship policy — terms we're allowed to offer</li>
+              <li>Off-portfolio actions — timely transaction notifications</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-card-head">
+          <div class="phase-card-num">Z</div>
+          <div class="phase-card-title">
+            <h3>Reporting</h3>
+            <p>Every metric, every event, queryable and shareable</p>
+          </div>
+          <div class="phase-card-time">Continuous</div>
+        </div>
+        <div class="phase-card-body">
+          <div class="phase-card-col">
+            <div class="phase-card-label">What we deliver</div>
+            <ul class="phase-deliverables">
+              <li><strong>Live client portal</strong> — KPIs refreshed continuously</li>
+              <li><strong>Daily KPI digest</strong> — placements, contacts, payments, settlements</li>
+              <li><strong>Weekly operations review</strong> — anomalies, trends, action items</li>
+              <li><strong>Monthly business review</strong> — spin-down, roll-rate, cohort performance</li>
+              <li><strong>Regulator-ready audit pack</strong> — exportable in &lt;1 hour for any account</li>
+            </ul>
+          </div>
+          <div class="phase-card-col">
+            <div class="phase-card-label">Our ask of our client</div>
+            <ul class="phase-from-client">
+              <li>Confirmation of agreed KPI definitions before pilot launch</li>
+              <li>Regular review cadence — weekly/monthly scheduled, not ad-hoc</li>
+              <li>Internal stakeholders for the monthly business review (ops + risk + finance)</li>
+              <li>Feedback channel for KPI definitions to evolve</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- What good looks like -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="section-head">
+      <div class="eyebrow">What "good" looks like</div>
+      <h2>Concrete data categories</h2>
+      <p>Every category below is what we already deliver to live clients. Your pilot would generate the same.</p>
+    </div>
+
+    <div class="good-grid">
+      <div class="good-card">
+        <div class="good-icon">DX</div>
+        <h4>Data exchange</h4>
+        <p>Versioned schema, daily file or real-time event ingestion, structured error feedback.</p>
+      </div>
+
+      <div class="good-card">
+        <div class="good-icon">RP</div>
+        <h4>Reporting</h4>
+        <p>Live dashboards plus exportable data. Spin-down, roll-rate, channel performance, per-cohort views.</p>
+      </div>
+
+      <div class="good-card">
+        <div class="good-icon">KPI</div>
+        <h4>KPIs</h4>
+        <p>Same definitions as Westpac, Citizens, Klarna — calibrated for UK benchmarks but consistent across clients.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Logo wall -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="logo-wall">
+      <div class="logo-wall-head">
+        <div>
+          <h2>Where you'd <em>sit next</em></h2>
+          <p>The clients already running on the platform. Different geographies, different products, same operating model. You'd join this list.</p>
+        </div>
+      </div>
+
+      <div class="logo-grid">
+        <div class="logo-tile"><img src="images/logos/westpac.svg" alt="Westpac"><div class="logo-tile-region">🇦🇺</div></div>
+        <div class="logo-tile"><img src="images/logos/amex.svg" alt="American Express"><div class="logo-tile-region">🇦🇺</div></div>
+        <div class="logo-tile"><img src="images/logos/zip.svg" alt="Zip"><div class="logo-tile-region">🇦🇺</div></div>
+        <div class="logo-tile"><img src="images/logos/klarna.svg" alt="Klarna"><div class="logo-tile-region">🇦🇺 🇺🇸 🇨🇦</div></div>
+        <div class="logo-tile"><img src="images/logos/afterpay.svg" alt="Afterpay"><div class="logo-tile-region">🇦🇺 🇺🇸 🇨🇦</div></div>
+        <div class="logo-tile"><img src="images/logos/tmobile.svg" alt="T-Mobile"><div class="logo-tile-region">🇺🇸</div></div>
+        <div class="logo-tile"><img src="images/logos/tabby.png" alt="Tabby"><div class="logo-tile-region">🇦🇪</div></div>
+        <div class="logo-tile"><img src="images/logos/enbd.svg" alt="ENBD"><div class="logo-tile-region">🇦🇪</div></div>
+        <div class="logo-tile"><img src="images/case-study-logo.svg" alt="Klarna"><div class="logo-tile-region">🇬🇧</div></div>
+      </div>
+
+      <div class="logo-wall-foot">
+        <p><strong>Why this matters:</strong> the path is well-trodden. Citizens, Westpac, and ENBD have all walked it. We know what to expect, what to ask for, and how to support a client through it — which means less risk and faster time-to-value for you.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing -->
+  <section class="section" style="padding-top: 0; padding-bottom: 2rem;">
+    <div class="close-frame">
+      <h3>Now we know what good looks like.<br>Section 07 walks through how the operating model runs day-to-day.</h3>
+      <p>The journey is the same for every client we onboard. The operating model is shared. Next, we go bucket-by-bucket through what running on the platform actually looks like once you're live — and where the levers are to tune performance.</p>
+    </div>
+  </section>
+
+  <!-- Footer Nav -->
+  <div class="section-footer">
+    <a class="foot-nav" href="05-comply-deep-dive.html">
+      <div class="foot-nav-dir">← Previous · 05</div>
+      <div class="foot-nav-title">Comply deep dive</div>
+    </a>
+    <a class="foot-nav next" href="07-operating-model.html">
+      <div class="foot-nav-dir">Next · 07</div>
+      <div class="foot-nav-title">Operating model →</div>
+    </a>
+  </div>
+
+</body>
+</html>
